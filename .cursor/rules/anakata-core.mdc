@@ -11,7 +11,7 @@ Three systems for Anakata (Galápagos yacht expeditions, yachts ANAMARA and ANAT
 - **Booking Engine** (anakata.co) — the shop window: renders only what the RMS publishes, captures behaviour and requests.
 - **CRM** — the relationship: contacts, identity, attribution, consent, lifecycle, segments, journeys, deals, tasks, conversations. **The CRM has no write path to money.**
 
-Repos (all open in one Cursor multi-root workspace). The RMS and CRM are separate **systems** (separate API modules and databases) but share **one frontend**, `anakata-panel`:
+Repos (all open in one Cursor multi-root workspace). The RMS and CRM are separate **systems** (separate API modules sharing one database) but share **one frontend**, `anakata-panel`:
 
 | Repo | What | Port |
 |---|---|---|

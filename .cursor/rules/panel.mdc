@@ -5,7 +5,7 @@ alwaysApply: true
 
 # anakata-panel — RMS + CRM in one app
 
-The RMS and the CRM are **two systems** with separate API modules and databases (dev decisions A2, A3, A11). This app puts both in one staff UI. Keep the boundary in the frontend, too.
+The RMS and the CRM are **two systems** with separate API modules sharing one database (dev decisions A2, A3, A11). This app puts both in one staff UI. Keep the boundary in the frontend, too.
 
 ## Structure
 ```
