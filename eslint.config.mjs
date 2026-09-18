@@ -8,12 +8,19 @@ export default withNuxt(
   {
     settings: {
       'better-tailwindcss': {
-        entryPoint: 'app/assets/css/main.css',
+        entryPoint: '../anakata-ui/app/assets/css/main.css',
         attributes: [
           ...getDefaultAttributes(),
           ['^v-bind:ui$', [{ match: 'objectValues' }]]
         ]
       }
+    },
+    rules: {
+      'better-tailwindcss/no-unknown-classes': ['error', {
+        ignore: [
+          '^(app|brand|brand-mark--dark|brand-mark--light|navsec|nav|nav-badge|sideprow|tophead|tophead--rms|tophead--crm|drbar-slot|who|mono|sysbadge|sys-rms|api-status|api-status--ok|api-status--down|placeholder-copy|section-switch|fchip|on)$'
+        ]
+      }]
     }
   }
 )

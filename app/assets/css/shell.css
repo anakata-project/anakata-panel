@@ -1,0 +1,211 @@
+.app {
+  display: flex;
+  min-height: 100vh;
+}
+
+aside {
+  width: 220px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  background: var(--forest);
+  border-right: 1px solid var(--hair);
+  padding: 24px 0;
+}
+
+.brand {
+  font-family: 'Oswald', sans-serif;
+  letter-spacing: .3em;
+  font-size: 15px;
+  padding: 0 22px 22px;
+  border-bottom: 1px solid var(--hair);
+}
+
+.brand img {
+  height: 12px;
+  display: block;
+}
+
+.brand-mark--dark {
+  display: none;
+}
+
+.brand-mark--light {
+  display: block;
+}
+
+.dark .brand-mark--dark {
+  display: block;
+}
+
+.dark .brand-mark--light {
+  display: none;
+}
+
+.brand small {
+  display: block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8.5px;
+  letter-spacing: .28em;
+  color: var(--iv38);
+  margin-top: 6px;
+}
+
+.navsec {
+  padding: 18px 22px 6px;
+  color: var(--iv38);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8.5px;
+  letter-spacing: .26em;
+  text-transform: uppercase;
+}
+
+.nav a {
+  display: block;
+  padding: 10px 22px;
+  color: var(--iv62);
+  text-decoration: none;
+  font-size: 13px;
+  border-left: 2px solid transparent;
+  cursor: pointer;
+}
+
+.nav a.on {
+  color: var(--ivory);
+  border-left-color: var(--coral);
+  background: rgba(232, 86, 70, .07);
+}
+
+.nav a:hover {
+  color: var(--ivory);
+}
+
+.nav-badge {
+  display: none;
+  margin-left: 6px;
+}
+
+.sideprow {
+  width: 36px;
+  height: 19px;
+  display: block;
+  margin: 28px auto 0;
+  padding: 0;
+  margin-top: auto;
+  padding-top: 28px;
+}
+
+main {
+  flex: 1;
+  min-width: 0;
+  padding: 28px 34px 80px;
+}
+
+.tophead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.tophead--rms {
+  margin-bottom: 26px;
+  gap: 20px;
+}
+
+.tophead--crm {
+  margin-bottom: 24px;
+  gap: 16px;
+}
+
+.tophead h1 {
+  margin: 0;
+}
+
+.drbar-slot {
+  display: none;
+}
+
+.who {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.who .mono {
+  color: var(--iv38);
+}
+
+.fchip {
+  appearance: none;
+  border: 1px solid var(--hair);
+  border-radius: 0;
+  padding: 6px 14px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--iv62);
+  cursor: pointer;
+  background: transparent;
+}
+
+.fchip.on {
+  border-color: var(--coral);
+  color: var(--coral);
+}
+
+.fchip:focus-visible {
+  outline: 1px solid var(--coral);
+  outline-offset: 2px;
+}
+
+.section-switch {
+  display: flex;
+  gap: 8px;
+}
+
+.sysbadge {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8px;
+  letter-spacing: .14em;
+  padding: 2px 7px;
+  border: 1px solid var(--hair);
+  color: var(--iv62);
+  white-space: nowrap;
+}
+
+.sysbadge.sys-rms {
+  border-color: var(--sand);
+  color: var(--sand);
+}
+
+.api-status {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--iv38);
+  white-space: nowrap;
+}
+
+.api-status--ok {
+  color: var(--ok);
+}
+
+.api-status--down {
+  color: var(--coral);
+}
+
+.placeholder-copy {
+  padding: 20px;
+  color: var(--iv62);
+}
+
+@media (max-width: 800px) {
+  aside {
+    display: none;
+  }
+}

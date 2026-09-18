@@ -1,64 +1,62 @@
-# Nuxt Starter Template
+# anakata-panel
 
-[![Nuxt UI](https://img.shields.io/badge/Made%20with-Nuxt%20UI-00DC82?logo=nuxt&labelColor=020420)](https://ui.nuxt.com)
+Staff SPA for **RMS** and **CRM** in one Nuxt 4 app. The URL decides the section (`/rms/…` vs `/crm/…`). Both sides call the same `useApi()` from the `anakata-ui` layer.
 
-Use this template to get started with [Nuxt UI](https://ui.nuxt.com) quickly.
+| | |
+|---|---|
+| Port | **3001** |
+| Render | SPA (`ssr: false`) |
+| Layer | `extends: ['../anakata-ui']` |
+| API | `NUXT_PUBLIC_API_BASE` (default `http://localhost:8000`) |
 
-- [Live demo](https://starter-template.nuxt.dev/)
-- [Documentation](https://ui.nuxt.com/docs/getting-started/installation/nuxt)
-
-<a href="https://starter-template.nuxt.dev/" target="_blank">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://ui.nuxt.com/assets/templates/nuxt/starter-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://ui.nuxt.com/assets/templates/nuxt/starter-light.png">
-    <img alt="Nuxt Starter Template" src="https://ui.nuxt.com/assets/templates/nuxt/starter-light.png" width="830" height="466">
-  </picture>
-</a>
-
-> The starter template for Vue is on https://github.com/nuxt-ui-templates/starter-vue.
-
-## Quick Start
-
-```bash [Terminal]
-npm create nuxt@latest -- -t ui
-```
-
-## Deploy your own
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-name=starter&repository-url=https%3A%2F%2Fgithub.com%2Fnuxt-ui-templates%2Fstarter&demo-image=https%3A%2F%2Fui.nuxt.com%2Fassets%2Ftemplates%2Fnuxt%2Fstarter-dark.png&demo-url=https%3A%2F%2Fstarter-template.nuxt.dev%2F&demo-title=Nuxt%20Starter%20Template&demo-description=A%20minimal%20template%20to%20get%20started%20with%20Nuxt%20UI.)
+The API must already allow this origin. CORS is configured on the API via `FRONTEND_PANEL_URL=http://localhost:3001`.
 
 ## Setup
 
-Make sure to install the dependencies:
-
 ```bash
 pnpm install
+cp .env.example .env
 ```
 
-## Development Server
+`.env`:
 
-Start the development server on `http://localhost:3000`:
+```
+NUXT_PUBLIC_API_BASE=http://localhost:8000
+```
+
+## Run
+
+From the Cursor workspace, use **Anakata: start everything** — it starts the API and `pnpm dev --port 3001` for this app.
+
+Or locally:
 
 ```bash
 pnpm dev
 ```
 
-## Production
+Open `http://localhost:3001`. `/` redirects to the RMS calendar. `/crm` and `/crm/pipeline` redirect to the CRM pipeline.
 
-Build the application for production:
+## Structure
+
+```
+app/
+  layouts/default.vue     aside + header (section switch, role placeholder, theme, API status)
+  pages/rms/…             RMS routes under /rms
+  pages/crm/…             CRM routes under /crm
+  navigation/rms.ts       RMS sidebar tree
+  navigation/crm.ts       CRM sidebar tree
+  sections.ts             section registry (homes, brand subtitles)
+  composables/useSystem.ts  current section = route prefix; last path in localStorage
+  components/shell/       SectionSwitch, ApiStatus, PlaceholderPage
+i18n/locales/en.json      panel chrome + nav labels (merged with the layer’s theme.* keys)
+```
+
+One codebase, one `useApi()`. CRM screens never call booking, payment, refund, commission, document or pricing mutations.
+
+## Quality
 
 ```bash
+pnpm lint
+pnpm typecheck
 pnpm build
 ```
-
-Locally preview production build:
-
-```bash
-pnpm preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
-
-## Renovate integration
-
-Install [Renovate GitHub app](https://github.com/apps/renovate/installations/select_target) on your repository and you are good to go.

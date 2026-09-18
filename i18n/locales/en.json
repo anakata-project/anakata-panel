@@ -1,0 +1,70 @@
+{
+  "nav": {
+    "rms": {
+      "reservations": "Reservations",
+      "bookingRequests": "Booking Requests",
+      "calendar": "Calendar",
+      "yachtLayout": "Yacht Layout",
+      "bookings": "Bookings",
+      "commercial": "Commercial",
+      "payments": "Payments & Revenue",
+      "rates": "Rates & Promotions",
+      "b2b": "B2B & Agent Portal",
+      "contactsIn": "Contacts In",
+      "operations": "Operations",
+      "holds": "Holds & Waitlist",
+      "refunds": "Refund Approvals",
+      "blocks": "Internal Blocks",
+      "documents": "Documents & Manifests",
+      "guestExperience": "Guest Experience",
+      "bookingEngine": "Booking Engine",
+      "itineraries": "Itineraries",
+      "departures": "Departures",
+      "offers": "Offers",
+      "engineSettings": "Engine Settings",
+      "engineMap": "Engine Map",
+      "admin": "Admin",
+      "permissions": "Permissions",
+      "businessRules": "Business Rules"
+    },
+    "crm": {
+      "sales": "Sales",
+      "pipeline": "Pipeline & Forecast",
+      "tasks": "Tasks & SLA",
+      "inbox": "Inbox — Email · WhatsApp",
+      "contacts": "Contacts",
+      "b2bPartners": "B2B Partners",
+      "documents": "Documents & Delivery",
+      "marketing": "Marketing",
+      "journeys": "Journeys / Nurture",
+      "segments": "Segments",
+      "campaigns": "Campaigns & Offers",
+      "engine": "Engine",
+      "activity": "Web & Engine Activity",
+      "automations": "Automations",
+      "alerts": "Internal Alerts",
+      "system": "System",
+      "sync": "Sync & Field Ownership",
+      "consent": "Consent & Data Rights"
+    }
+  },
+  "shell": {
+    "rms": "RMS",
+    "crm": "CRM",
+    "switchAria": "Switch section",
+    "loggedInAs": "Logged in as",
+    "newReservation": "＋ New Reservation",
+    "apiOk": "API · OK",
+    "apiDown": "API · DOWN",
+    "syncBadge": "⇄ RMS · ENGINE SYNCED",
+    "brandRms": "RMS · REVENUE ENGINE",
+    "brandCrm": "CRM · REVENUE ENGINE",
+    "roleAdmin": "CAROLINA — ADMIN",
+    "roleManager": "MATEO — MANAGER",
+    "roleSales": "LUCÍA — SALES EXEC"
+  },
+  "pages": {
+    "comingIn": "Coming in Sprint {n}",
+    "notFound": "Page not found"
+  }
+}
