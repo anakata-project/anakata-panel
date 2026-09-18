@@ -35,4 +35,4 @@ Every app **extends the `anakata-ui` layer**, which owns the design tokens, the 
 - Check every screen in dark (default) and light theme. The engine must also work at phone width and respect `prefers-reduced-motion`.
 
 ## Quality gate
-`pnpm lint`, `pnpm typecheck` and `pnpm build` must pass. Local dev uses `ANAKATA_UI_LOCAL=1` to consume `../anakata-ui` directly; CI uses the pinned tag.
+`pnpm lint`, `pnpm typecheck` and `pnpm build` must pass locally. Apps extend the layer via `../anakata-ui` for now; how they fetch it remotely is decided later with the git host.
