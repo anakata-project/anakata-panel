@@ -1,0 +1,29 @@
+---
+description: Structure of anakata-panel — one staff app containing the RMS and the CRM
+alwaysApply: true
+---
+
+# anakata-panel — RMS + CRM in one app
+
+The RMS and the CRM are **two systems** with separate API modules and databases (dev decisions A2, A3, A11). This app puts both in one staff UI. Keep the boundary in the frontend, too.
+
+## Structure
+```
+app/                     the shell: layouts, header (system switch, role switcher, theme toggle, user menu),
+                         sidebar frame, login, shared panel components, the system registry
+layers/rms/              RMS system — a local Nuxt layer (auto-registered by Nuxt)
+  app/pages/rms/…        every RMS route lives under /rms
+  app/components/rms/…   RMS feature components (prefix Rms*)
+  app/composables/       useRmsApi() and RMS composables
+  navigation.ts          the RMS sidebar tree
+layers/crm/              CRM system — same layout: pages under /crm, components Crm*, useCrmApi(), navigation.ts
+```
+
+## Rules
+- **The URL decides the system.** `/rms/…` is RMS, `/crm/…` is CRM. Never store the current system in state that can drift from the route.
+- **The header system switch** (RMS ⇄ CRM) swaps the sidebar navigation. It goes to the last page visited in the other system (remembered per browser), or that system's home page.
+- **No imports between `layers/rms` and `layers/crm`.** ESLint (`no-restricted-imports`) enforces it. Both may import from `app/` (the shell) and from `anakata-ui`. Code that both systems need goes in `app/` or, if the engine needs it too, in `anakata-ui`.
+- **API clients are system-scoped.** RMS code calls only `useRmsApi()` (`/api/rms/*`). CRM code calls only `useCrmApi()` (`/api/crm/*`). The shell may call auth and health endpoints. A CRM screen never calls an RMS endpoint: the CRM reads RMS data from its own mirrors via `/api/crm`.
+- **Cross-system links are links, not data.** A CRM deal shows the RMS booking reference and links to `/rms/bookings/ANK-…`; it never fetches the booking from the RMS API.
+- **Each system looks like its own prototype.** RMS pages follow `prototype/rms_index.html`; CRM pages follow `prototype/crm_index.html`. The shell follows the RMS prototype's shell, plus the system switch. Where the CRM prototype's shell differs (brand subtitle, header controls), show the CRM variant while the CRM system is active.
+- **Access**: each system is gated by a permission (`panel.rms`, `panel.crm`, from Sprint 1). A user with only one system sees no switch and is never routed to the other; a route guard enforces it (the API enforces it again).
