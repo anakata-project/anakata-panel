@@ -309,36 +309,7 @@ async function saveDraft(): Promise<void> {
   }
 }
 
-function onBeforeUnload(event: BeforeUnloadEvent): void {
-  event.preventDefault()
-  event.returnValue = ''
-}
-
-watch(dirty, (isDirty) => {
-  if (!import.meta.client) {
-    return
-  }
-
-  if (isDirty) {
-    window.addEventListener('beforeunload', onBeforeUnload)
-  } else {
-    window.removeEventListener('beforeunload', onBeforeUnload)
-  }
-}, { immediate: true })
-
-onUnmounted(() => {
-  if (import.meta.client) {
-    window.removeEventListener('beforeunload', onBeforeUnload)
-  }
-})
-
-onBeforeRouteLeave(() => {
-  if (!dirty.value) {
-    return true
-  }
-
-  return window.confirm(t('admin.leaveUnsaved'))
-})
+useUnsavedGuard(dirty, () => t('admin.leaveUnsaved'))
 </script>
 
 <template>

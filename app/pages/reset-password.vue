@@ -90,7 +90,7 @@ async function onSubmit(): Promise<void> {
           type="password"
           autocomplete="new-password"
           required
-            minlength="8"
+          minlength="8"
           class="w-full"
         />
       </UFormField>
@@ -101,7 +101,7 @@ async function onSubmit(): Promise<void> {
           type="password"
           autocomplete="new-password"
           required
-            minlength="8"
+          minlength="8"
           class="w-full"
         />
       </UFormField>

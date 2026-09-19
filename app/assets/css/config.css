@@ -1,0 +1,205 @@
+.esbar {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  margin-bottom: 18px;
+  border: 1px solid var(--hair);
+  background: var(--forest-900);
+}
+
+.esbar .acts {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.esbar-state--ok {
+  color: var(--ok);
+}
+
+.esbar-state--warn {
+  color: var(--warn);
+}
+
+.esbar-state--ro {
+  color: var(--iv38);
+}
+
+.rreason {
+  background: var(--forest-950);
+  border: 1px solid var(--hair);
+  color: var(--ivory);
+  padding: 9px 11px;
+  font-size: 12px;
+  min-width: 240px;
+  outline: none;
+}
+
+.rreason.bad {
+  border-color: var(--coral);
+}
+
+.rcell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rcell .mono {
+  font-size: 9px;
+  letter-spacing: .1em;
+  color: var(--iv38);
+  white-space: nowrap;
+}
+
+.rin {
+  width: 110px;
+  background: var(--forest-950);
+  border: 1px solid var(--hair);
+  color: var(--ivory);
+  padding: 8px 9px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  border-radius: 0;
+  outline: none;
+}
+
+.rin:focus {
+  border-color: var(--coral);
+}
+
+.rin:disabled {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ivory);
+  padding-left: 0;
+  -moz-appearance: textfield;
+}
+
+.rin:disabled::-webkit-inner-spin-button {
+  display: none;
+}
+
+.rcell .rin[data-r^="rules.child"],
+.rcell .rin[data-r^="terms"] {
+  width: 72px;
+}
+
+.yoy {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8.5px;
+  letter-spacing: .08em;
+  color: var(--iv38);
+  margin-top: 4px;
+}
+
+.rhelp {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 12px 20px;
+  border-top: 1px solid var(--hair);
+}
+
+.rhelp .mono {
+  font-size: 9px;
+  letter-spacing: .14em;
+  color: var(--iv62);
+}
+
+.rhelp input,
+.rhelp select {
+  background: var(--forest-950);
+  border: 1px solid var(--hair);
+  color: var(--ivory);
+  padding: 7px 9px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  width: auto;
+  max-width: 130px;
+}
+
+.mini {
+  background: none;
+  border: 1px solid var(--hair);
+  color: var(--coral-400);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8px;
+  letter-spacing: .1em;
+  padding: 2px 6px;
+  margin-left: 6px;
+  cursor: pointer;
+}
+
+.mini:hover {
+  border-color: var(--coral);
+}
+
+.rflag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8.5px;
+  letter-spacing: .08em;
+  color: var(--coral-400);
+  margin-top: 5px;
+  text-transform: uppercase;
+  line-height: 1.5;
+}
+
+tr.rdiff td:first-child {
+  box-shadow: inset 2px 0 0 var(--coral);
+}
+
+.bands .rcell {
+  margin-bottom: 6px;
+}
+
+.rtab td {
+  vertical-align: top;
+}
+
+.nw {
+  white-space: nowrap;
+}
+
+.config-change-to {
+  color: var(--ivory);
+}
+
+.config-change-from {
+  color: var(--iv62);
+}
+
+.config-change-list {
+  max-height: 40vh;
+  overflow: auto;
+  margin: 0;
+  padding: 0 0 0 18px;
+}
+
+.config-change-list li {
+  margin: 4px 0;
+  font-size: 12.5px;
+}
+
+.config-confirm-note {
+  margin: 12px 0 0;
+  font-size: 12px;
+  color: var(--iv62);
+}
+
+.esbar-warn {
+  margin-top: -8px;
+  margin-bottom: 18px;
+}
+
+.config-history-scroll {
+  overflow-x: auto;
+}

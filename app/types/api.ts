@@ -1,10 +1,24 @@
 import type { components } from '../../../anakata-ui/app/types/api'
 
 export type {
+  BusinessRulesDocument,
+  BusinessRulesVersion,
   ChangeHistoryEntry,
+  ConfigChange,
+  ConfigPublisher,
+  ConfigValidation,
+  ConfigVersion,
+  ConfigVersionDetail,
+  ConfigVersionSummary,
+  ConfigWarning,
+  EngineSettingsDocument,
+  EngineSettingsValidation,
+  EngineSettingsVersion,
   Me,
   Paginated,
   PermissionItem,
+  RatesDocument,
+  RatesVersion,
   Role,
   UserListItem
 } from '../../../anakata-ui/app/types'
