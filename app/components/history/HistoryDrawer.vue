@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import type { ChangeHistoryEntry, Paginated } from '../../types/api'
+import type { PermissionLabel } from './describe'
 
 const props = defineProps<{
   open: boolean
   title: string
   subjectType: string
   url: string | null
+  permissionLabel?: PermissionLabel
 }>()
 
 const emit = defineEmits<{
@@ -79,7 +81,10 @@ watch(
       <p class="history-zone">
         {{ zoneLabel() }}
       </p>
-      <HistoryTimeline :entries="entries" />
+      <HistoryTimeline
+        :entries="entries"
+        :permission-label="props.permissionLabel"
+      />
       <button
         v-if="page < lastPage"
         type="button"

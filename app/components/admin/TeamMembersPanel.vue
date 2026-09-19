@@ -7,6 +7,10 @@ type PillTone = 'neutral' | 'ok' | 'warn' | 'coral' | 'sand'
 
 const SEARCH_DEBOUNCE_MS = 300
 
+const props = defineProps<{
+  roles: Array<Role>
+}>()
+
 const { t } = useI18n()
 const { useFetch, request } = useApi()
 const { user: me } = useAuth()
@@ -67,11 +71,8 @@ const { data: usersPage, refresh } = useFetch<Paginated<UserListItem>>('/api/rms
   query
 })
 
-const { data: rolesPayload } = useFetch<{ data: Array<Role> }>('/api/rms/roles')
-
 const users = computed(() => usersPage.value?.data ?? [])
 const meta = computed(() => usersPage.value?.meta)
-const roles = computed(() => rolesPayload.value?.data ?? [])
 
 const statusItems = computed(() => [
   { label: t('admin.statusAll'), value: 'all' as const },
@@ -82,7 +83,7 @@ const statusItems = computed(() => [
 
 const roleFilterItems = computed(() => [
   { label: t('admin.roleAll'), value: 'all' as const },
-  ...roles.value.map(role => ({
+  ...props.roles.map(role => ({
     label: role.name,
     value: role.id
   }))
@@ -334,13 +335,13 @@ const pagerText = computed(() => {
 
   <AdminInviteUserModal
     v-model:open="inviteOpen"
-    :roles="roles"
+    :roles="props.roles"
     @invited="refresh"
   />
   <AdminEditUserModal
     v-model:open="editOpen"
     :user="selected"
-    :roles="roles"
+    :roles="props.roles"
     :is-self="selected ? isSelf(selected) : false"
     @saved="refresh"
   />

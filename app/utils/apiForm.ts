@@ -32,3 +32,25 @@ export function applyApiFormError(
 
   return false
 }
+
+export function firstApiMessage(error: unknown): string | null {
+  if (!(error instanceof ApiError)) {
+    return null
+  }
+
+  if (error.status === 422) {
+    for (const messages of Object.values(error.errors ?? {})) {
+      if (messages[0]) {
+        return messages[0]
+      }
+    }
+
+    return error.message
+  }
+
+  if (error.status === 409 || error.status === 403) {
+    return error.message
+  }
+
+  return null
+}

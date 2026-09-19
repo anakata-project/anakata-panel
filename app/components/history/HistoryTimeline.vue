@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { ChangeHistoryEntry } from '../../types/api'
-import { describeHistory } from './describe'
+import { describeHistory, type PermissionLabel } from './describe'
 
 defineProps<{
   entries: Array<ChangeHistoryEntry>
+  permissionLabel?: PermissionLabel
 }>()
 
 const { t } = useI18n()
@@ -20,7 +21,7 @@ const { format } = useDates()
       <div class="tlt">
         {{ format(entry.at, 'dateTime') }} · {{ entry.actor_label }}
       </div>
-      <div>{{ describeHistory(entry, t) }}</div>
+      <div>{{ describeHistory(entry, t, permissionLabel) }}</div>
       <div
         v-if="entry.reason"
         class="tlw"

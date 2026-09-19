@@ -58,9 +58,12 @@ function compactDiff(before: Record<string, unknown>, after: Record<string, unkn
   return parts.join(', ')
 }
 
+export type PermissionLabel = (value: string) => string
+
 export function describeHistory(
   entry: Pick<ChangeHistoryEntry, 'event' | 'before' | 'after'>,
-  t: HistoryTranslate
+  t: HistoryTranslate,
+  permissionLabel?: PermissionLabel
 ): string {
   const before = asRecord(entry.before)
   const after = asRecord(entry.after)
@@ -93,11 +96,40 @@ export function describeHistory(
       return t('history.events.userEnabled')
     case 'role.created':
       return t('history.events.roleCreated')
-    case 'role.updated':
-      return t('history.events.roleUpdated', {
-        added: stringList(after.added).join(', ') || '—',
-        removed: stringList(after.removed).join(', ') || '—'
-      })
+    case 'role.updated': {
+      const labelOf = permissionLabel ?? ((value: string) => value)
+      const parts: Array<string> = []
+      const beforeName = stringField(before, 'name')
+      const afterName = stringField(after, 'name')
+
+      if (beforeName !== undefined && afterName !== undefined && beforeName !== afterName) {
+        parts.push(t('history.events.roleRenamed', { before: beforeName, after: afterName }))
+      }
+
+      if ('description' in before || 'description' in after) {
+        parts.push(t('history.events.roleDescriptionChanged'))
+      }
+
+      const added = stringList(after.added).map(labelOf)
+      const removed = stringList(after.removed).map(labelOf)
+      const permissionParts: Array<string> = []
+
+      if (added.length > 0) {
+        permissionParts.push(t('history.events.roleAdded', { added: added.join(', ') }))
+      }
+
+      if (removed.length > 0) {
+        permissionParts.push(t('history.events.roleRemoved', { removed: removed.join(', ') }))
+      }
+
+      if (permissionParts.length > 0) {
+        parts.push(t('history.events.rolePermissionsChanged', {
+          parts: permissionParts.join(', ')
+        }))
+      }
+
+      return parts.length > 0 ? parts.join(' · ') : t('history.events.roleUpdated')
+    }
     case 'role.deleted':
       return t('history.events.roleDeleted')
     default: {

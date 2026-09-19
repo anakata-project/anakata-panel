@@ -4,6 +4,7 @@ export type {
   ChangeHistoryEntry,
   Me,
   Paginated,
+  PermissionItem,
   Role,
   UserListItem
 } from '../../../anakata-ui/app/types'
@@ -13,3 +14,5 @@ export type UserStatus = components['schemas']['UserStatus']
 export type InviteUserRequest = components['schemas']['InviteUserRequest']
 export type UpdateUserRequest = components['schemas']['UpdateUserRequest']
 export type DisableUserRequest = components['schemas']['DisableUserRequest']
+export type StoreRoleRequest = components['schemas']['StoreRoleRequest']
+export type UpdateRoleRequest = components['schemas']['UpdateRoleRequest']

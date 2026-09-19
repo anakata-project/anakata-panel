@@ -98,6 +98,7 @@ aside {
 main {
   flex: 1;
   min-width: 0;
+  overflow-x: clip;
   padding: 28px 34px 80px;
 }
 

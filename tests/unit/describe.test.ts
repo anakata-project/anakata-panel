@@ -11,7 +11,12 @@ const strings: Record<string, string> = {
   'history.events.userDisabled': 'Disabled',
   'history.events.userEnabled': 'Enabled',
   'history.events.roleCreated': 'Role created',
-  'history.events.roleUpdated': 'Permissions changed · added: {added}, removed: {removed}',
+  'history.events.roleUpdated': 'Role updated',
+  'history.events.roleRenamed': 'Renamed · {before} → {after}',
+  'history.events.roleDescriptionChanged': 'Description changed',
+  'history.events.rolePermissionsChanged': 'Permissions changed · {parts}',
+  'history.events.roleAdded': 'added: {added}',
+  'history.events.roleRemoved': 'removed: {removed}',
   'history.events.roleDeleted': 'Role deleted',
   'history.events.unknown': '{event} · {summary}'
 }
@@ -63,8 +68,24 @@ describe('describeHistory', () => {
       event: 'role.updated',
       before: { permissions: ['panel.rms'] },
       after: { added: ['users.manage'], removed: [] }
-    }, t)).toBe('Permissions changed · added: users.manage, removed: —')
+    }, t)).toBe('Permissions changed · added: users.manage')
     expect(describeHistory({ event: 'role.deleted', before: null, after: null }, t)).toBe('Role deleted')
+  })
+
+  it('maps permission values to labels and composes rename / description / permission parts', () => {
+    const label = (value: string): string => value === 'bookings.delete' ? 'Delete bookings' : value
+
+    expect(describeHistory({
+      event: 'role.updated',
+      before: { permissions: [] },
+      after: { added: ['bookings.delete'], removed: [] }
+    }, t, label)).toBe('Permissions changed · added: Delete bookings')
+
+    expect(describeHistory({
+      event: 'role.updated',
+      before: { name: 'Ops', description: 'A' },
+      after: { name: 'Operations', description: 'B', added: ['bookings.delete'], removed: ['users.manage'] }
+    }, t, label)).toBe('Renamed · Ops → Operations · Description changed · Permissions changed · added: Delete bookings, removed: users.manage')
   })
 
   it('never renders raw JSON for an unknown event', () => {
