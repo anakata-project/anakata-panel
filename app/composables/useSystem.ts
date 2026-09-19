@@ -1,4 +1,5 @@
 import { LAST_PATH_KEYS, sections } from '../sections'
+import { visibleNav } from '../navigation/guards'
 import { findNavItem } from '../navigation/types'
 import type { SectionId } from '../navigation/types'
 
@@ -13,10 +14,13 @@ function isRememberablePath(path: string): boolean {
 
 export function useSystem() {
   const route = useRoute()
+  const { can } = useAuth()
 
   const sectionId = computed<SectionId>(() => sectionFromPath(route.path))
   const section = computed(() => sections[sectionId.value])
-  const currentItem = computed(() => findNavItem(section.value.nav, route.path))
+  const currentItem = computed(() => {
+    return findNavItem(visibleNav(section.value, permission => can(permission)), route.path)
+  })
 
   function remember(path: string): void {
     if (!import.meta.client || !isRememberablePath(path)) {
@@ -27,11 +31,23 @@ export function useSystem() {
   }
 
   function lastPath(id: SectionId): string {
+    const home = sections[id].home
+
     if (!import.meta.client) {
-      return sections[id].home
+      return home
     }
 
-    return localStorage.getItem(LAST_PATH_KEYS[id]) || sections[id].home
+    const remembered = localStorage.getItem(LAST_PATH_KEYS[id])
+
+    if (!remembered) {
+      return home
+    }
+
+    if (findNavItem(visibleNav(sections[id], permission => can(permission)), remembered)) {
+      return remembered
+    }
+
+    return home
   }
 
   function switchTo(id: SectionId): void {

@@ -1,3 +1,5 @@
+import type { Permission } from '../types/api'
+
 export type NavItem = {
   id: string
   labelKey: string
@@ -5,6 +7,8 @@ export type NavItem = {
   to: string
   sprint: number
   badge?: boolean
+  // Later sprints set their own. Only Permissions + Business Rules are gated in sprint 1.
+  permission?: Permission | Array<Permission>
 }
 
 export type NavGroup = {

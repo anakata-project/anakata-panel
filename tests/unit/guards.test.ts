@@ -1,0 +1,203 @@
+import { describe, expect, it } from 'vitest'
+import {
+  firstAllowedHome,
+  loginTarget,
+  pageDecision,
+  sanitizeRedirect,
+  sectionDecision,
+  visibleNav
+} from '../../app/navigation/guards'
+import type { Permission } from '../../app/types/api'
+import type { Section } from '../../app/navigation/types'
+import { CRM_HOME, RMS_HOME, sections } from '../../app/sections'
+
+const fixture: Section = {
+  id: 'rms',
+  labelKey: 'shell.rms',
+  home: RMS_HOME,
+  brandSubtitleKey: 'shell.brandRms',
+  nav: [
+    {
+      id: 'reservations',
+      labelKey: 'nav.rms.reservations',
+      items: [
+        {
+          id: 'bookings',
+          labelKey: 'nav.rms.bookings',
+          glyph: '≣',
+          to: '/rms/reservations/bookings',
+          sprint: 4
+        }
+      ]
+    },
+    {
+      id: 'admin',
+      labelKey: 'nav.rms.admin',
+      items: [
+        {
+          id: 'permissions',
+          labelKey: 'nav.rms.permissions',
+          glyph: '◈',
+          to: '/rms/admin/permissions',
+          sprint: 1,
+          permission: ['users.manage', 'roles.manage']
+        },
+        {
+          id: 'business-rules',
+          labelKey: 'nav.rms.businessRules',
+          glyph: '⚖',
+          to: '/rms/admin/business-rules',
+          sprint: 2,
+          permission: 'rules.view'
+        }
+      ]
+    }
+  ]
+}
+
+function allow(...held: Array<Permission>) {
+  const set = new Set<string>(held)
+  return (permission: Permission) => set.has(permission)
+}
+
+function sectionsOf(...ids: Array<'rms' | 'crm'>) {
+  const set = new Set(ids)
+  return (id: 'rms' | 'crm') => set.has(id)
+}
+
+describe('sanitizeRedirect', () => {
+  it('rejects /\\evil.com', () => {
+    expect(sanitizeRedirect('/\\evil.com')).toBeNull()
+  })
+
+  it('rejects //evil.com', () => {
+    expect(sanitizeRedirect('//evil.com')).toBeNull()
+  })
+
+  it('rejects /login', () => {
+    expect(sanitizeRedirect('/login')).toBeNull()
+  })
+
+  it('rejects https://x', () => {
+    expect(sanitizeRedirect('https://x')).toBeNull()
+  })
+
+  it('accepts /rms/reservations/bookings', () => {
+    expect(sanitizeRedirect('/rms/reservations/bookings')).toBe('/rms/reservations/bookings')
+  })
+
+  it('rejects auth paths, /no-access, and non-strings', () => {
+    expect(sanitizeRedirect('/forgot-password')).toBeNull()
+    expect(sanitizeRedirect('/reset-password?token=a')).toBeNull()
+    expect(sanitizeRedirect('/accept-invitation?email=a')).toBeNull()
+    expect(sanitizeRedirect('/no-access')).toBeNull()
+    expect(sanitizeRedirect(null)).toBeNull()
+    expect(sanitizeRedirect(['/rms/reservations/bookings'])).toBeNull()
+  })
+})
+
+describe('loginTarget', () => {
+  it('returns plain /login when sanitizeRedirect is null', () => {
+    expect(loginTarget(null)).toBe('/login')
+    expect(loginTarget('/login')).toBe('/login')
+    expect(loginTarget('//evil.com')).toBe('/login')
+  })
+
+  it('passes through a safe path as the redirect query', () => {
+    expect(loginTarget('/rms/reservations/bookings')).toEqual({
+      path: '/login',
+      query: { redirect: '/rms/reservations/bookings' }
+    })
+  })
+})
+
+describe('visibleNav', () => {
+  it('hides gated items and empty groups', () => {
+    const nav = visibleNav(fixture, allow('bookings.create'))
+
+    expect(nav).toHaveLength(1)
+    expect(nav[0]?.id).toBe('reservations')
+    expect(nav[0]?.items.map(item => item.id)).toEqual(['bookings'])
+  })
+
+  it('shows Permissions when the user has any listed permission', () => {
+    const nav = visibleNav(fixture, allow('users.manage'))
+    const admin = nav.find(group => group.id === 'admin')
+
+    expect(admin?.items.map(item => item.id)).toEqual(['permissions'])
+  })
+
+  it('shows Business Rules only with rules.view', () => {
+    const withRules = visibleNav(fixture, allow('rules.view'))
+    const without = visibleNav(fixture, allow('bookings.create'))
+
+    expect(withRules.find(group => group.id === 'admin')?.items.map(item => item.id)).toEqual(['business-rules'])
+    expect(without.find(group => group.id === 'admin')).toBeUndefined()
+  })
+})
+
+describe('sectionDecision', () => {
+  it('sends / to the first allowed section home', () => {
+    expect(sectionDecision('/', sectionsOf('rms', 'crm'))).toBe(RMS_HOME)
+    expect(sectionDecision('/', sectionsOf('crm'))).toBe(CRM_HOME)
+    expect(sectionDecision('/', sectionsOf())).toBe('/no-access')
+  })
+
+  it('sends a signed-in user with a section away from /no-access', () => {
+    expect(sectionDecision('/no-access', sectionsOf('rms'))).toBe(RMS_HOME)
+    expect(sectionDecision('/no-access', sectionsOf('crm'))).toBe(CRM_HOME)
+  })
+
+  it('leaves /no-access when the user has neither section', () => {
+    expect(sectionDecision('/no-access', sectionsOf())).toBeNull()
+  })
+
+  it('redirects a missing section to the other home or /no-access', () => {
+    expect(sectionDecision('/crm/sales/pipeline', sectionsOf('rms'))).toBe(RMS_HOME)
+    expect(sectionDecision('/rms/reservations/bookings', sectionsOf('crm'))).toBe(CRM_HOME)
+    expect(sectionDecision('/rms/reservations/bookings', sectionsOf())).toBe('/no-access')
+  })
+})
+
+describe('pageDecision', () => {
+  it('sends a forbidden nav URL to the section home', () => {
+    expect(pageDecision('/rms/admin/permissions', allow('bookings.create'))).toEqual({
+      to: RMS_HOME,
+      toast: true
+    })
+    expect(pageDecision('/rms/admin/business-rules', allow('bookings.create'))).toEqual({
+      to: RMS_HOME,
+      toast: true
+    })
+  })
+
+  it('allows a permitted or ungated page', () => {
+    expect(pageDecision('/rms/admin/permissions', allow('roles.manage'))).toBeNull()
+    expect(pageDecision('/rms/reservations/bookings', allow())).toBeNull()
+  })
+})
+
+describe('firstAllowedHome', () => {
+  it('prefers RMS, then CRM, then /no-access', () => {
+    expect(firstAllowedHome(sectionsOf('rms', 'crm'))).toBe(RMS_HOME)
+    expect(firstAllowedHome(sectionsOf('crm'))).toBe(CRM_HOME)
+    expect(firstAllowedHome(sectionsOf())).toBe('/no-access')
+  })
+})
+
+describe('seeded admin nav', () => {
+  it('gates the real RMS Permissions and Business Rules items', () => {
+    const admin = visibleNav(sections.rms, allow(
+      'users.manage',
+      'roles.manage',
+      'rules.view'
+    ))
+    const sales = visibleNav(sections.rms, allow('bookings.create'))
+
+    expect(admin.find(group => group.id === 'admin')?.items.map(item => item.id)).toEqual([
+      'permissions',
+      'business-rules'
+    ])
+    expect(sales.find(group => group.id === 'admin')).toBeUndefined()
+  })
+})

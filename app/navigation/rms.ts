@@ -161,14 +161,16 @@ export const rmsNav: Array<NavGroup> = [
         labelKey: 'nav.rms.permissions',
         glyph: '◈',
         to: '/rms/admin/permissions',
-        sprint: 2
+        sprint: 1,
+        permission: ['users.manage', 'roles.manage']
       },
       {
         id: 'business-rules',
         labelKey: 'nav.rms.businessRules',
         glyph: '⚖',
         to: '/rms/admin/business-rules',
-        sprint: 2
+        sprint: 2,
+        permission: 'rules.view'
       }
     ]
   }

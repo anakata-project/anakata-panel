@@ -1,13 +1,13 @@
 <script setup lang="ts">
+import { visibleNav } from '../navigation/guards'
+
 const { t } = useI18n()
 const { sectionId, section, currentItem } = useSystem()
-const role = ref('admin')
+const { can, hasSection } = useAuth()
 
-const roleItems = computed(() => [
-  { label: t('shell.roleAdmin'), value: 'admin' },
-  { label: t('shell.roleManager'), value: 'manager' },
-  { label: t('shell.roleSales'), value: 'agent' }
-])
+const nav = computed(() => visibleNav(section.value, permission => can(permission)))
+const showSectionSwitch = computed(() => hasSection('rms') && hasSection('crm'))
+const showNewReservation = computed(() => sectionId.value === 'rms' && can('bookings.create'))
 
 const pageTitle = computed(() => {
   return currentItem.value ? t(currentItem.value.labelKey) : t(section.value.labelKey)
@@ -38,7 +38,7 @@ useHead(() => ({
       </div>
 
       <template
-        v-for="group in section.nav"
+        v-for="group in nav"
         :key="group.id"
       >
         <div class="navsec">
@@ -81,19 +81,12 @@ useHead(() => ({
           aria-hidden="true"
         />
         <div class="who">
-          <ShellSectionSwitch />
+          <ShellSectionSwitch v-if="showSectionSwitch" />
           <span class="mono">{{ t('shell.loggedInAs') }}</span>
-          <USelect
-            v-model="role"
-            :items="roleItems"
-            value-key="value"
-            size="sm"
-            class="w-56"
-            color="neutral"
-          />
+          <ShellWhoMenu />
           <AnkThemeToggle />
           <UButton
-            v-if="sectionId === 'rms'"
+            v-if="showNewReservation"
             color="primary"
           >
             {{ t('shell.newReservation') }}

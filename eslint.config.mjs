@@ -18,7 +18,7 @@ export default withNuxt(
     rules: {
       'better-tailwindcss/no-unknown-classes': ['error', {
         ignore: [
-          '^(app|brand|brand-mark--dark|brand-mark--light|navsec|nav|nav-badge|sideprow|tophead|tophead--rms|tophead--crm|drbar-slot|who|mono|sysbadge|sys-rms|api-status|api-status--ok|api-status--down|placeholder-copy|section-switch|fchip|on)$'
+          '^(app|brand|brand-mark--dark|brand-mark--light|navsec|nav|nav-badge|sideprow|tophead|tophead--rms|tophead--crm|drbar-slot|who|who-select|who-email|mono|sysbadge|sys-rms|api-status|api-status--ok|api-status--down|placeholder-copy|section-switch|fchip|on|auth-layout|auth-theme|auth-column|auth-form|auth-actions|auth-hint|auth-link|notice|warnbox)$'
         ]
       }]
     }
