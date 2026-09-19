@@ -73,7 +73,7 @@
     "forgotConfirm": "If that email is on an account, we sent a reset link.",
     "sendReset": "Send reset link",
     "resetTitle": "Reset password",
-    "resetHint": "At least 12 characters.",
+    "resetHint": "At least 8 characters.",
     "passwordChanged": "Password changed",
     "resetInvalid": "This reset link has expired or is invalid.",
     "requestNewLink": "Request a new one",

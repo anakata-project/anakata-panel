@@ -59,63 +59,64 @@ async function onSubmit(): Promise<void> {
 
 <template>
   <AnkPanel :title="t('auth.acceptTitle')">
-    <div class="auth-form">
-      <div
-        v-if="invalid || expired"
-        class="warnbox"
-      >
+    <div
+      v-if="invalid || expired"
+      class="auth-form"
+    >
+      <div class="warnbox">
         {{ t('auth.inviteExpired') }}
       </div>
-
-      <form
-        v-else
-        @submit.prevent="onSubmit"
-      >
-        <div
-          v-if="error"
-          class="warnbox"
-        >
-          {{ error }}
-        </div>
-
-        <p class="auth-hint">
-          {{ t('auth.resetHint') }}
-        </p>
-
-        <UFormField :label="t('auth.password')">
-          <UInput
-            v-model="password"
-            type="password"
-            autocomplete="new-password"
-            required
-            minlength="12"
-            class="w-full"
-          />
-        </UFormField>
-
-        <UFormField :label="t('auth.passwordConfirm')">
-          <UInput
-            v-model="passwordConfirmation"
-            type="password"
-            autocomplete="new-password"
-            required
-            minlength="12"
-            class="w-full"
-          />
-        </UFormField>
-
-        <div class="auth-actions">
-          <UButton
-            type="submit"
-            color="primary"
-            class="w-full"
-            :loading="submitting"
-            :disabled="submitting"
-          >
-            {{ t('auth.submitAccept') }}
-          </UButton>
-        </div>
-      </form>
     </div>
+
+    <form
+      v-else
+      class="auth-form"
+      @submit.prevent="onSubmit"
+    >
+      <div
+        v-if="error"
+        class="warnbox"
+      >
+        {{ error }}
+      </div>
+
+      <p class="auth-hint">
+        {{ t('auth.resetHint') }}
+      </p>
+
+      <UFormField :label="t('auth.password')">
+        <UInput
+          v-model="password"
+          type="password"
+          autocomplete="new-password"
+          required
+            minlength="8"
+          class="w-full"
+        />
+      </UFormField>
+
+      <UFormField :label="t('auth.passwordConfirm')">
+        <UInput
+          v-model="passwordConfirmation"
+          type="password"
+          autocomplete="new-password"
+          required
+            minlength="8"
+          class="w-full"
+        />
+      </UFormField>
+
+      <div class="auth-actions">
+        <UButton
+          type="submit"
+          color="primary"
+          class="w-full"
+          :loading="submitting"
+          :disabled="submitting"
+        >
+          {{ t('auth.submitAccept') }}
+        </UButton>
+      </div>
+    </form>
   </AnkPanel>
 </template>
