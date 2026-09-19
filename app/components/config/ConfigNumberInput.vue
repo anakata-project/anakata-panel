@@ -6,17 +6,23 @@ const props = withDefaults(defineProps<{
   disabled?: boolean
   bad?: boolean
   variant?: 'rin' | 'field'
+  min?: number | string
+  max?: number | string
+  step?: number | string
 }>(), {
   variant: 'rin'
 })
 
 const emit = defineEmits<{
   'update:modelValue': [value: number | null]
+  'change': []
 }>()
 
 const display = computed(() => {
   return props.modelValue === null ? '' : String(props.modelValue)
 })
+
+const inputEl = useTemplateRef<HTMLInputElement>('inputEl')
 
 function onInput(event: Event): void {
   const target = event.target
@@ -27,14 +33,25 @@ function onInput(event: Event): void {
 
   emit('update:modelValue', parseRinValue(target.value))
 }
+
+function focus(): void {
+  inputEl.value?.focus()
+}
+
+defineExpose({ focus })
 </script>
 
 <template>
   <input
+    ref="inputEl"
     type="number"
     :class="[variant === 'rin' ? 'rin' : null, { bad }]"
     :value="display"
+    :min="min"
+    :max="max"
+    :step="step"
     :disabled="disabled"
     @input="onInput"
+    @change="emit('change')"
   >
 </template>

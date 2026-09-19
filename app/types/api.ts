@@ -3,6 +3,7 @@ import type { components } from '../../../anakata-ui/app/types/api'
 export type {
   BusinessRulesDocument,
   BusinessRulesVersion,
+  CancellationBand,
   ChangeHistoryEntry,
   ConfigChange,
   ConfigPublisher,
@@ -23,6 +24,11 @@ export type {
   RatesDocument,
   RatesVersion,
   Role,
+  RuleGroup,
+  RuleRegistryCounts,
+  RuleRegistryRow,
+  RuleStatus,
+  RuleWhere,
   UserListItem
 } from '../../../anakata-ui/app/types'
 

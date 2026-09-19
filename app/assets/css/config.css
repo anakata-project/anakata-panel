@@ -420,3 +420,59 @@ tr.rdiff td:first-child {
 .engine-locale {
   padding: 6px 20px 18px;
 }
+
+.rules-notice {
+  max-width: 900px;
+  margin-bottom: 18px;
+}
+
+.krow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1px;
+  background: var(--hair);
+  border: 1px solid var(--hair);
+  margin-bottom: 24px;
+}
+
+.rules-chips {
+  display: flex;
+  gap: 8px;
+  padding: 0 0 16px;
+  border: 0;
+  flex-wrap: wrap;
+}
+
+.rule-code {
+  letter-spacing: .08em;
+  color: var(--sand);
+}
+
+.rule-pill {
+  margin-top: 4px;
+}
+
+.rule-used {
+  color: var(--iv62);
+  font-size: 11.5px;
+}
+
+.rule-source {
+  color: var(--iv62);
+}
+
+.rule-source-empty {
+  color: var(--iv38);
+}
+
+.rules-kpi-flag {
+  color: var(--coral-400);
+}
+
+.rules-kpi-ok {
+  color: var(--ok);
+}
+
+.rules-scroll {
+  overflow-x: auto;
+}
