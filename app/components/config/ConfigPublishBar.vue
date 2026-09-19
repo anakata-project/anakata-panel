@@ -10,6 +10,7 @@ const props = defineProps<{
   readOnlyText: string
   confirmNote: string
   formats?: Record<string, ConfigValueFormat>
+  labels?: Record<string, string>
 }>()
 
 const { t } = useI18n()
@@ -78,7 +79,9 @@ const errorLines = computed(() => {
   const changes = props.editor.validation.changes
 
   return Object.entries(errors).flatMap(([path, messages]) => {
-    const label = changes.find(change => change.path === path)?.label ?? path
+    const label = changes.find(change => change.path === path)?.label
+      ?? props.labels?.[path]
+      ?? path
 
     return messages.map(message => `${label}: ${message}`)
   })
@@ -92,7 +95,9 @@ const warnboxVisible = computed(() => {
 })
 
 function labelFor(path: string, fallback: string): string {
-  return props.editor.validation.changes.find(change => change.path === path)?.label ?? fallback
+  return props.editor.validation.changes.find(change => change.path === path)?.label
+    ?? props.labels?.[path]
+    ?? fallback
 }
 
 function requestPublish(): void {
@@ -130,11 +135,11 @@ function loadLatest(): void {
       >{{ stateText }}</span>
       <div class="acts">
         <input
+          v-if="canPublish"
           v-model="approval"
           class="rreason"
           :class="{ bad: approvalBad }"
           :placeholder="approvalRequired ? t('config.approvalRequired') : t('config.approvalOptional')"
-          :disabled="!canPublish"
         >
         <UButton
           variant="outline"
