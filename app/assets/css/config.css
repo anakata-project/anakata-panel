@@ -262,3 +262,161 @@ tr.rdiff td:first-child {
 .price-check-none {
   color: var(--coral-400);
 }
+
+.engine-notice {
+  max-width: 900px;
+  margin-bottom: 18px;
+}
+
+.setgrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 24px;
+  padding: 18px 20px;
+  align-items: start;
+}
+
+.setgrid .prevbox {
+  margin-top: 0;
+  position: sticky;
+  top: 76px;
+}
+
+@media (max-width: 1100px) {
+  .setgrid {
+    grid-template-columns: 1fr;
+  }
+
+  .setgrid .prevbox {
+    position: static;
+  }
+}
+
+.field {
+  margin-bottom: 16px;
+}
+
+.field label {
+  display: block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--iv62);
+  margin-bottom: 6px;
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  background: var(--forest-950);
+  border: 1px solid var(--hair);
+  color: var(--ivory);
+  padding: 11px 12px;
+  font-family: 'Archivo', sans-serif;
+  font-size: 13px;
+  border-radius: 0;
+  outline: none;
+}
+
+.field textarea {
+  resize: vertical;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--coral);
+}
+
+.field input.bad,
+.field textarea.bad {
+  border-color: var(--coral);
+}
+
+.field input:disabled,
+.field textarea:disabled,
+.field select:disabled {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ivory);
+  padding-left: 0;
+}
+
+.field input[type='number']:disabled {
+  -moz-appearance: textfield;
+}
+
+.field input[type='number']:disabled::-webkit-inner-spin-button {
+  display: none;
+}
+
+.cols2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.cnt {
+  color: var(--iv38);
+  letter-spacing: .1em;
+}
+
+.chkline {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 12.5px;
+  margin: 6px 0;
+  cursor: pointer;
+  text-transform: none;
+  letter-spacing: 0;
+  font-family: 'Archivo', sans-serif;
+  color: var(--ivory);
+}
+
+.chkline input {
+  accent-color: var(--coral);
+  width: auto;
+}
+
+.chkline:has(input:disabled) {
+  cursor: default;
+}
+
+.prevbox {
+  border: 1px dashed var(--hair);
+  background: var(--forest-950);
+  padding: 14px;
+  margin-top: 14px;
+}
+
+.prevl {
+  font-size: 8.5px;
+  color: var(--iv38);
+  margin-bottom: 10px;
+}
+
+.roval {
+  padding: 11px 12px;
+  border: 1px dashed var(--hair);
+  font-size: 13px;
+}
+
+.engine-note {
+  margin: 10px 0 0;
+  font-size: 11.5px;
+  color: var(--iv62);
+  line-height: 1.55;
+}
+
+.engine-preview-body {
+  margin: 0;
+  font-size: 12px;
+  color: var(--iv62);
+}
+
+.engine-locale {
+  padding: 6px 20px 18px;
+}

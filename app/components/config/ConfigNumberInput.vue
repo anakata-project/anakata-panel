@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { parseRinValue } from '../../utils/parseRinValue'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   modelValue: number | null
   disabled?: boolean
   bad?: boolean
-}>()
+  variant?: 'rin' | 'field'
+}>(), {
+  variant: 'rin'
+})
 
 const emit = defineEmits<{
   'update:modelValue': [value: number | null]
@@ -29,8 +32,7 @@ function onInput(event: Event): void {
 <template>
   <input
     type="number"
-    class="rin"
-    :class="{ bad }"
+    :class="[variant === 'rin' ? 'rin' : null, { bad }]"
     :value="display"
     :disabled="disabled"
     @input="onInput"

@@ -11,6 +11,7 @@ const props = defineProps<{
   confirmNote: string
   formats?: Record<string, ConfigValueFormat>
   labels?: Record<string, string>
+  blockedReason?: string | null
 }>()
 
 const { t } = useI18n()
@@ -22,23 +23,26 @@ const confirmOpen = ref(false)
 
 const hasErrors = computed(() => props.editor.hasErrors)
 
+const blocked = computed(() => Boolean(props.blockedReason))
+
 const saveDisabled = computed(() => {
   return !props.canPublish
     || !props.editor.dirty
     || hasErrors.value
     || props.editor.validating
+    || blocked.value
 })
 
 const discardDisabled = computed(() => {
-  return !props.canPublish || !props.editor.dirty
+  return !props.editor.dirty || (!props.canPublish && !blocked.value)
 })
 
 const stateClass = computed(() => {
-  if (!props.canPublish) {
+  if (!props.canPublish && !blocked.value) {
     return 'esbar-state--ro'
   }
 
-  if (props.editor.dirty) {
+  if (props.editor.dirty || blocked.value) {
     return 'esbar-state--warn'
   }
 
@@ -46,7 +50,7 @@ const stateClass = computed(() => {
 })
 
 const stateText = computed(() => {
-  if (!props.canPublish) {
+  if (!props.canPublish && !blocked.value) {
     return props.readOnlyText
   }
 
@@ -92,6 +96,7 @@ const warnboxVisible = computed(() => {
     || props.editor.validation.warnings.length > 0
     || Boolean(props.editor.conflict)
     || Boolean(props.editor.publishMessage)
+    || blocked.value
 })
 
 function labelFor(path: string, fallback: string): string {
@@ -172,6 +177,9 @@ function loadLatest(): void {
         :key="`${warning.path}:${warning.message}`"
       >
         ⚠ {{ warning.message }}
+      </div>
+      <div v-if="blockedReason">
+        {{ blockedReason }}
       </div>
       <div v-if="editor.publishMessage">
         {{ editor.publishMessage }}
