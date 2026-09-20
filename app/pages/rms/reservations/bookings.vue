@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import type { Booking, BookingAuditRow, BookingSegment, Group, Paginated } from '../../../types/api'
+import type { Booking, BookingAuditRow, BookingSegment, CreateReservationResponse, Group, Paginated } from '../../../types/api'
 import DateRangeFilter from '../../../components/lists/DateRangeFilter.vue'
 import BookingPanel from '../../../components/bookings/BookingPanel.vue'
 import GroupDrawer from '../../../components/bookings/GroupDrawer.vue'
+import NewReservationModal from '../../../components/bookings/NewReservationModal.vue'
 import {
   bookingToOpen,
   segmentPillClass,
@@ -25,6 +26,8 @@ const { useFetch, request } = useApi()
 const { format } = useDates()
 const { format: money } = useMoney()
 const route = useRoute()
+const router = useRouter()
+const { open: newOpen, prefill: newPrefill, openNew } = useNewReservation()
 
 const from = ref<string | null>(null)
 const to = ref<string | null>(null)
@@ -191,9 +194,46 @@ async function onDeleted(): Promise<void> {
   await refreshAll()
 }
 
+async function onCreated(response: CreateReservationResponse): Promise<void> {
+  newOpen.value = false
+  await refreshAll()
+  const first = response.bookings[0]
+
+  if (first === undefined) {
+    return
+  }
+
+  openBooking(bookings.value.find(item => item.id === first.id) ?? first)
+}
+
 function onOpenBookingFromGroup(booking: Booking): void {
   openBooking(booking)
 }
+
+watch(
+  () => route.query.new,
+  (value) => {
+    if (value !== '1') {
+      return
+    }
+
+    const departureRaw = route.query.departure_id
+    const cabinRaw = route.query.cabin
+    const departureId = typeof departureRaw === 'string' ? Number(departureRaw) : NaN
+
+    openNew({
+      departureId: Number.isFinite(departureId) ? departureId : undefined,
+      cabinCode: typeof cabinRaw === 'string' ? cabinRaw : undefined
+    })
+
+    const query = { ...route.query }
+    delete query.new
+    delete query.departure_id
+    delete query.cabin
+    void router.replace({ query })
+  },
+  { immediate: true }
+)
 
 watch(
   [listPayload, () => route.query.open],
@@ -243,16 +283,12 @@ watch(
     <div class="panel">
       <div class="bk-toolbar">
         <h3>{{ t('bookings.panelTitle') }}</h3>
-        <UTooltip
+        <UButton
           v-if="canCreate"
-          :text="t('bookings.newReservationSoon')"
+          @click="openNew()"
         >
-          <span>
-            <UButton disabled>
-              {{ t('bookings.newReservation') }}
-            </UButton>
-          </span>
-        </UTooltip>
+          {{ t('bookings.newReservation') }}
+        </UButton>
       </div>
       <p class="note">
         {{ t('bookings.guestsOmitted') }}
@@ -523,6 +559,12 @@ watch(
       v-model:open="groupOpen"
       :group="selectedGroup"
       @open-booking="onOpenBookingFromGroup"
+    />
+
+    <NewReservationModal
+      v-model:open="newOpen"
+      :prefill="newPrefill"
+      @created="onCreated"
     />
   </div>
 </template>

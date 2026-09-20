@@ -1,0 +1,933 @@
+<script setup lang="ts">
+import type {
+  BookingFormOptions,
+  BookingQuote,
+  BookingQuoteRequest,
+  BookingType,
+  CabinAvailability,
+  ChannelOfOrigin,
+  Contact,
+  CreateReservationRequest,
+  CreateReservationResponse,
+  Departure,
+  Group,
+  MainChannel,
+  Paginated,
+  PreferredChannel
+} from '../../types/api'
+import { ApiError } from '../../../../anakata-ui/app/composables/useApi'
+import { confirmUnsaved } from '../../composables/useUnsavedGuard'
+import { applyApiFormError, firstApiMessage } from '../../utils/apiForm'
+import { createValidationQueue } from '../../utils/validationQueue'
+import { departureOptionLabel, galapagosTomorrowIso } from './bookingHelpers'
+import {
+  charterNoticeText,
+  createdToast,
+  depositLineText,
+  existingContactSelected,
+  isTradeMain,
+  quoteRequestPayload,
+  showBackToBack,
+  showGroupNameField,
+  showGroupRow,
+  type ReservationCabinRow
+} from './newReservationHelpers'
+
+const CONTACT_DEBOUNCE_MS = 300
+
+export type ExtraCabinRow = ReservationCabinRow & { key: number }
+
+const open = defineModel<boolean>('open', { required: true })
+
+const props = defineProps<{
+  prefill?: { departureId?: number, cabinCode?: string } | null
+}>()
+
+const emit = defineEmits<{
+  created: [response: CreateReservationResponse]
+}>()
+
+const { t } = useI18n()
+const { request } = useApi()
+const { format } = useDates()
+const { format: money } = useMoney()
+const toast = useToast()
+
+const options = ref<BookingFormOptions | null>(null)
+const departures = ref<Array<Departure>>([])
+const groups = ref<Array<Group>>([])
+const contacts = ref<Array<Contact>>([])
+const selectedContact = ref<Contact | null>(null)
+const loading = ref(false)
+const quoting = ref(false)
+const submitting = ref(false)
+const dirty = ref(false)
+const warn = ref('')
+const fieldErrors = ref<Record<string, string>>({})
+const quote = ref<BookingQuote | null>(null)
+
+const type = ref<BookingType>('CABIN')
+const mainChannel = ref<MainChannel | ''>('')
+const origin = ref<ChannelOfOrigin | ''>('')
+const guestName = ref('')
+const email = ref('')
+const phone = ref('')
+const preferred = ref<PreferredChannel>('EMAIL')
+const departureId = ref<number | null>(null)
+const adults = ref(2)
+const children = ref(0)
+const cabinCode = ref('')
+const extras = ref<Array<ExtraCabinRow>>([])
+const existingGroupId = ref<number | null>(null)
+const groupName = ref('')
+const backToBack = ref(false)
+const notes = ref('')
+
+let extraKey = 0
+let contactTimer: ReturnType<typeof setTimeout> | undefined
+
+const selectedDeparture = computed(() => {
+  return departures.value.find(item => item.id === departureId.value) ?? null
+})
+
+const cabins = computed<Array<CabinAvailability>>(() => {
+  return selectedDeparture.value?.availability.cabins ?? []
+})
+
+const isCharter = computed(() => type.value === 'CHARTER')
+
+const cabinRows = computed<Array<ReservationCabinRow>>(() => [
+  { cabinCode: cabinCode.value, adults: adults.value, children: children.value },
+  ...extras.value
+])
+
+const groupVisible = computed(() => {
+  return showGroupRow(isCharter.value, cabinRows.value.length, existingGroupId.value)
+})
+
+const backToBackVisible = computed(() => {
+  return showBackToBack(isCharter.value, selectedDeparture.value?.festive ?? false)
+})
+
+const tradeNotice = computed(() => {
+  if (mainChannel.value === '' || options.value === null) {
+    return false
+  }
+
+  return isTradeMain(mainChannel.value, options.value.main)
+})
+
+const existingNotice = computed(() => {
+  return existingContactSelected(email.value, selectedContact.value?.email ?? null)
+})
+
+const quotePayload = computed(() => {
+  return quoteRequestPayload(departureId.value, type.value, cabinRows.value, backToBack.value)
+})
+
+const quoteErrors = computed(() => {
+  if (quote.value === null) {
+    return []
+  }
+
+  return [
+    ...quote.value.warnings,
+    ...quote.value.cabins.flatMap(party => [...party.errors, ...party.warnings])
+  ]
+})
+
+const quoteHasErrors = computed(() => {
+  return quote.value !== null && quote.value.cabins.some(party => party.errors.length > 0)
+})
+
+const canCreate = computed(() => {
+  return !submitting.value
+    && !quoting.value
+    && guestName.value.trim() !== ''
+    && mainChannel.value !== ''
+    && origin.value !== ''
+    && quotePayload.value !== null
+    && quote.value !== null
+    && !quoteHasErrors.value
+    && quote.value.total !== null
+})
+
+const guestLabel = computed(() => {
+  return groupVisible.value ? t('bookings.leadGuest') : t('bookings.guestName')
+})
+
+const childrenLabel = computed(() => {
+  const guests = options.value?.guests
+
+  if (guests === undefined) {
+    return t('bookings.children')
+  }
+
+  return t('bookings.childrenRange', {
+    min: String(guests.child_min_age),
+    max: String(guests.child_max_age)
+  })
+})
+
+const charterTerms = computed(() => quote.value?.terms.charter ?? null)
+
+const depositLine = computed(() => {
+  if (quote.value === null || quote.value.deposit === null) {
+    return ''
+  }
+
+  const pct = quote.value.cabins.find(party => party.quote !== null)?.quote?.deposit_pct
+    ?? 0
+
+  return depositLineText(pct, money(quote.value.deposit), quote.value.terms.balance_days)
+})
+
+const queue = createValidationQueue<BookingQuoteRequest, BookingQuote | null>(
+  async (payload) => {
+    try {
+      return await request('/api/rms/bookings/quote', {
+        method: 'POST',
+        body: payload
+      }) as BookingQuote
+    } catch (error: unknown) {
+      warn.value = firstApiMessage(error) ?? (error instanceof Error ? error.message : '')
+      return null
+    }
+  },
+  (result) => {
+    if (result !== null) {
+      quote.value = result
+    }
+  },
+  {
+    delayMs: 400,
+    onPending: (pending) => {
+      quoting.value = pending
+    }
+  }
+)
+
+function shortDate(iso: string): string {
+  return format(iso, 'short')
+}
+
+function cabinEnabled(item: CabinAvailability): boolean {
+  return item.state === 'FREE'
+}
+
+function reset(): void {
+  queue.invalidate()
+  type.value = 'CABIN'
+  mainChannel.value = (options.value?.main[0]?.value ?? '') as MainChannel | ''
+  origin.value = (options.value?.origin[0]?.options[0]?.value ?? '') as ChannelOfOrigin | ''
+  guestName.value = ''
+  email.value = ''
+  phone.value = ''
+  preferred.value = 'EMAIL'
+  departureId.value = null
+  adults.value = 2
+  children.value = 0
+  cabinCode.value = ''
+  extras.value = []
+  extraKey = 0
+  existingGroupId.value = null
+  groupName.value = ''
+  backToBack.value = false
+  notes.value = ''
+  contacts.value = []
+  selectedContact.value = null
+  groups.value = []
+  quote.value = null
+  warn.value = ''
+  fieldErrors.value = {}
+  dirty.value = false
+}
+
+function applyPrefill(): void {
+  const next = props.prefill
+
+  if (next === null || next === undefined) {
+    return
+  }
+
+  if (next.departureId !== undefined) {
+    departureId.value = next.departureId
+  }
+
+  if (next.cabinCode !== undefined) {
+    cabinCode.value = next.cabinCode
+  }
+}
+
+async function loadOptions(): Promise<void> {
+  options.value = await request('/api/rms/bookings/form-options') as BookingFormOptions
+
+  if (mainChannel.value === '' && options.value.main[0] !== undefined) {
+    mainChannel.value = options.value.main[0].value as MainChannel
+  }
+
+  if (origin.value === '' && options.value.origin[0]?.options[0] !== undefined) {
+    origin.value = options.value.origin[0].options[0].value as ChannelOfOrigin
+  }
+}
+
+async function loadDepartures(): Promise<void> {
+  const from = galapagosTomorrowIso(new Date(), (value, style, options) => format(value, style, options))
+  const collected: Array<Departure> = []
+  let page = 1
+  let last = 1
+
+  do {
+    const result = await request(
+      `/api/rms/departures?from=${from}&with_cabins=1&per_page=100&page=${page}`
+    ) as Paginated<Departure>
+    collected.push(...result.data)
+    last = result.meta.last_page
+    page += 1
+  } while (page <= last)
+
+  departures.value = collected
+}
+
+async function loadGroups(): Promise<void> {
+  if (departureId.value === null) {
+    groups.value = []
+    return
+  }
+
+  const result = await request(`/api/rms/groups?departure_id=${String(departureId.value)}`) as { data: Array<Group> }
+  groups.value = result.data
+}
+
+async function searchContacts(query: string): Promise<void> {
+  const q = query.trim()
+
+  if (q === '') {
+    contacts.value = []
+    return
+  }
+
+  const result = await request(`/api/rms/contacts?q=${encodeURIComponent(q)}`) as { data: Array<Contact> }
+  contacts.value = result.data
+}
+
+function onEmailInput(value: string): void {
+  email.value = value
+
+  if (selectedContact.value !== null && !existingContactSelected(value, selectedContact.value.email)) {
+    selectedContact.value = null
+  }
+
+  clearTimeout(contactTimer)
+  contactTimer = setTimeout(() => {
+    void searchContacts(value)
+  }, CONTACT_DEBOUNCE_MS)
+}
+
+function pickContact(contact: Contact): void {
+  selectedContact.value = contact
+  guestName.value = contact.name
+  email.value = contact.email ?? ''
+  phone.value = contact.phone ?? ''
+  preferred.value = contact.preferred_channel as PreferredChannel
+  contacts.value = []
+}
+
+function addCabin(): void {
+  extraKey += 1
+  extras.value = [...extras.value, { key: extraKey, cabinCode: '', adults: 2, children: 0 }]
+}
+
+function removeCabin(key: number): void {
+  extras.value = extras.value.filter(row => row.key !== key)
+}
+
+function updateExtra(key: number, patch: Partial<ReservationCabinRow>): void {
+  extras.value = extras.value.map((row) => {
+    return row.key === key ? { ...row, ...patch } : row
+  })
+}
+
+function scheduleQuote(): void {
+  const payload = quotePayload.value
+
+  if (payload === null) {
+    queue.invalidate()
+    quote.value = null
+    return
+  }
+
+  queue.schedule(payload)
+}
+
+function onUpdateOpen(next: boolean): void {
+  if (!next && dirty.value && !confirmUnsaved(t('bookings.leaveUnsaved'))) {
+    return
+  }
+
+  open.value = next
+}
+
+async function submit(): Promise<void> {
+  const payload = quotePayload.value
+
+  if (!canCreate.value || payload === null || mainChannel.value === '' || origin.value === '') {
+    return
+  }
+
+  submitting.value = true
+  warn.value = ''
+  fieldErrors.value = {}
+
+  const body: CreateReservationRequest = {
+    ...payload,
+    client: {
+      name: guestName.value.trim(),
+      email: email.value.trim() === '' ? null : email.value.trim(),
+      phone: phone.value.trim() === '' ? null : phone.value.trim(),
+      preferred_channel: preferred.value
+    },
+    main_channel: mainChannel.value,
+    channel_of_origin: origin.value,
+    internal_notes: notes.value.trim() === '' ? null : notes.value.trim()
+  }
+
+  if (!isCharter.value && existingGroupId.value !== null) {
+    body.group = { existing_group_id: existingGroupId.value }
+  } else if (!isCharter.value && cabinRows.value.length >= 2) {
+    body.group = { name: groupName.value.trim() === '' ? null : groupName.value.trim() }
+  }
+
+  try {
+    const created = await request('/api/rms/bookings', {
+      method: 'POST',
+      body
+    }) as CreateReservationResponse
+
+    dirty.value = false
+    open.value = false
+    toast.add({
+      title: createdToast(created.bookings, created.group?.reference ?? null)
+    })
+    emit('created', created)
+  } catch (error: unknown) {
+    if (error instanceof ApiError && error.status === 409) {
+      warn.value = firstApiMessage(error) ?? error.message
+      await loadDepartures()
+      scheduleQuote()
+    } else if (!applyApiFormError(error, (fields, message) => {
+      fieldErrors.value = fields
+      warn.value = message
+    })) {
+      warn.value = error instanceof Error ? error.message : ''
+    }
+  } finally {
+    submitting.value = false
+  }
+}
+
+watch(open, async (isOpen) => {
+  if (!isOpen) {
+    queue.invalidate()
+    clearTimeout(contactTimer)
+    return
+  }
+
+  loading.value = true
+  warn.value = ''
+
+  try {
+    reset()
+    await Promise.all([loadOptions(), loadDepartures()])
+    applyPrefill()
+    await loadGroups()
+    await nextTick()
+    dirty.value = false
+    scheduleQuote()
+  } catch (error: unknown) {
+    warn.value = firstApiMessage(error) ?? (error instanceof Error ? error.message : '')
+  } finally {
+    loading.value = false
+  }
+}, { immediate: true })
+
+watch(type, (next) => {
+  if (next === 'CHARTER') {
+    extras.value = []
+    cabinCode.value = ''
+    existingGroupId.value = null
+    groupName.value = ''
+  }
+})
+
+watch(backToBackVisible, (visible) => {
+  if (!visible) {
+    backToBack.value = false
+  }
+})
+
+watch(departureId, () => {
+  existingGroupId.value = null
+  void loadGroups()
+})
+
+watch(quotePayload, () => {
+  if (!open.value) {
+    return
+  }
+
+  scheduleQuote()
+})
+
+onUnmounted(() => {
+  queue.invalidate()
+  clearTimeout(contactTimer)
+})
+</script>
+
+<template>
+  <UModal
+    :open="open"
+    :title="t('bookings.newTitle')"
+    @update:open="onUpdateOpen"
+  >
+    <template #body>
+      <form
+        class="modal-form"
+        @submit.prevent="submit"
+        @input="dirty = true"
+        @change="dirty = true"
+      >
+        <div
+          v-if="warn"
+          class="warnbox"
+        >
+          {{ warn }}
+        </div>
+
+        <div class="cols2">
+          <div class="field">
+            <label>{{ t('bookings.bookingType') }}</label>
+            <select
+              :value="type"
+              @change="type = ($event.target as HTMLSelectElement).value as BookingType"
+            >
+              <option value="CABIN">
+                {{ t('bookings.typeCabin') }}
+              </option>
+              <option value="CHARTER">
+                {{ t('bookings.typeCharter') }}
+              </option>
+            </select>
+          </div>
+          <div class="field">
+            <label>{{ t('bookings.mainChannel') }}</label>
+            <select
+              :value="mainChannel"
+              @change="mainChannel = ($event.target as HTMLSelectElement).value as MainChannel"
+            >
+              <option
+                v-for="item in options?.main ?? []"
+                :key="item.value"
+                :value="item.value"
+              >
+                {{ item.label }}
+              </option>
+            </select>
+            <p
+              v-if="fieldErrors.main_channel"
+              class="field-hint"
+            >
+              {{ fieldErrors.main_channel }}
+            </p>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>{{ t('bookings.originChannel') }}</label>
+          <select
+            :value="origin"
+            @change="origin = ($event.target as HTMLSelectElement).value as ChannelOfOrigin"
+          >
+            <optgroup
+              v-for="group in options?.origin ?? []"
+              :key="group.group"
+              :label="group.group"
+            >
+              <option
+                v-for="item in group.options"
+                :key="item.value"
+                :value="item.value"
+              >
+                {{ item.label }}
+              </option>
+            </optgroup>
+          </select>
+        </div>
+
+        <p
+          v-if="tradeNotice"
+          class="notice"
+        >
+          {{ t('bookings.agencySprint') }}
+        </p>
+
+        <div class="cols2">
+          <div class="field">
+            <label>{{ guestLabel }}</label>
+            <input
+              v-model="guestName"
+              type="text"
+              :placeholder="t('bookings.guestPlaceholder')"
+            >
+            <p
+              v-if="fieldErrors['client.name']"
+              class="field-hint"
+            >
+              {{ fieldErrors['client.name'] }}
+            </p>
+          </div>
+          <div class="field">
+            <label>{{ t('bookings.email') }}</label>
+            <input
+              :value="email"
+              type="email"
+              autocomplete="off"
+              @input="onEmailInput(($event.target as HTMLInputElement).value)"
+            >
+            <div
+              v-if="contacts.length > 0"
+              class="nb-suggest"
+            >
+              <button
+                v-for="contact in contacts"
+                :key="contact.id"
+                type="button"
+                class="nb-suggest-item"
+                @click="pickContact(contact)"
+              >
+                {{ contact.name }}{{ contact.email ? ` · ${contact.email}` : '' }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <p
+          v-if="existingNotice"
+          class="notice"
+        >
+          {{ t('bookings.existingContact') }}
+        </p>
+
+        <div class="cols2">
+          <div class="field">
+            <label>{{ t('bookings.phone') }}</label>
+            <input
+              v-model="phone"
+              type="text"
+            >
+          </div>
+          <div class="field">
+            <label>{{ t('bookings.preferredChannel') }}</label>
+            <select
+              :value="preferred"
+              @change="preferred = ($event.target as HTMLSelectElement).value as PreferredChannel"
+            >
+              <option
+                v-for="item in options?.preferred ?? []"
+                :key="item.value"
+                :value="item.value"
+              >
+                {{ item.label }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>{{ t('bookings.departure') }}</label>
+          <select
+            :value="departureId ?? ''"
+            :disabled="loading"
+            @change="departureId = Number(($event.target as HTMLSelectElement).value) || null"
+          >
+            <option value="">
+              {{ loading ? t('bookings.loadingDepartures') : t('bookings.pickDeparture') }}
+            </option>
+            <option
+              v-for="item in departures"
+              :key="item.id"
+              :value="item.id"
+            >
+              {{ departureOptionLabel(item.date, item.yacht.name, item.itinerary.name, item.festive, shortDate) }}
+            </option>
+          </select>
+        </div>
+
+        <div class="cols2">
+          <div class="field">
+            <label>{{ t('bookings.adults') }}</label>
+            <input
+              v-model.number="adults"
+              type="number"
+              min="1"
+              max="16"
+            >
+          </div>
+          <div class="field">
+            <label>{{ childrenLabel }}</label>
+            <input
+              v-model.number="children"
+              type="number"
+              min="0"
+              max="16"
+            >
+          </div>
+        </div>
+
+        <div
+          v-if="quoteErrors.length > 0"
+          class="warnbox"
+        >
+          <span
+            v-for="item in quoteErrors"
+            :key="item"
+          >{{ item }}</span>
+        </div>
+
+        <div
+          v-if="!isCharter"
+          class="field"
+        >
+          <label>{{ t('bookings.cabin') }}</label>
+          <select
+            :value="cabinCode"
+            :disabled="selectedDeparture === null"
+            @change="cabinCode = ($event.target as HTMLSelectElement).value"
+          >
+            <option value="">
+              {{ t('bookings.pickCabin') }}
+            </option>
+            <option
+              v-for="item in cabins"
+              :key="item.cabin.code"
+              :value="item.cabin.code"
+              :disabled="!cabinEnabled(item)"
+            >
+              {{ item.cabin.label }}{{ cabinEnabled(item) ? '' : ` · ${t('bookings.cabinTaken')}` }}
+            </option>
+          </select>
+        </div>
+
+        <p
+          v-if="isCharter && charterTerms"
+          class="notice"
+        >
+          {{ charterNoticeText(charterTerms) }}
+        </p>
+
+        <div
+          v-if="!isCharter && extras.length > 0"
+          class="nb-extra"
+        >
+          <div
+            v-for="(row, index) in extras"
+            :key="row.key"
+            class="nbx"
+          >
+            <div class="field">
+              <label>{{ t('bookings.extraCabin', { n: String(index + 2) }) }}</label>
+              <select
+                :value="row.cabinCode"
+                @change="updateExtra(row.key, { cabinCode: ($event.target as HTMLSelectElement).value })"
+              >
+                <option value="">
+                  {{ t('bookings.pickCabin') }}
+                </option>
+                <option
+                  v-for="item in cabins"
+                  :key="item.cabin.code"
+                  :value="item.cabin.code"
+                  :disabled="!cabinEnabled(item)"
+                >
+                  {{ item.cabin.label }}
+                </option>
+              </select>
+            </div>
+            <div class="field">
+              <label>{{ t('bookings.adults') }}</label>
+              <input
+                :value="row.adults"
+                type="number"
+                min="1"
+                max="4"
+                @input="updateExtra(row.key, { adults: Number(($event.target as HTMLInputElement).value) })"
+              >
+            </div>
+            <div class="field">
+              <label>{{ t('bookings.children') }}</label>
+              <input
+                :value="row.children"
+                type="number"
+                min="0"
+                max="3"
+                @input="updateExtra(row.key, { children: Number(($event.target as HTMLInputElement).value) })"
+              >
+            </div>
+            <button
+              type="button"
+              class="xbtn"
+              :aria-label="t('bookings.removeCabin')"
+              @click="removeCabin(row.key)"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+
+        <div
+          v-if="!isCharter"
+          class="nb-addrow"
+        >
+          <UButton
+            variant="outline"
+            @click="addCabin"
+          >
+            {{ t('bookings.addCabin') }}
+          </UButton>
+          <select
+            class="tsel"
+            :value="existingGroupId ?? ''"
+            @change="existingGroupId = Number(($event.target as HTMLSelectElement).value) || null"
+          >
+            <option value="">
+              {{ t('bookings.newReservationOption') }}
+            </option>
+            <option
+              v-for="group in groups"
+              :key="group.id"
+              :value="group.id"
+            >
+              {{ t('bookings.addToGroup', { reference: group.reference, name: group.name }) }}
+            </option>
+          </select>
+        </div>
+
+        <template v-if="groupVisible">
+          <div
+            v-if="showGroupNameField(existingGroupId)"
+            class="field"
+          >
+            <label>{{ t('bookings.groupName') }}</label>
+            <input
+              v-model="groupName"
+              type="text"
+              :placeholder="t('bookings.groupPlaceholder')"
+            >
+          </div>
+          <p class="notice">
+            {{ t('bookings.ops008') }}
+          </p>
+        </template>
+
+        <label
+          v-if="backToBackVisible"
+          class="chkline"
+        >
+          <input
+            v-model="backToBack"
+            type="checkbox"
+          >
+          {{ t('bookings.backToBack') }}
+        </label>
+
+        <div class="prevbox nb-price">
+          <div class="prevl">
+            {{ t('bookings.priceHeader') }}
+          </div>
+          <p
+            v-if="quotePayload === null && departureId !== null && !isCharter"
+            class="pline pline-err"
+          >
+            {{ t('bookings.pickACabin') }}
+          </p>
+          <template v-else-if="quote">
+            <template
+              v-for="(party, index) in quote.cabins"
+              :key="`${party.cabin_code ?? 'charter'}-${index}`"
+            >
+              <div
+                v-if="quote.cabins.length > 1"
+                class="prevl"
+              >
+                {{ t('bookings.cabinQuote', {
+                  n: String(index + 1),
+                  cabin: party.cabin_label.toUpperCase(),
+                  party: party.children > 0
+                    ? t('bookings.partyMix', { adults: String(party.adults), children: String(party.children) })
+                    : t('bookings.partyAdults', { adults: String(party.adults) })
+                }) }}
+              </div>
+              <div
+                v-for="line in party.quote?.lines ?? []"
+                :key="`${index}-${line.code}-${line.label}`"
+                class="pline"
+                :class="{ off: line.amount < 0 }"
+              >
+                <span>{{ line.label }}</span>
+                <span>{{ money(line.amount) }}</span>
+              </div>
+              <div
+                v-for="item in party.errors"
+                :key="`${index}-${item}`"
+                class="pline pline-err"
+              >
+                ⚠ {{ item }}
+              </div>
+            </template>
+            <div
+              v-if="quote.total !== null"
+              class="pline tot"
+            >
+              <span>{{ quote.cabins.length > 1
+                ? t('bookings.groupTotalLine', { n: String(quote.cabins.length) })
+                : t('bookings.total') }}</span>
+              <span>{{ money(quote.total) }}</span>
+            </div>
+            <div
+              v-if="depositLine !== ''"
+              class="pline"
+            >
+              <span>{{ depositLine }}</span>
+            </div>
+          </template>
+        </div>
+
+        <div class="field">
+          <label>{{ t('bookings.internalNotes') }}</label>
+          <textarea
+            v-model="notes"
+            rows="2"
+          />
+        </div>
+
+        <div class="modal-actions">
+          <UButton
+            variant="outline"
+            :disabled="submitting"
+            @click="onUpdateOpen(false)"
+          >
+            {{ t('bookings.cancel') }}
+          </UButton>
+          <UButton
+            type="submit"
+            :loading="submitting"
+            :disabled="!canCreate"
+          >
+            {{ t('bookings.createReservation') }}
+          </UButton>
+        </div>
+      </form>
+    </template>
+  </UModal>
+</template>

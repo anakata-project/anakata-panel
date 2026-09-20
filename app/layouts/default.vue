@@ -4,6 +4,20 @@ import { visibleNav } from '../navigation/guards'
 const { t } = useI18n()
 const { sectionId, section, currentItem } = useSystem()
 const { can, hasSection } = useAuth()
+const route = useRoute()
+const { openNew } = useNewReservation()
+
+function onNewReservation(): void {
+  if (route.path === '/rms/reservations/bookings') {
+    openNew()
+    return
+  }
+
+  void navigateTo({
+    path: '/rms/reservations/bookings',
+    query: { new: '1' }
+  })
+}
 
 const nav = computed(() => visibleNav(section.value, permission => can(permission)))
 const showSectionSwitch = computed(() => hasSection('rms') && hasSection('crm'))
@@ -85,19 +99,13 @@ useHead(() => ({
           <span class="mono">{{ t('shell.loggedInAs') }}</span>
           <ShellWhoMenu />
           <AnkThemeToggle />
-          <UTooltip
+          <UButton
             v-if="showNewReservation"
-            :text="t('bookings.newReservationSoon')"
+            color="primary"
+            @click="onNewReservation"
           >
-            <span>
-              <UButton
-                color="primary"
-                disabled
-              >
-                {{ t('shell.newReservation') }}
-              </UButton>
-            </span>
-          </UTooltip>
+            {{ t('shell.newReservation') }}
+          </UButton>
           <span
             v-if="sectionId === 'crm'"
             class="sysbadge sys-rms"

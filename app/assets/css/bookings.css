@@ -189,3 +189,59 @@ table.mini-t td {
 html.light .kv {
   border-bottom-color: rgba(32, 43, 38, .08);
 }
+
+.nb-suggest {
+  border: 1px solid var(--hair);
+  background: var(--forest-950);
+  margin-top: 4px;
+}
+
+.nb-suggest-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid rgba(242, 241, 225, .06);
+  color: var(--ivory);
+  font: inherit;
+  font-size: 12.5px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.nb-suggest-item:last-child {
+  border-bottom: 0;
+}
+
+.nb-suggest-item:hover {
+  background: rgba(242, 241, 225, .04);
+}
+
+.nb-extra {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.nbx {
+  display: grid;
+  grid-template-columns: 1.4fr .7fr .7fr 34px;
+  gap: 10px;
+  align-items: end;
+}
+
+.nb-addrow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.nb-price {
+  margin: 4px 0 0;
+}
+
+.pline-err {
+  color: var(--coral-400);
+}

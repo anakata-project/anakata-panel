@@ -4,6 +4,7 @@ import {
   BOOKING_TABS,
   bookingToOpen,
   canMoveStatus,
+  departureOptionLabel,
   departureOverviewLabel,
   displayReferenceMatch,
   formatMoveDifference,
@@ -97,6 +98,15 @@ describe('bookingHelpers', () => {
     expect(displayReferenceMatch('ANK-2026-000', 'ANK-2026-0003')).toBe(false)
     expect(bookingToOpen('ANK-2026-0003', [booking])?.display_reference).toBe('ANK-2026-0003')
     expect(bookingToOpen('ANK-NOPE', [booking])).toBeNull()
+  })
+
+  it('labels festive departures with the prototype suffix', () => {
+    const short = (iso: string): string => format(iso, 'short')
+
+    expect(departureOptionLabel('2027-11-07', 'ANAMARA', 'Western Realm', false, short))
+      .toBe('7 Nov 2027 · ANAMARA · Western Realm')
+    expect(departureOptionLabel('2027-12-19', 'ANAMARA', 'Festive Expeditions', true, short))
+      .toBe('19 Dec 2027 · ANAMARA · Festive Expeditions · FESTIVE (+supplement, discounts blocked)')
   })
 
   it('detects a modification fee line', () => {
