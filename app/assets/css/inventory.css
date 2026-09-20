@@ -576,15 +576,28 @@ td .cell {
   box-sizing: border-box;
 }
 
-a.cell {
+a.cell,
+button.cell {
   color: inherit;
   cursor: pointer;
+}
+
+button.cell {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  letter-spacing: inherit;
 }
 
 .c-av,
 .c-none {
   background: transparent;
   cursor: default;
+}
+
+button.cell.c-av {
+  cursor: pointer;
 }
 
 .c-none {
@@ -711,6 +724,10 @@ th.xmas {
   border: 1px solid var(--hair);
   padding: 14px 10px;
   text-align: center;
+}
+
+.cab.is-click {
+  cursor: pointer;
 }
 
 .cab .cn {
