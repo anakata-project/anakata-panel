@@ -186,6 +186,19 @@ describe('firstAllowedHome', () => {
 })
 
 describe('seeded admin nav', () => {
+  it('hides Booking Requests without confirm or release, and still shows Holds', () => {
+    const finance = visibleNav(sections.rms, allow('panel.rms', 'bookings.view_all'))
+    const reservations = finance.find(group => group.id === 'reservations')
+    const operations = finance.find(group => group.id === 'operations')
+
+    expect(reservations?.items.map(item => item.id)).not.toContain('booking-requests')
+    expect(operations?.items.map(item => item.id)).toContain('holds')
+    expect(pageDecision('/rms/reservations/booking-requests', allow('panel.rms', 'bookings.view_all'))).toEqual({
+      to: RMS_HOME,
+      toast: true
+    })
+  })
+
   it('gates the real RMS Permissions and Business Rules items', () => {
     const admin = visibleNav(sections.rms, allow(
       'users.manage',

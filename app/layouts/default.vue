@@ -6,6 +6,7 @@ const { sectionId, section, currentItem } = useSystem()
 const { can, hasSection } = useAuth()
 const route = useRoute()
 const { openNew } = useNewReservation()
+const { count: requestCount, allowed: showRequestBadge, startPolling } = useOpenRequests()
 
 function onNewReservation(): void {
   if (route.path === '/rms/reservations/bookings') {
@@ -30,6 +31,10 @@ const pageTitle = computed(() => {
 useHead(() => ({
   title: pageTitle.value
 }))
+
+onMounted(() => {
+  startPolling()
+})
 </script>
 
 <template>
@@ -67,9 +72,9 @@ useHead(() => ({
           >
             {{ item.glyph }} {{ t(item.labelKey) }}
             <span
-              v-if="item.badge"
-              class="nav-badge"
-            />
+              v-if="item.badge && showRequestBadge"
+              class="nav-badge pill p-req"
+            >{{ requestCount }}</span>
           </NuxtLink>
         </div>
       </template>

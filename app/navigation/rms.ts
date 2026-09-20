@@ -11,7 +11,8 @@ export const rmsNav: Array<NavGroup> = [
         glyph: '◍',
         to: '/rms/reservations/booking-requests',
         sprint: 4,
-        badge: true
+        badge: true,
+        permission: ['requests.confirm', 'requests.release']
       },
       {
         id: 'calendar',

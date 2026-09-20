@@ -12,6 +12,8 @@ import { confirmUnsaved } from '../../composables/useUnsavedGuard'
 import HistoryTimeline from '../history/HistoryTimeline.vue'
 import ReasonModal from './ReasonModal.vue'
 import MoveBookingModal from './MoveBookingModal.vue'
+import ConfirmRequestModal from '../requests/ConfirmRequestModal.vue'
+import { formatHoldRemaining } from '../requests/requestHelpers'
 import {
   BOOKING_TABS,
   canMoveStatus,
@@ -29,6 +31,7 @@ const open = defineModel<boolean>('open', { required: true })
 
 const props = defineProps<{
   booking: Booking | null
+  businessDayMinutes?: number
 }>()
 
 const emit = defineEmits<{
@@ -73,8 +76,28 @@ const canChangeStatus = computed(() => can('bookings.change_status'))
 const canMove = computed(() => can('bookings.move'))
 const canConfirm = computed(() => can('requests.confirm'))
 const canRelease = computed(() => can('requests.release'))
+const { rules } = useOpenRequests()
+const confirmOpen = ref(false)
+const confirmSubmitting = ref(false)
+const confirmError = ref('')
+
+const holdDayMinutes = computed(() => {
+  return props.businessDayMinutes ?? rules.value?.business_day_minutes ?? 0
+})
 
 const source = computed(() => current.value ?? props.booking)
+
+const holdRemainingText = computed(() => {
+  if (source.value?.request === null || source.value?.request === undefined) {
+    return ''
+  }
+
+  return formatHoldRemaining(
+    source.value.request.hold.remaining_business_minutes,
+    holdDayMinutes.value,
+    source.value.request.hold.expired
+  )
+})
 
 const dirty = computed(() => {
   if (source.value === null || !source.value.can_act) {
@@ -216,20 +239,29 @@ async function save(): Promise<void> {
   }
 }
 
-async function onConfirmRequest(): Promise<void> {
+function onConfirmRequest(): void {
+  confirmError.value = ''
+  confirmOpen.value = true
+}
+
+async function submitConfirm(): Promise<void> {
   if (source.value === null) {
     return
   }
 
-  warn.value = ''
+  confirmSubmitting.value = true
+  confirmError.value = ''
 
   try {
     const updated = await confirmRequest(request, source.value.id)
     current.value = updated
     toast.add({ title: t('bookings.confirmedToast') })
+    confirmOpen.value = false
     emit('updated', updated)
   } catch (error: unknown) {
-    warn.value = firstApiMessage(error) ?? (error instanceof Error ? error.message : '')
+    confirmError.value = firstApiMessage(error) ?? (error instanceof Error ? error.message : '')
+  } finally {
+    confirmSubmitting.value = false
   }
 }
 
@@ -281,7 +313,7 @@ async function onReason(reason: string): Promise<void> {
     if (reasonKind.value === 'release') {
       const updated = await releaseRequest(request, source.value.id, reason)
       current.value = updated
-      toast.add({ title: t('bookings.releasedToast') })
+      toast.add({ title: t('requests.releasedToast') })
       reasonOpen.value = false
       emit('updated', updated)
       return
@@ -466,11 +498,8 @@ function canActOn(booking: Booking): boolean {
             </div>
             <div class="kv">
               <span>{{ t('bookings.kvHold') }}</span>
-              <span>
-                {{ source.request.hold.expires_at ? format(source.request.hold.expires_at, 'dateTime') : '—' }}
-                <template v-if="source.request.hold.expired">
-                  · {{ t('bookings.holdExpired') }}
-                </template>
+              <span :class="source.request.hold.expired ? 'req-expired' : ''">
+                {{ holdRemainingText }}
               </span>
             </div>
             <div
@@ -538,8 +567,11 @@ function canActOn(booking: Booking): boolean {
                 {{ t('bookings.releaseHold') }}
               </UButton>
             </div>
-            <p class="notice">
-              {{ t('bookings.requestSla') }}
+            <p
+              v-if="rules?.response_hours"
+              class="notice"
+            >
+              {{ t('bookings.requestSla', { hours: String(rules.response_hours) }) }}
             </p>
           </div>
 
@@ -658,6 +690,15 @@ function canActOn(booking: Booking): boolean {
       </template>
     </template>
   </USlideover>
+
+  <ConfirmRequestModal
+    v-model:open="confirmOpen"
+    :deposit-pct="source?.deposit_pct ?? 0"
+    :channel="source?.request?.preferred_channel ?? ''"
+    :submitting="confirmSubmitting"
+    :error="confirmError"
+    @confirm="submitConfirm"
+  />
 
   <ReasonModal
     v-model:open="reasonOpen"

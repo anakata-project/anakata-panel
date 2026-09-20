@@ -20,11 +20,15 @@ export type {
   CreateReservationResponse,
   Group,
   GroupSummary,
+  HoldListItem,
+  HoldListRules,
   MainChannel,
   MovePreview,
   Paginated,
   PreferredChannel,
   PriceLine,
+  RequestQueueItem,
+  RequestQueueRules,
   BusinessRulesDocument,
   BusinessRulesVersion,
   CancellationBand,
@@ -35,6 +39,7 @@ export type {
   ConfigVersionDetail,
   ConfigVersionSummary,
   ConfigWarning,
+  CabinCategory,
   AvailabilityCounts,
   BlockClaim,
   BlockReason,
@@ -82,6 +87,7 @@ export type {
   RuleStatus,
   RuleWhere,
   UserListItem,
+  WaitlistEntry,
   Yacht
 } from '../../../anakata-ui/app/types'
 

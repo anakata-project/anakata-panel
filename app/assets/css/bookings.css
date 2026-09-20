@@ -245,3 +245,59 @@ html.light .kv {
 .pline-err {
   color: var(--coral-400);
 }
+
+.req-notice {
+  max-width: 860px;
+}
+
+.req-ref {
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: .08em;
+  color: var(--coral-400);
+}
+
+.via {
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: .1em;
+  color: var(--iv38);
+}
+
+.slat {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: .12em;
+  padding: 3px 8px;
+}
+
+.slat.ok {
+  color: var(--ok);
+  border: 1px solid var(--ok);
+}
+
+.slat.bad {
+  background: var(--coral);
+  color: var(--forest-950);
+}
+
+.req-expired,
+.hold-expires {
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.req-expired {
+  color: var(--coral);
+}
+
+.wl-free {
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--ok);
+}
+
+.wl-notified {
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--iv38);
+}
+
+html.light .slat.bad {
+  color: #141B17;
+}
