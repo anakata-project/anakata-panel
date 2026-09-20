@@ -132,6 +132,23 @@ export function describeHistory(
     }
     case 'role.deleted':
       return t('history.events.roleDeleted')
+    case 'itinerary.created':
+      return t('history.events.itineraryCreated')
+    case 'itinerary.deleted':
+      return t('history.events.itineraryDeleted')
+    case 'itinerary.published':
+      return t('history.events.itineraryPublished')
+    case 'itinerary.hidden':
+      return t('history.events.itineraryHidden')
+    case 'itinerary.image_replaced':
+      return t('history.events.itineraryImageReplaced')
+    case 'itinerary.updated': {
+      const summary = compactDiff(before, after)
+
+      return summary
+        ? t('history.events.itineraryUpdated', { summary })
+        : t('history.events.itineraryUpdatedBare')
+    }
     default: {
       const summary = compactDiff(before, after)
 

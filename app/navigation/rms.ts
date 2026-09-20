@@ -79,7 +79,7 @@ export const rmsNav: Array<NavGroup> = [
         labelKey: 'nav.rms.holds',
         glyph: '◔',
         to: '/rms/operations/holds',
-        sprint: 3
+        sprint: 4
       },
       {
         id: 'refunds',

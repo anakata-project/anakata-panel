@@ -1,5 +1,9 @@
 import type { MaybeRefOrGetter } from 'vue'
 
+export function confirmUnsaved(message: string): boolean {
+  return window.confirm(message)
+}
+
 export function useUnsavedGuard(
   dirty: MaybeRefOrGetter<boolean>,
   message: MaybeRefOrGetter<string>
@@ -32,6 +36,6 @@ export function useUnsavedGuard(
       return true
     }
 
-    return window.confirm(toValue(message))
+    return confirmUnsaved(toValue(message))
   })
 }

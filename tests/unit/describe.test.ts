@@ -18,6 +18,13 @@ const strings: Record<string, string> = {
   'history.events.roleAdded': 'added: {added}',
   'history.events.roleRemoved': 'removed: {removed}',
   'history.events.roleDeleted': 'Role deleted',
+  'history.events.itineraryCreated': 'Created',
+  'history.events.itineraryDeleted': 'Deleted',
+  'history.events.itineraryPublished': 'Published',
+  'history.events.itineraryHidden': 'Hidden from engine',
+  'history.events.itineraryImageReplaced': 'Hero photo replaced',
+  'history.events.itineraryUpdated': 'Updated · {summary}',
+  'history.events.itineraryUpdatedBare': 'Updated',
   'history.events.unknown': '{event} · {summary}'
 }
 
@@ -86,6 +93,19 @@ describe('describeHistory', () => {
       before: { name: 'Ops', description: 'A' },
       after: { name: 'Operations', description: 'B', added: ['bookings.delete'], removed: ['users.manage'] }
     }, t, label)).toBe('Renamed · Ops → Operations · Description changed · Permissions changed · added: Delete bookings, removed: users.manage')
+  })
+
+  it('maps itinerary events', () => {
+    expect(describeHistory({ event: 'itinerary.created', before: null, after: null }, t)).toBe('Created')
+    expect(describeHistory({ event: 'itinerary.deleted', before: null, after: null }, t)).toBe('Deleted')
+    expect(describeHistory({ event: 'itinerary.published', before: null, after: { status: 'PUBLISHED' } }, t)).toBe('Published')
+    expect(describeHistory({ event: 'itinerary.hidden', before: null, after: { status: 'HIDDEN' } }, t)).toBe('Hidden from engine')
+    expect(describeHistory({ event: 'itinerary.image_replaced', before: null, after: null }, t)).toBe('Hero photo replaced')
+    expect(describeHistory({
+      event: 'itinerary.updated',
+      before: { name: 'West' },
+      after: { name: 'Western Realm' }
+    }, t)).toBe('Updated · name: West → Western Realm')
   })
 
   it('never renders raw JSON for an unknown event', () => {
