@@ -73,9 +73,13 @@ export function mapCabinCell(input: {
   }
 
   if (input.state === 'BLOCKED') {
-    const detail = input.claim?.holder.detail ?? null
-    const reason = detail?.reason ?? null
-    const reasonLabel = detail?.reason_label ?? 'Blocked'
+    const holder = input.claim?.holder
+    const detail = holder?.detail ?? null
+    // holder.type is an untyped morph alias in the spec; the generated
+    // oneOf on detail is not discriminated by it. Narrow the union by shape.
+    const blockDetail = detail !== null && 'reason' in detail ? detail : null
+    const reason = blockDetail?.reason ?? null
+    const reasonLabel = blockDetail?.reason_label ?? 'Blocked'
     const reference = input.claim?.holder.reference ?? null
     const short = reason !== null ? BLOCK_SHORT[reason] : 'BLK'
     const status = reference !== null && reference !== ''
