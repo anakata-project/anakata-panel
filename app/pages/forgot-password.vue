@@ -40,29 +40,27 @@ async function onSubmit(): Promise<void> {
         {{ t('auth.forgotConfirm') }}
       </p>
 
-      <template v-if="!sent">
-        <UFormField :label="t('auth.email')">
-          <UInput
-            v-model="email"
-            type="email"
-            autocomplete="username"
-            required
-            class="w-full"
-          />
-        </UFormField>
+      <UFormField :label="t('auth.email')">
+        <UInput
+          v-model="email"
+          type="email"
+          autocomplete="username"
+          required
+          class="w-full"
+        />
+      </UFormField>
 
-        <div class="auth-actions">
-          <UButton
-            type="submit"
-            color="primary"
-            class="w-full"
-            :loading="submitting"
-            :disabled="submitting"
-          >
-            {{ t('auth.sendReset') }}
-          </UButton>
-        </div>
-      </template>
+      <div class="auth-actions">
+        <UButton
+          type="submit"
+          color="primary"
+          class="w-full"
+          :loading="submitting"
+          :disabled="submitting"
+        >
+          {{ t('auth.sendReset') }}
+        </UButton>
+      </div>
 
       <NuxtLink
         to="/login"
