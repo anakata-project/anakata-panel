@@ -19,7 +19,7 @@ const props = defineProps<{
 
 const { t } = useI18n()
 
-const preset = ref<DateRangePreset>('all')
+const preset = ref<DateRangePreset>(isRangeActive(from.value, to.value) ? 'custom' : 'all')
 
 const years = computed(() => yearPresets(props.today))
 const active = computed(() => isRangeActive(from.value, to.value))

@@ -622,5 +622,32 @@
     "seasonCreatedClosed": "{n} departures created as Closed to sale — open them when ready.",
     "seasonCreatedOnSale": "{n} departures created and on sale.",
     "seasonSkipped": "{n} skipped."
+  },
+  "calendar": {
+    "noun": "departures",
+    "fieldLabel": "Departure date",
+    "colCabin": "Cabin",
+    "festive": "FESTIVE",
+    "empty": "No departures in this date range.",
+    "legendAvailable": "Available",
+    "legendHold": "On hold",
+    "legendConfirmed": "Confirmed",
+    "legendFull": "Fully paid",
+    "legendPending": "Pending payment",
+    "legendRequested": "Requested (web · hold)",
+    "legendCharter": "Charter (full yacht)",
+    "legendBlock": "Internal block",
+    "legendLock": "🔒 Not yours (own-records rule)",
+    "notice": "Availability changes propagate to the public site in < 30 seconds (SLA). No overbooking: cells with any active claim are unsellable, enforced at database level.",
+    "yachtHeader": "⛵ {name}"
+  },
+  "yachtLayout": {
+    "noun": "departures",
+    "fieldLabel": "Departure date",
+    "departure": "Departure",
+    "festive": "FESTIVE",
+    "noSailing": "No sailing",
+    "empty": "No departures in this date range.",
+    "deckHeader": "{yacht} · {date}"
   }
 }

@@ -37,6 +37,13 @@ export function addDays(iso: string, days: number): string {
   return toIso(date)
 }
 
+export function addMonths(iso: string, months: number): string {
+  const date = parseUtc(iso)
+  date.setUTCMonth(date.getUTCMonth() + months)
+
+  return toIso(date)
+}
+
 export function calendarYear(today: string): number {
   return Number(today.slice(0, 4))
 }

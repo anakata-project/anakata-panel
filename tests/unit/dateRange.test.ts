@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  addMonths,
   calendarYear,
   isRangeActive,
   normalizeRange,
@@ -40,5 +41,10 @@ describe('dateRange', () => {
     })
     expect(isRangeActive(null, null)).toBe(false)
     expect(isRangeActive('2029-06-01', null)).toBe(true)
+  })
+
+  it('adds calendar months on the UTC date', () => {
+    expect(addMonths('2026-09-20', 6)).toBe('2027-03-20')
+    expect(addMonths('2027-11-07', 0)).toBe('2027-11-07')
   })
 })
