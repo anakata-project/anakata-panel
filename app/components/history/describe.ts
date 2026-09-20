@@ -165,6 +165,17 @@ export function describeHistory(
         ? t('history.events.departureUpdated', { summary })
         : t('history.events.departureUpdatedBare')
     }
+    case 'block.created':
+      return t('history.events.blockCreated')
+    case 'block.released':
+      return t('history.events.blockReleased')
+    case 'block.updated': {
+      const summary = compactDiff(before, after)
+
+      return summary
+        ? t('history.events.blockUpdated', { summary })
+        : t('history.events.blockUpdatedBare')
+    }
     default: {
       const summary = compactDiff(before, after)
 

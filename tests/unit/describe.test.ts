@@ -30,6 +30,10 @@ const strings: Record<string, string> = {
   'history.events.departureUpdated': 'Updated · {summary}',
   'history.events.departureUpdatedBare': 'Updated',
   'history.events.departureStatusChanged': 'Status · {before} → {after}',
+  'history.events.blockCreated': 'Created',
+  'history.events.blockReleased': 'Released',
+  'history.events.blockUpdated': 'Updated · {summary}',
+  'history.events.blockUpdatedBare': 'Updated',
   'history.events.unknown': '{event} · {summary}'
 }
 
@@ -126,6 +130,17 @@ describe('describeHistory', () => {
       before: { public_note: 'Launch' },
       after: { public_note: 'Inaugural sailing' }
     }, t)).toBe('Updated · public_note: Launch → Inaugural sailing')
+  })
+
+  it('maps block events', () => {
+    expect(describeHistory({ event: 'block.created', before: null, after: { reason: 'FAM_TRIP' } }, t)).toBe('Created')
+    expect(describeHistory({ event: 'block.released', before: null, after: { release_note: null } }, t)).toBe('Released')
+    expect(describeHistory({
+      event: 'block.updated',
+      before: { reason: 'FAM_TRIP' },
+      after: { reason: 'MAINTENANCE' }
+    }, t)).toBe('Updated · reason: FAM_TRIP → MAINTENANCE')
+    expect(describeHistory({ event: 'block.updated', before: null, after: null }, t)).toBe('Updated')
   })
 
   it('never renders raw JSON for an unknown event', () => {
