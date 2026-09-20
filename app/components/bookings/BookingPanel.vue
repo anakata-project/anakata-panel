@@ -1,0 +1,676 @@
+<script setup lang="ts">
+import type {
+  AllowedTransition,
+  Booking,
+  BookingOwner,
+  BookingStatus,
+  ChangeHistoryEntry,
+  Paginated
+} from '../../types/api'
+import { firstApiMessage } from '../../utils/apiForm'
+import { confirmUnsaved } from '../../composables/useUnsavedGuard'
+import HistoryTimeline from '../history/HistoryTimeline.vue'
+import ReasonModal from './ReasonModal.vue'
+import MoveBookingModal from './MoveBookingModal.vue'
+import {
+  BOOKING_TABS,
+  canMoveStatus,
+  departureOverviewLabel,
+  reasonHint,
+  reasonModalTitle,
+  statusLabel,
+  statusPillClass,
+  type BookingTab,
+  type BookingTabId
+} from './bookingHelpers'
+import { confirmRequest, releaseRequest } from './requestActions'
+
+const open = defineModel<boolean>('open', { required: true })
+
+const props = defineProps<{
+  booking: Booking | null
+}>()
+
+const emit = defineEmits<{
+  updated: [booking: Booking]
+  deleted: []
+  openGroup: [groupId: number]
+}>()
+
+type ReasonKind = 'transition' | 'delete' | 'release'
+
+const { t } = useI18n()
+const { can } = useAuth()
+const { request } = useApi()
+const { format } = useDates()
+const { format: money } = useMoney()
+const toast = useToast()
+
+const current = ref<Booking | null>(null)
+const tab = ref<BookingTabId>('overview')
+const notes = ref('')
+const ownerId = ref<number | null>(null)
+const snapshot = ref('')
+const warn = ref('')
+const saving = ref(false)
+const owners = ref<Array<BookingOwner>>([])
+const history = ref<Array<ChangeHistoryEntry>>([])
+const historyPage = ref(1)
+const historyLast = ref(1)
+const historyLoading = ref(false)
+
+const reasonOpen = ref(false)
+const reasonKind = ref<ReasonKind>('transition')
+const reasonTo = ref<BookingStatus | null>(null)
+const reasonRequired = ref(true)
+const reasonError = ref('')
+const reasonSubmitting = ref(false)
+const moveOpen = ref(false)
+
+const canReassign = computed(() => can('records.act_on_any'))
+const canDelete = computed(() => can('bookings.delete'))
+const canChangeStatus = computed(() => can('bookings.change_status'))
+const canMove = computed(() => can('bookings.move'))
+const canConfirm = computed(() => can('requests.confirm'))
+const canRelease = computed(() => can('requests.release'))
+
+const source = computed(() => current.value ?? props.booking)
+
+const dirty = computed(() => {
+  if (source.value === null || !source.value.can_act) {
+    return false
+  }
+
+  return `${notes.value}\0${ownerId.value ?? ''}` !== snapshot.value
+})
+
+const reasonTitle = computed(() => {
+  if (reasonKind.value === 'delete') {
+    return t('bookings.deleteTitle', { reference: source.value?.display_reference ?? '' })
+  }
+
+  if (reasonKind.value === 'release') {
+    return t('bookings.releaseTitle')
+  }
+
+  return reasonModalTitle(source.value?.status ?? '', reasonTo.value ?? '')
+})
+
+const balanceTone = computed(() => {
+  if (source.value === null || source.value.balance === 0) {
+    return 'bk-balance--zero'
+  }
+
+  return 'bk-balance'
+})
+
+useUnsavedGuard(dirty, () => t('bookings.leaveUnsaved'))
+
+watch(
+  () => [open.value, props.booking?.id] as const,
+  async ([isOpen, id]) => {
+    if (!isOpen || id === undefined) {
+      return
+    }
+
+    tab.value = 'overview'
+    warn.value = ''
+    reasonOpen.value = false
+    moveOpen.value = false
+    history.value = []
+    await refreshBooking(id)
+
+    if (canReassign.value && owners.value.length === 0) {
+      try {
+        const result = await request('/api/rms/bookings/owners') as { data: Array<BookingOwner> }
+        owners.value = result.data
+      } catch {
+        owners.value = []
+      }
+    }
+  }
+)
+
+watch(tab, (id) => {
+  if (id === 'history' && source.value !== null && history.value.length === 0) {
+    void loadHistory(true)
+  }
+})
+
+async function refreshBooking(id: number): Promise<void> {
+  const booking = await request(`/api/rms/bookings/${id}`) as Booking
+  current.value = booking
+  notes.value = booking.internal_notes ?? ''
+  ownerId.value = booking.owner.id
+  snapshot.value = `${notes.value}\0${ownerId.value}`
+}
+
+function onUpdateOpen(next: boolean): void {
+  if (!next && dirty.value && !confirmUnsaved(t('bookings.leaveUnsaved'))) {
+    return
+  }
+
+  open.value = next
+}
+
+function selectTab(item: BookingTab): void {
+  if (item.disabled) {
+    return
+  }
+
+  tab.value = item.id
+}
+
+function tabTooltip(item: BookingTab): string {
+  return item.arrivesSprint === null ? '' : t('bookings.arrivesSprint', { n: String(item.arrivesSprint) })
+}
+
+function shortDate(iso: string): string {
+  return format(iso, 'short')
+}
+
+function openGroup(): void {
+  const group = source.value?.group
+
+  if (group === undefined || group === null) {
+    return
+  }
+
+  emit('openGroup', group.id)
+}
+
+async function save(): Promise<void> {
+  if (source.value === null || !source.value.can_act) {
+    return
+  }
+
+  saving.value = true
+  warn.value = ''
+
+  try {
+    const body: { internal_notes?: string | null, owner_id?: number } = {}
+
+    if (notes.value !== (source.value.internal_notes ?? '')) {
+      body.internal_notes = notes.value === '' ? null : notes.value
+    }
+
+    if (canReassign.value && ownerId.value !== null && ownerId.value !== source.value.owner.id) {
+      body.owner_id = ownerId.value
+    }
+
+    const updated = await request(`/api/rms/bookings/${source.value.id}`, {
+      method: 'PATCH',
+      body
+    }) as Booking
+
+    current.value = updated
+    notes.value = updated.internal_notes ?? ''
+    ownerId.value = updated.owner.id
+    snapshot.value = `${notes.value}\0${ownerId.value}`
+    toast.add({ title: t('bookings.savedToast') })
+    emit('updated', updated)
+  } catch (error: unknown) {
+    warn.value = firstApiMessage(error) ?? (error instanceof Error ? error.message : '')
+  } finally {
+    saving.value = false
+  }
+}
+
+async function onConfirmRequest(): Promise<void> {
+  if (source.value === null) {
+    return
+  }
+
+  warn.value = ''
+
+  try {
+    const updated = await confirmRequest(request, source.value.id)
+    current.value = updated
+    toast.add({ title: t('bookings.confirmedToast') })
+    emit('updated', updated)
+  } catch (error: unknown) {
+    warn.value = firstApiMessage(error) ?? (error instanceof Error ? error.message : '')
+  }
+}
+
+function startRelease(): void {
+  reasonKind.value = 'release'
+  reasonTo.value = 'RELEASED'
+  reasonRequired.value = true
+  reasonError.value = ''
+  reasonOpen.value = true
+}
+
+function startTransition(item: AllowedTransition): void {
+  reasonKind.value = 'transition'
+  reasonTo.value = item.to
+  reasonRequired.value = item.reason_required
+  reasonError.value = ''
+  reasonOpen.value = true
+}
+
+function startDelete(): void {
+  reasonKind.value = 'delete'
+  reasonTo.value = null
+  reasonRequired.value = true
+  reasonError.value = ''
+  reasonOpen.value = true
+}
+
+async function onReason(reason: string): Promise<void> {
+  if (source.value === null) {
+    return
+  }
+
+  reasonSubmitting.value = true
+  reasonError.value = ''
+
+  try {
+    if (reasonKind.value === 'delete') {
+      await request(`/api/rms/bookings/${source.value.id}`, {
+        method: 'DELETE',
+        body: { reason }
+      })
+      toast.add({ title: t('bookings.deletedToast') })
+      reasonOpen.value = false
+      open.value = false
+      emit('deleted')
+      return
+    }
+
+    if (reasonKind.value === 'release') {
+      const updated = await releaseRequest(request, source.value.id, reason)
+      current.value = updated
+      toast.add({ title: t('bookings.releasedToast') })
+      reasonOpen.value = false
+      emit('updated', updated)
+      return
+    }
+
+    if (reasonTo.value === null) {
+      return
+    }
+
+    const updated = await request(`/api/rms/bookings/${source.value.id}/transition`, {
+      method: 'POST',
+      body: {
+        to: reasonTo.value,
+        reason: reason === '' ? null : reason
+      }
+    }) as Booking
+
+    current.value = updated
+    toast.add({ title: t('bookings.transitionedToast') })
+    reasonOpen.value = false
+    emit('updated', updated)
+    history.value = []
+  } catch (error: unknown) {
+    reasonError.value = firstApiMessage(error) ?? (error instanceof Error ? error.message : '')
+  } finally {
+    reasonSubmitting.value = false
+  }
+}
+
+async function onMoved(booking: Booking): Promise<void> {
+  current.value = booking
+  emit('updated', booking)
+  history.value = []
+}
+
+async function loadHistory(reset: boolean): Promise<void> {
+  if (source.value === null) {
+    return
+  }
+
+  if (reset) {
+    historyPage.value = 1
+    history.value = []
+  }
+
+  historyLoading.value = true
+
+  try {
+    const result = await request(
+      `/api/rms/bookings/${source.value.id}/history?page=${historyPage.value}`
+    ) as Paginated<ChangeHistoryEntry>
+    history.value = reset ? result.data : [...history.value, ...result.data]
+    historyLast.value = result.meta.last_page
+  } finally {
+    historyLoading.value = false
+  }
+}
+
+async function loadOlder(): Promise<void> {
+  historyPage.value += 1
+  await loadHistory(false)
+}
+
+function canActOn(booking: Booking): boolean {
+  return booking.can_act
+}
+</script>
+
+<template>
+  <USlideover
+    :open="open"
+    class="history-drawer"
+    @update:open="onUpdateOpen"
+  >
+    <template #header>
+      <div v-if="source">
+        <h2>{{ source.contact.name }}</h2>
+        <div class="bid">
+          {{ source.display_reference }}
+          ·
+          <span
+            class="pill"
+            :class="statusPillClass(source.status)"
+          >{{ statusLabel(source.status) }}</span>
+          <template v-if="source.group">
+            ·
+            <button
+              type="button"
+              class="lnk"
+              @click="openGroup"
+            >
+              {{ source.group.reference }}
+            </button>
+          </template>
+          <span
+            v-if="!source.can_act"
+            class="bk-bid-extra"
+          >
+            · {{ t('bookings.ownedBy', { name: source.owner.name.toUpperCase() }) }}
+          </span>
+        </div>
+      </div>
+    </template>
+
+    <template #body>
+      <template v-if="source">
+        <div class="dtabs">
+          <UTooltip
+            v-for="item in BOOKING_TABS"
+            :key="item.id"
+            :text="tabTooltip(item)"
+            :disabled="!item.disabled"
+          >
+            <span>
+              <button
+                type="button"
+                class="dtab"
+                :class="{ on: tab === item.id }"
+                :disabled="item.disabled"
+                @click="selectTab(item)"
+              >
+                {{ t(item.labelKey) }}
+              </button>
+            </span>
+          </UTooltip>
+        </div>
+
+        <div
+          v-if="warn"
+          class="warnbox"
+        >
+          {{ warn }}
+        </div>
+
+        <template v-if="tab === 'overview'">
+          <div class="kv">
+            <span>{{ t('bookings.kvType') }}</span>
+            <span>{{ t('bookings.typeChannel', { type: source.type, channel: source.channel_of_origin }) }}</span>
+          </div>
+          <div class="kv">
+            <span>{{ t('bookings.kvMain') }}</span>
+            <span>{{ source.main_channel }}</span>
+          </div>
+          <div class="kv">
+            <span>{{ t('bookings.kvParty') }}</span>
+            <span>{{ source.party_label }}</span>
+          </div>
+          <div class="kv">
+            <span>{{ t('bookings.kvDeparture') }}</span>
+            <span>{{ departureOverviewLabel(source.departure.date, source.departure.return_date, source.departure.embark, shortDate) }}</span>
+          </div>
+          <div class="kv">
+            <span>{{ t('bookings.kvItinerary') }}</span>
+            <span>{{ source.departure.itinerary_name }}</span>
+          </div>
+          <div class="kv">
+            <span>{{ t('bookings.kvCabin') }}</span>
+            <span>{{ source.cabin_label }}</span>
+          </div>
+          <div
+            v-if="source.group"
+            class="kv"
+          >
+            <span>{{ t('bookings.kvGroup') }}</span>
+            <span>
+              <button
+                type="button"
+                class="lnk"
+                @click="openGroup"
+              >
+                {{ t('bookings.groupValue', { reference: source.group.reference, name: source.group.name }) }}
+              </button>
+              · {{ t('bookings.groupCoordinatorLine', { name: source.group.coordinator.name }) }}
+            </span>
+          </div>
+          <template v-if="source.status === 'REQUESTED' && source.request">
+            <div class="kv">
+              <span>{{ t('bookings.kvPreferred') }}</span>
+              <span>
+                {{ source.request.preferred_channel }}{{ source.request.travel_advisor ? t('bookings.travelAdvisor') : '' }}
+              </span>
+            </div>
+            <div class="kv">
+              <span>{{ t('bookings.kvHold') }}</span>
+              <span>
+                {{ source.request.hold.expires_at ? format(source.request.hold.expires_at, 'dateTime') : '—' }}
+                <template v-if="source.request.hold.expired">
+                  · {{ t('bookings.holdExpired') }}
+                </template>
+              </span>
+            </div>
+            <div
+              v-if="source.request.notes"
+              class="kv"
+            >
+              <span>{{ t('bookings.kvNotes') }}</span>
+              <span>{{ source.request.notes }}</span>
+            </div>
+          </template>
+          <div class="kv">
+            <span>{{ t('bookings.kvCabinTotal') }}</span>
+            <span>{{ money(source.total) }}</span>
+          </div>
+          <div class="kv">
+            <span>{{ t('bookings.kvPaid') }}</span>
+            <span>{{ t('bookings.paidZero') }}</span>
+          </div>
+          <p class="note">
+            {{ t('bookings.paymentsSprint') }}
+          </p>
+          <div class="kv">
+            <span>{{ t('bookings.kvBalance') }}</span>
+            <span :class="balanceTone">
+              {{ t('bookings.balanceDue', { amount: money(source.balance), date: format(source.balance_due_date, 'short') }) }}
+            </span>
+          </div>
+
+          <div class="sec">
+            <h4>{{ t('bookings.priceTitle') }}</h4>
+            <p class="bk-sub">
+              {{ t('bookings.ratesVersion', { version: String(source.rates_version.version) }) }}
+            </p>
+            <div
+              v-for="line in source.price_lines"
+              :key="line.code"
+              class="pline"
+            >
+              <span>{{ line.label }}</span>
+              <span>{{ money(line.amount) }}</span>
+            </div>
+            <div class="pline tot">
+              <span>{{ t('bookings.kvCabinTotal') }}</span>
+              <span>{{ money(source.total) }}</span>
+            </div>
+          </div>
+
+          <div
+            v-if="source.status === 'REQUESTED'"
+            class="sec"
+          >
+            <h4>{{ t('bookings.requestActions') }}</h4>
+            <div class="transbtns">
+              <UButton
+                :disabled="!canActOn(source) || !canConfirm"
+                @click="onConfirmRequest"
+              >
+                {{ t('bookings.confirmRequest', { pct: String(source.deposit_pct) }) }}
+              </UButton>
+              <UButton
+                variant="outline"
+                :disabled="!canActOn(source) || !canRelease"
+                @click="startRelease"
+              >
+                {{ t('bookings.releaseHold') }}
+              </UButton>
+            </div>
+            <p class="notice">
+              {{ t('bookings.requestSla') }}
+            </p>
+          </div>
+
+          <div class="sec">
+            <h4>{{ t('bookings.transitions') }}</h4>
+            <div class="transbtns">
+              <template v-if="source.allowed_transitions.length > 0">
+                <UButton
+                  v-for="item in source.allowed_transitions"
+                  :key="item.to"
+                  variant="outline"
+                  :disabled="!canActOn(source) || !canChangeStatus"
+                  @click="startTransition(item)"
+                >
+                  {{ t('bookings.transitionTo', { status: statusLabel(item.to) }) }}
+                </UButton>
+              </template>
+              <span
+                v-else
+                class="bk-terminal"
+              >{{ t('bookings.terminal') }}</span>
+              <UButton
+                variant="outline"
+                :disabled="!canDelete"
+                @click="startDelete"
+              >
+                {{ t('bookings.delete') }}
+              </UButton>
+            </div>
+            <p
+              v-if="!source.can_act"
+              class="notice"
+            >
+              {{ t('bookings.ownRecords') }}
+            </p>
+          </div>
+
+          <div class="sec">
+            <h4>{{ t('bookings.freeDate') }}</h4>
+            <UButton
+              variant="outline"
+              :disabled="!canActOn(source) || !canMove || !canMoveStatus(source.status)"
+              @click="moveOpen = true"
+            >
+              {{ t('bookings.move') }}
+            </UButton>
+          </div>
+
+          <div class="sec">
+            <h4>{{ t('bookings.notesTitle') }}</h4>
+            <div class="field">
+              <textarea
+                v-model="notes"
+                rows="3"
+                :disabled="!source.can_act"
+              />
+            </div>
+          </div>
+
+          <div
+            v-if="canReassign"
+            class="sec"
+          >
+            <h4>{{ t('bookings.ownerTitle') }}</h4>
+            <div class="field">
+              <select
+                :value="ownerId ?? ''"
+                @change="ownerId = Number(($event.target as HTMLSelectElement).value)"
+              >
+                <option
+                  v-for="item in owners"
+                  :key="item.id"
+                  :value="item.id"
+                >
+                  {{ item.name }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div
+            v-if="source.can_act"
+            class="transbtns"
+          >
+            <UButton
+              :disabled="saving || !dirty"
+              :loading="saving"
+              @click="save"
+            >
+              {{ t('bookings.save') }}
+            </UButton>
+            <UButton
+              variant="outline"
+              @click="onUpdateOpen(false)"
+            >
+              {{ t('bookings.cancel') }}
+            </UButton>
+          </div>
+        </template>
+
+        <template v-else-if="tab === 'history'">
+          <p class="history-note">
+            {{ t('bookings.historyNote') }}
+          </p>
+          <HistoryTimeline :entries="history" />
+          <button
+            v-if="historyPage < historyLast"
+            type="button"
+            class="history-load"
+            :disabled="historyLoading"
+            @click="loadOlder"
+          >
+            {{ t('bookings.loadOlder') }}
+          </button>
+        </template>
+      </template>
+    </template>
+  </USlideover>
+
+  <ReasonModal
+    v-model:open="reasonOpen"
+    :title="reasonTitle"
+    :hint="reasonHint(reasonRequired)"
+    :submitting="reasonSubmitting"
+    :error="reasonError"
+    @submit="onReason"
+  />
+
+  <MoveBookingModal
+    v-model:open="moveOpen"
+    :booking="source"
+    @moved="onMoved"
+  />
+</template>

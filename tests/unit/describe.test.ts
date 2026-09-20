@@ -34,6 +34,14 @@ const strings: Record<string, string> = {
   'history.events.blockReleased': 'Released',
   'history.events.blockUpdated': 'Updated · {summary}',
   'history.events.blockUpdatedBare': 'Updated',
+  'history.events.bookingCreated': 'Created',
+  'history.events.bookingRequested': 'Requested',
+  'history.events.bookingStatusChanged': 'Status {before} → {after}',
+  'history.events.bookingMoved': 'Moved · {fromDate} · {fromCabin} → {toDate} · {toCabin} · {fromTotal} → {toTotal}',
+  'history.events.bookingUpdated': 'Updated',
+  'history.events.bookingOwnerChanged': 'Owner changed · {before} → {after}',
+  'history.events.bookingDeleted': 'Reservation deleted',
+  'history.events.bookingReleased': 'Request released — hold returned to inventory',
   'history.events.unknown': '{event} · {summary}'
 }
 
@@ -143,11 +151,38 @@ describe('describeHistory', () => {
     expect(describeHistory({ event: 'block.updated', before: null, after: null }, t)).toBe('Updated')
   })
 
-  it('never renders raw JSON for an unknown event', () => {
+  it('maps booking events', () => {
+    expect(describeHistory({
+      event: 'booking.created',
+      before: null,
+      after: { what: 'Reservation created in RMS — Suite 04 · 2 AD · USD 26,600' }
+    }, t)).toBe('Reservation created in RMS — Suite 04 · 2 AD · USD 26,600')
+    expect(describeHistory({ event: 'booking.requested', before: null, after: { status: 'REQUESTED' } }, t)).toBe('Requested')
+    expect(describeHistory({
+      event: 'booking.status_changed',
+      before: { status: 'CONFIRMED' },
+      after: { status: 'CANCELLED', what: 'Status CONFIRMED → CANCELLED' }
+    }, t)).toBe('Status CONFIRMED → CANCELLED')
     expect(describeHistory({
       event: 'booking.moved',
+      before: { departure: '7 Nov 2027 · ANAMARA', cabin: 'Suite 04', total: 26600 },
+      after: { departure: '19 Dec 2027 · ANAMARA', cabin: 'Suite 02', total: 28100 }
+    }, t)).toBe('Moved · 7 Nov 2027 · Suite 04 → 19 Dec 2027 · Suite 02 · USD 26,600 → USD 28,100')
+    expect(describeHistory({ event: 'booking.updated', before: { internal_notes: null }, after: { internal_notes: 'Call back' } }, t)).toBe('Updated')
+    expect(describeHistory({
+      event: 'booking.owner_changed',
+      before: { owner_name: 'Mateo R.' },
+      after: { owner_name: 'Lucía B.' }
+    }, t)).toBe('Owner changed · Mateo R. → Lucía B.')
+    expect(describeHistory({ event: 'booking.deleted', before: null, after: { what: 'Reservation deleted' } }, t)).toBe('Reservation deleted')
+    expect(describeHistory({ event: 'booking.released', before: null, after: { what: 'Request released — hold returned to inventory' } }, t)).toBe('Request released — hold returned to inventory')
+  })
+
+  it('never renders raw JSON for an unknown event', () => {
+    expect(describeHistory({
+      event: 'something.else',
       before: { cabin: 'S1' },
       after: { cabin: 'S2' }
-    }, t)).toBe('booking.moved · cabin: S1 → S2')
+    }, t)).toBe('something.else · cabin: S1 → S2')
   })
 })

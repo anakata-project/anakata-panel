@@ -42,6 +42,25 @@ function compactValue(value: unknown): string {
   return '—'
 }
 
+function moneyUsd(value: unknown): string {
+  if (typeof value === 'number' && Number.isInteger(value)) {
+    return `USD ${value.toLocaleString('en-US')}`
+  }
+
+  return compactValue(value)
+}
+
+function statusWords(value: string): string {
+  return value.replaceAll('_', ' ')
+}
+
+function departureDate(record: Record<string, unknown>): string {
+  const raw = stringField(record, 'departure') ?? compactValue(record.departure)
+  const date = raw.split(' · ')[0] ?? raw
+
+  return date === '' ? raw : date
+}
+
 function compactDiff(before: Record<string, unknown>, after: Record<string, unknown>): string {
   const keys = Array.from(new Set([...Object.keys(before), ...Object.keys(after)]))
   const parts: Array<string> = []
@@ -176,6 +195,35 @@ export function describeHistory(
         ? t('history.events.blockUpdated', { summary })
         : t('history.events.blockUpdatedBare')
     }
+    case 'booking.created':
+      return stringField(after, 'what') ?? t('history.events.bookingCreated')
+    case 'booking.requested':
+      return t('history.events.bookingRequested')
+    case 'booking.status_changed':
+      return stringField(after, 'what') ?? t('history.events.bookingStatusChanged', {
+        before: statusWords(stringField(before, 'status') ?? compactValue(before.status)),
+        after: statusWords(stringField(after, 'status') ?? compactValue(after.status))
+      })
+    case 'booking.moved':
+      return t('history.events.bookingMoved', {
+        fromDate: departureDate(before),
+        fromCabin: stringField(before, 'cabin') ?? '—',
+        toDate: departureDate(after),
+        toCabin: stringField(after, 'cabin') ?? '—',
+        fromTotal: moneyUsd(before.total),
+        toTotal: moneyUsd(after.total)
+      })
+    case 'booking.updated':
+      return t('history.events.bookingUpdated')
+    case 'booking.owner_changed':
+      return t('history.events.bookingOwnerChanged', {
+        before: stringField(before, 'owner_name') ?? compactValue(before.owner_name),
+        after: stringField(after, 'owner_name') ?? compactValue(after.owner_name)
+      })
+    case 'booking.deleted':
+      return stringField(after, 'what') ?? t('history.events.bookingDeleted')
+    case 'booking.released':
+      return stringField(after, 'what') ?? t('history.events.bookingReleased')
     default: {
       const summary = compactDiff(before, after)
 

@@ -85,12 +85,19 @@ useHead(() => ({
           <span class="mono">{{ t('shell.loggedInAs') }}</span>
           <ShellWhoMenu />
           <AnkThemeToggle />
-          <UButton
+          <UTooltip
             v-if="showNewReservation"
-            color="primary"
+            :text="t('bookings.newReservationSoon')"
           >
-            {{ t('shell.newReservation') }}
-          </UButton>
+            <span>
+              <UButton
+                color="primary"
+                disabled
+              >
+                {{ t('shell.newReservation') }}
+              </UButton>
+            </span>
+          </UTooltip>
           <span
             v-if="sectionId === 'crm'"
             class="sysbadge sys-rms"
