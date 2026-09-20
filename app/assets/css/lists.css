@@ -318,3 +318,79 @@ td.matrix-cell--dirty {
 .matrix-tip {
   display: inline-flex;
 }
+
+.drbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  margin-bottom: 22px;
+  border: 1px solid var(--hair);
+  background: var(--forest-900);
+}
+
+.drbar.active {
+  border-color: var(--coral);
+}
+
+.drl {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-right: 6px;
+  min-width: 150px;
+}
+
+.drl .mono {
+  font-size: 8.5px;
+  color: var(--iv38);
+}
+
+.drb {
+  font-size: 12px;
+  color: var(--ivory);
+}
+
+.drbar select,
+.drbar input {
+  background: var(--forest-950);
+  border: 1px solid var(--hair);
+  color: var(--ivory);
+  padding: 8px 10px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: .06em;
+  border-radius: 0;
+  outline: none;
+}
+
+.drbar select:focus,
+.drbar input:focus {
+  border-color: var(--coral);
+}
+
+.drio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.drarr {
+  color: var(--iv38);
+}
+
+.drbar .drx {
+  padding: 8px 14px;
+}
+
+.drc {
+  margin-left: auto;
+  color: var(--iv62);
+  letter-spacing: .14em;
+}
+
+.drbar.active .drc {
+  color: var(--coral-400);
+}

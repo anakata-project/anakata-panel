@@ -12,9 +12,21 @@ export type {
   ConfigVersionDetail,
   ConfigVersionSummary,
   ConfigWarning,
+  AvailabilityCounts,
+  CabinAvailability,
+  CabinState,
+  Departure,
+  DepartureKpis,
+  DepartureListItem,
+  DepartureLocks,
+  DepartureMutationResponse,
+  DepartureStatus,
+  EngineLabel,
+  EngineLabelTone,
   EngineSettingsDocument,
   EngineSettingsValidation,
   EngineSettingsVersion,
+  GenerateSeasonResult,
   Itinerary,
   ItineraryCompleteness,
   ItineraryDefaults,
@@ -36,7 +48,8 @@ export type {
   RuleRegistryRow,
   RuleStatus,
   RuleWhere,
-  UserListItem
+  UserListItem,
+  Yacht
 } from '../../../anakata-ui/app/types'
 
 export type Permission = components['schemas']['Permission']

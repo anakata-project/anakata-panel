@@ -149,6 +149,22 @@ export function describeHistory(
         ? t('history.events.itineraryUpdated', { summary })
         : t('history.events.itineraryUpdatedBare')
     }
+    case 'departure.created':
+      return t('history.events.departureCreated')
+    case 'departure.deleted':
+      return t('history.events.departureDeleted')
+    case 'departure.status_changed':
+      return t('history.events.departureStatusChanged', {
+        before: compactValue(before.status),
+        after: compactValue(after.status)
+      })
+    case 'departure.updated': {
+      const summary = compactDiff(before, after)
+
+      return summary
+        ? t('history.events.departureUpdated', { summary })
+        : t('history.events.departureUpdatedBare')
+    }
     default: {
       const summary = compactDiff(before, after)
 

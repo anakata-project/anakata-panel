@@ -25,6 +25,11 @@ const strings: Record<string, string> = {
   'history.events.itineraryImageReplaced': 'Hero photo replaced',
   'history.events.itineraryUpdated': 'Updated · {summary}',
   'history.events.itineraryUpdatedBare': 'Updated',
+  'history.events.departureCreated': 'Created',
+  'history.events.departureDeleted': 'Deleted',
+  'history.events.departureUpdated': 'Updated · {summary}',
+  'history.events.departureUpdatedBare': 'Updated',
+  'history.events.departureStatusChanged': 'Status · {before} → {after}',
   'history.events.unknown': '{event} · {summary}'
 }
 
@@ -106,6 +111,21 @@ describe('describeHistory', () => {
       before: { name: 'West' },
       after: { name: 'Western Realm' }
     }, t)).toBe('Updated · name: West → Western Realm')
+  })
+
+  it('maps departure events', () => {
+    expect(describeHistory({ event: 'departure.created', before: null, after: null }, t)).toBe('Created')
+    expect(describeHistory({ event: 'departure.deleted', before: null, after: null }, t)).toBe('Deleted')
+    expect(describeHistory({
+      event: 'departure.status_changed',
+      before: { status: 'ON_SALE' },
+      after: { status: 'CLOSED' }
+    }, t)).toBe('Status · ON_SALE → CLOSED')
+    expect(describeHistory({
+      event: 'departure.updated',
+      before: { public_note: 'Launch' },
+      after: { public_note: 'Inaugural sailing' }
+    }, t)).toBe('Updated · public_note: Launch → Inaugural sailing')
   })
 
   it('never renders raw JSON for an unknown event', () => {
