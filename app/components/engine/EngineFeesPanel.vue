@@ -16,8 +16,12 @@ const { t } = useI18n()
     <div class="setgrid">
       <div>
         <div class="cols2">
-          <EngineField :label="t('engineSettings.tct')">
+          <EngineField
+            v-slot="{ id }"
+            :label="t('engineSettings.tct')"
+          >
             <ConfigNumberInput
+              :id="id"
               v-model="draft.fees.tct_pp"
               variant="field"
               :disabled="!props.canEdit('fees.tct_pp')"
@@ -29,8 +33,12 @@ const { t } = useI18n()
           <div />
         </div>
         <div class="cols2">
-          <EngineField :label="t('engineSettings.pngForeignOver12')">
+          <EngineField
+            v-slot="{ id }"
+            :label="t('engineSettings.pngForeignOver12')"
+          >
             <ConfigNumberInput
+              :id="id"
               v-model="draft.fees.png.foreign_over_12"
               variant="field"
               :disabled="!props.canEdit('fees.png.foreign_over_12')"
@@ -39,8 +47,12 @@ const { t } = useI18n()
               step="1"
             />
           </EngineField>
-          <EngineField :label="t('engineSettings.pngForeignUnder12')">
+          <EngineField
+            v-slot="{ id }"
+            :label="t('engineSettings.pngForeignUnder12')"
+          >
             <ConfigNumberInput
+              :id="id"
               v-model="draft.fees.png.foreign_12_and_under"
               variant="field"
               :disabled="!props.canEdit('fees.png.foreign_12_and_under')"
@@ -51,8 +63,12 @@ const { t } = useI18n()
           </EngineField>
         </div>
         <div class="cols2">
-          <EngineField :label="t('engineSettings.pngCanAdult')">
+          <EngineField
+            v-slot="{ id }"
+            :label="t('engineSettings.pngCanAdult')"
+          >
             <ConfigNumberInput
+              :id="id"
               v-model="draft.fees.png.can_adult"
               variant="field"
               :disabled="!props.canEdit('fees.png.can_adult')"
@@ -61,8 +77,12 @@ const { t } = useI18n()
               step="1"
             />
           </EngineField>
-          <EngineField :label="t('engineSettings.pngCanMinor')">
+          <EngineField
+            v-slot="{ id }"
+            :label="t('engineSettings.pngCanMinor')"
+          >
             <ConfigNumberInput
+              :id="id"
               v-model="draft.fees.png.can_minor"
               variant="field"
               :disabled="!props.canEdit('fees.png.can_minor')"
@@ -73,8 +93,12 @@ const { t } = useI18n()
           </EngineField>
         </div>
         <div class="cols2">
-          <EngineField :label="t('engineSettings.pngNational')">
+          <EngineField
+            v-slot="{ id }"
+            :label="t('engineSettings.pngNational')"
+          >
             <ConfigNumberInput
+              :id="id"
               v-model="draft.fees.png.national_or_resident"
               variant="field"
               :disabled="!props.canEdit('fees.png.national_or_resident')"
@@ -83,8 +107,12 @@ const { t } = useI18n()
               step="1"
             />
           </EngineField>
-          <EngineField :label="t('engineSettings.pngExempt')">
+          <EngineField
+            v-slot="{ id }"
+            :label="t('engineSettings.pngExempt')"
+          >
             <ConfigNumberInput
+              :id="id"
               v-model="draft.fees.png.exempt_under_age"
               variant="field"
               :disabled="!props.canEdit('fees.png.exempt_under_age')"
@@ -104,11 +132,13 @@ const { t } = useI18n()
           {{ t('engineSettings.showFees') }}
         </label>
         <EngineField
+          v-slot="{ id }"
           :label="t('engineSettings.feeNote')"
           :count="draft.fees.footnote.length"
           :max="COPY_CHAR_LIMIT"
         >
           <textarea
+            :id="id"
             v-model="draft.fees.footnote"
             rows="2"
             :maxlength="COPY_CHAR_LIMIT"

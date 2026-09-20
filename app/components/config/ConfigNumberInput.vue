@@ -9,6 +9,8 @@ const props = withDefaults(defineProps<{
   min?: number | string
   max?: number | string
   step?: number | string
+  id?: string
+  ariaLabel?: string
 }>(), {
   variant: 'rin'
 })
@@ -43,6 +45,7 @@ defineExpose({ focus })
 
 <template>
   <input
+    :id="id"
     ref="inputEl"
     type="number"
     :class="[variant === 'rin' ? 'rin' : null, { bad }]"
@@ -51,6 +54,7 @@ defineExpose({ focus })
     :max="max"
     :step="step"
     :disabled="disabled"
+    :aria-label="ariaLabel"
     @input="onInput"
     @change="emit('change')"
   >

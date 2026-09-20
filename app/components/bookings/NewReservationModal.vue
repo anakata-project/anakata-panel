@@ -507,8 +507,9 @@ onUnmounted(() => {
 
         <div class="cols2">
           <div class="field">
-            <label>{{ t('bookings.bookingType') }}</label>
+            <label for="nb-booking-type">{{ t('bookings.bookingType') }}</label>
             <select
+              id="nb-booking-type"
               :value="type"
               @change="type = ($event.target as HTMLSelectElement).value as BookingType"
             >
@@ -521,8 +522,9 @@ onUnmounted(() => {
             </select>
           </div>
           <div class="field">
-            <label>{{ t('bookings.mainChannel') }}</label>
+            <label for="nb-main-channel">{{ t('bookings.mainChannel') }}</label>
             <select
+              id="nb-main-channel"
               :value="mainChannel"
               @change="mainChannel = ($event.target as HTMLSelectElement).value as MainChannel"
             >
@@ -544,8 +546,9 @@ onUnmounted(() => {
         </div>
 
         <div class="field">
-          <label>{{ t('bookings.originChannel') }}</label>
+          <label for="nb-origin-channel">{{ t('bookings.originChannel') }}</label>
           <select
+            id="nb-origin-channel"
             :value="origin"
             @change="origin = ($event.target as HTMLSelectElement).value as ChannelOfOrigin"
           >
@@ -574,8 +577,9 @@ onUnmounted(() => {
 
         <div class="cols2">
           <div class="field">
-            <label>{{ guestLabel }}</label>
+            <label for="nb-guest-name">{{ guestLabel }}</label>
             <input
+              id="nb-guest-name"
               v-model="guestName"
               type="text"
               :placeholder="t('bookings.guestPlaceholder')"
@@ -588,8 +592,9 @@ onUnmounted(() => {
             </p>
           </div>
           <div class="field">
-            <label>{{ t('bookings.email') }}</label>
+            <label for="nb-email">{{ t('bookings.email') }}</label>
             <input
+              id="nb-email"
               :value="email"
               type="email"
               autocomplete="off"
@@ -621,15 +626,17 @@ onUnmounted(() => {
 
         <div class="cols2">
           <div class="field">
-            <label>{{ t('bookings.phone') }}</label>
+            <label for="nb-phone">{{ t('bookings.phone') }}</label>
             <input
+              id="nb-phone"
               v-model="phone"
               type="text"
             >
           </div>
           <div class="field">
-            <label>{{ t('bookings.preferredChannel') }}</label>
+            <label for="nb-preferred-channel">{{ t('bookings.preferredChannel') }}</label>
             <select
+              id="nb-preferred-channel"
               :value="preferred"
               @change="preferred = ($event.target as HTMLSelectElement).value as PreferredChannel"
             >
@@ -645,8 +652,9 @@ onUnmounted(() => {
         </div>
 
         <div class="field">
-          <label>{{ t('bookings.departure') }}</label>
+          <label for="nb-departure">{{ t('bookings.departure') }}</label>
           <select
+            id="nb-departure"
             :value="departureId ?? ''"
             :disabled="loading"
             @change="departureId = Number(($event.target as HTMLSelectElement).value) || null"
@@ -666,8 +674,9 @@ onUnmounted(() => {
 
         <div class="cols2">
           <div class="field">
-            <label>{{ t('bookings.adults') }}</label>
+            <label for="nb-adults">{{ t('bookings.adults') }}</label>
             <input
+              id="nb-adults"
               v-model.number="adults"
               type="number"
               min="1"
@@ -675,8 +684,9 @@ onUnmounted(() => {
             >
           </div>
           <div class="field">
-            <label>{{ childrenLabel }}</label>
+            <label for="nb-children">{{ childrenLabel }}</label>
             <input
+              id="nb-children"
               v-model.number="children"
               type="number"
               min="0"
@@ -699,8 +709,9 @@ onUnmounted(() => {
           v-if="!isCharter"
           class="field"
         >
-          <label>{{ t('bookings.cabin') }}</label>
+          <label for="nb-cabin">{{ t('bookings.cabin') }}</label>
           <select
+            id="nb-cabin"
             :value="cabinCode"
             :disabled="selectedDeparture === null"
             @change="cabinCode = ($event.target as HTMLSelectElement).value"
@@ -736,8 +747,9 @@ onUnmounted(() => {
             class="nbx"
           >
             <div class="field">
-              <label>{{ t('bookings.extraCabin', { n: String(index + 2) }) }}</label>
+              <label :for="`nb-extra-cabin-${row.key}`">{{ t('bookings.extraCabin', { n: String(index + 2) }) }}</label>
               <select
+                :id="`nb-extra-cabin-${row.key}`"
                 :value="row.cabinCode"
                 @change="updateExtra(row.key, { cabinCode: ($event.target as HTMLSelectElement).value })"
               >
@@ -755,8 +767,9 @@ onUnmounted(() => {
               </select>
             </div>
             <div class="field">
-              <label>{{ t('bookings.adults') }}</label>
+              <label :for="`nb-extra-adults-${row.key}`">{{ t('bookings.adults') }}</label>
               <input
+                :id="`nb-extra-adults-${row.key}`"
                 :value="row.adults"
                 type="number"
                 min="1"
@@ -765,8 +778,9 @@ onUnmounted(() => {
               >
             </div>
             <div class="field">
-              <label>{{ t('bookings.children') }}</label>
+              <label :for="`nb-extra-children-${row.key}`">{{ t('bookings.children') }}</label>
               <input
+                :id="`nb-extra-children-${row.key}`"
                 :value="row.children"
                 type="number"
                 min="0"
@@ -818,8 +832,9 @@ onUnmounted(() => {
             v-if="showGroupNameField(existingGroupId)"
             class="field"
           >
-            <label>{{ t('bookings.groupName') }}</label>
+            <label for="nb-group-name">{{ t('bookings.groupName') }}</label>
             <input
+              id="nb-group-name"
               v-model="groupName"
               type="text"
               :placeholder="t('bookings.groupPlaceholder')"
@@ -904,8 +919,9 @@ onUnmounted(() => {
         </div>
 
         <div class="field">
-          <label>{{ t('bookings.internalNotes') }}</label>
+          <label for="nb-notes">{{ t('bookings.internalNotes') }}</label>
           <textarea
+            id="nb-notes"
             v-model="notes"
             rows="2"
           />

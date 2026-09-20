@@ -290,16 +290,18 @@ useUnsavedGuard(dirty, () => t('config.leaveUnsaved'))
           <h4>{{ t('departures.sectionDeparture') }}</h4>
           <div class="cols2">
             <div class="field">
-              <label>{{ t('departures.embarkDate') }}</label>
+              <label for="dep-embark-date">{{ t('departures.embarkDate') }}</label>
               <input
+                id="dep-embark-date"
                 v-model="draft.date"
                 type="date"
                 :disabled="dateLocked"
               >
             </div>
             <div class="field">
-              <label>{{ t('departures.yacht') }}</label>
+              <label for="dep-yacht">{{ t('departures.yacht') }}</label>
               <select
+                id="dep-yacht"
                 v-model.number="draft.yacht_id"
                 :disabled="dateLocked"
               >
@@ -321,8 +323,11 @@ useUnsavedGuard(dirty, () => t('config.leaveUnsaved'))
           </p>
           <div class="cols2">
             <div class="field">
-              <label>{{ t('departures.itinerary') }}</label>
-              <select v-model.number="draft.itinerary_id">
+              <label for="dep-itinerary">{{ t('departures.itinerary') }}</label>
+              <select
+                id="dep-itinerary"
+                v-model.number="draft.itinerary_id"
+              >
                 <option
                   v-for="itinerary in itineraries"
                   :key="itinerary.id"
@@ -333,8 +338,11 @@ useUnsavedGuard(dirty, () => t('config.leaveUnsaved'))
               </select>
             </div>
             <div class="field">
-              <label>{{ t('departures.statusOnEngine') }}</label>
-              <select v-model="draft.status">
+              <label for="dep-status">{{ t('departures.statusOnEngine') }}</label>
+              <select
+                id="dep-status"
+                v-model="draft.status"
+              >
                 <option
                   v-for="status in DEPARTURE_STATUSES"
                   :key="status"
@@ -358,8 +366,9 @@ useUnsavedGuard(dirty, () => t('config.leaveUnsaved'))
           <h4>{{ t('departures.sectionGuest') }}</h4>
           <div class="cols2">
             <div class="field">
-              <label>{{ t('departures.urgency') }}</label>
+              <label for="dep-urgency">{{ t('departures.urgency') }}</label>
               <ConfigNumberInput
+                id="dep-urgency"
                 :model-value="draft.urgency_threshold"
                 variant="field"
                 :min="0"
@@ -368,8 +377,9 @@ useUnsavedGuard(dirty, () => t('config.leaveUnsaved'))
               />
             </div>
             <div class="field">
-              <label>{{ t('departures.publicNote') }}</label>
+              <label for="dep-public-note">{{ t('departures.publicNote') }}</label>
               <input
+                id="dep-public-note"
                 v-model="draft.public_note"
                 maxlength="40"
                 :placeholder="t('departures.publicNotePlaceholder')"

@@ -36,11 +36,13 @@ function onStepInput(index: number, event: Event): void {
     <div class="setgrid">
       <div>
         <EngineField
+          v-slot="{ id }"
           :label="t('engineSettings.step1')"
           :count="step(0).length"
           :max="COPY_CHAR_LIMIT"
         >
           <textarea
+            :id="id"
             :value="step(0)"
             rows="2"
             :maxlength="COPY_CHAR_LIMIT"
@@ -50,11 +52,13 @@ function onStepInput(index: number, event: Event): void {
           />
         </EngineField>
         <EngineField
+          v-slot="{ id }"
           :label="t('engineSettings.step2')"
           :count="step(1).length"
           :max="COPY_CHAR_LIMIT"
         >
           <textarea
+            :id="id"
             :value="step(1)"
             rows="2"
             :maxlength="COPY_CHAR_LIMIT"
@@ -64,11 +68,13 @@ function onStepInput(index: number, event: Event): void {
           />
         </EngineField>
         <EngineField
+          v-slot="{ id }"
           :label="t('engineSettings.step3')"
           :count="step(2).length"
           :max="COPY_CHAR_LIMIT"
         >
           <textarea
+            :id="id"
             :value="step(2)"
             rows="2"
             :maxlength="COPY_CHAR_LIMIT"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RATES_DRAFT_KEY } from './rateHelpers'
+import { RATE_FIELD_LABELS, RATES_DRAFT_KEY } from './rateHelpers'
 
 defineProps<{
   canPublish: boolean
@@ -95,6 +95,7 @@ const { t } = useI18n()
                 <ConfigNumberInput
                   v-model="draft.rules.child_discount_pct"
                   data-r="rules.child_discount_pct"
+                  :aria-label="RATE_FIELD_LABELS['rules.child_discount_pct']"
                   :disabled="!canPublish"
                   :bad="errorsFor('rules.child_discount_pct').length > 0"
                   min="0"
@@ -110,6 +111,7 @@ const { t } = useI18n()
                 <ConfigNumberInput
                   v-model="draft.rules.child_discounts_per_adult"
                   data-r="rules.child_discounts_per_adult"
+                  :aria-label="RATE_FIELD_LABELS['rules.child_discounts_per_adult']"
                   :disabled="!canPublish"
                   :bad="errorsFor('rules.child_discounts_per_adult').length > 0"
                   min="0"
@@ -120,6 +122,7 @@ const { t } = useI18n()
                 <ConfigNumberInput
                   v-model="draft.rules.child_discounts_per_cabin"
                   data-r="rules.child_discounts_per_cabin"
+                  :aria-label="RATE_FIELD_LABELS['rules.child_discounts_per_cabin']"
                   :disabled="!canPublish"
                   :bad="errorsFor('rules.child_discounts_per_cabin').length > 0"
                   min="0"

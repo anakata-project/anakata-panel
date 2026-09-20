@@ -44,11 +44,13 @@ function onContextsInput(event: Event): void {
     <div class="setgrid">
       <div>
         <EngineField
+          v-slot="{ id }"
           :label="t('engineSettings.headline')"
           :count="draft.charter.headline.length"
           :max="HEADLINE_LIMIT"
         >
           <input
+            :id="id"
             v-model="draft.charter.headline"
             type="text"
             :maxlength="HEADLINE_LIMIT"
@@ -57,11 +59,13 @@ function onContextsInput(event: Event): void {
           >
         </EngineField>
         <EngineField
+          v-slot="{ id }"
           :label="t('engineSettings.intro')"
           :count="draft.charter.intro.length"
           :max="COPY_CHAR_LIMIT"
         >
           <textarea
+            :id="id"
             v-model="draft.charter.intro"
             rows="4"
             :maxlength="COPY_CHAR_LIMIT"
@@ -71,11 +75,13 @@ function onContextsInput(event: Event): void {
         </EngineField>
         <div class="cols2">
           <EngineField
+            v-slot="{ id }"
             :label="t('engineSettings.itineraryLabel')"
             :count="draft.charter.itinerary_label.length"
             :max="ITINERARY_LABEL_LIMIT"
           >
             <input
+              :id="id"
               v-model="draft.charter.itinerary_label"
               type="text"
               :maxlength="ITINERARY_LABEL_LIMIT"
@@ -83,8 +89,12 @@ function onContextsInput(event: Event): void {
               :class="{ bad: props.errorsFor('charter.itinerary_label').length > 0 }"
             >
           </EngineField>
-          <EngineField :label="t('engineSettings.responseSla')">
+          <EngineField
+            v-slot="{ id }"
+            :label="t('engineSettings.responseSla')"
+          >
             <ConfigNumberInput
+              :id="id"
               v-model="draft.charter.response_sla_hours"
               variant="field"
               :disabled="!props.canEdit('charter.response_sla_hours')"
@@ -95,8 +105,12 @@ function onContextsInput(event: Event): void {
             />
           </EngineField>
         </div>
-        <EngineField :label="t('engineSettings.groupContexts')">
+        <EngineField
+          v-slot="{ id }"
+          :label="t('engineSettings.groupContexts')"
+        >
           <textarea
+            :id="id"
             :value="contextsText"
             rows="4"
             :disabled="!props.canEdit('charter.group_contexts')"
@@ -105,11 +119,13 @@ function onContextsInput(event: Event): void {
           />
         </EngineField>
         <EngineField
+          v-slot="{ id }"
           :label="t('engineSettings.thankYou')"
           :count="draft.charter.thank_you.length"
           :max="COPY_CHAR_LIMIT"
         >
           <textarea
+            :id="id"
             v-model="draft.charter.thank_you"
             rows="3"
             :maxlength="COPY_CHAR_LIMIT"

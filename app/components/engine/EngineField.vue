@@ -4,16 +4,18 @@ defineProps<{
   count?: number
   max?: number
 }>()
+
+const fieldId = useId()
 </script>
 
 <template>
   <div class="field">
-    <label>
+    <label :for="fieldId">
       {{ label }}<span
         v-if="max !== undefined && count !== undefined"
         class="cnt"
       > · {{ count }} / {{ max }}</span>
     </label>
-    <slot />
+    <slot :id="fieldId" />
   </div>
 </template>

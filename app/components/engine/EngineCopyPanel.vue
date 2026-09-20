@@ -16,11 +16,13 @@ const { t } = useI18n()
     <div class="setgrid">
       <div>
         <EngineField
+          v-slot="{ id }"
           :label="t('engineSettings.noteBnpl')"
           :count="draft.copy.book_now_pay_later.length"
           :max="COPY_CHAR_LIMIT"
         >
           <textarea
+            :id="id"
             v-model="draft.copy.book_now_pay_later"
             rows="3"
             :maxlength="COPY_CHAR_LIMIT"
@@ -29,11 +31,13 @@ const { t } = useI18n()
           />
         </EngineField>
         <EngineField
+          v-slot="{ id }"
           :label="t('engineSettings.noteChild')"
           :count="draft.copy.traveling_with_children.length"
           :max="COPY_CHAR_LIMIT"
         >
           <textarea
+            :id="id"
             v-model="draft.copy.traveling_with_children"
             rows="3"
             :maxlength="COPY_CHAR_LIMIT"
@@ -42,11 +46,13 @@ const { t } = useI18n()
           />
         </EngineField>
         <EngineField
+          v-slot="{ id }"
           :label="t('engineSettings.noteSolo')"
           :count="draft.copy.solo_and_triple.length"
           :max="COPY_CHAR_LIMIT"
         >
           <textarea
+            :id="id"
             v-model="draft.copy.solo_and_triple"
             rows="2"
             :maxlength="COPY_CHAR_LIMIT"
@@ -55,11 +61,13 @@ const { t } = useI18n()
           />
         </EngineField>
         <EngineField
+          v-slot="{ id }"
           :label="t('engineSettings.payToday')"
           :count="draft.copy.pay_today.length"
           :max="COPY_CHAR_LIMIT"
         >
           <textarea
+            :id="id"
             v-model="draft.copy.pay_today"
             rows="3"
             :maxlength="COPY_CHAR_LIMIT"
@@ -68,11 +76,13 @@ const { t } = useI18n()
           />
         </EngineField>
         <EngineField
+          v-slot="{ id }"
           :label="t('engineSettings.noteDetails')"
           :count="draft.copy.details_note.length"
           :max="COPY_CHAR_LIMIT"
         >
           <textarea
+            :id="id"
             v-model="draft.copy.details_note"
             rows="4"
             :maxlength="COPY_CHAR_LIMIT"

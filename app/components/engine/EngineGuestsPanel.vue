@@ -16,8 +16,12 @@ const { t } = useI18n()
     <div class="setgrid">
       <div>
         <div class="cols2">
-          <EngineField :label="t('engineSettings.maxCabin')">
+          <EngineField
+            v-slot="{ id }"
+            :label="t('engineSettings.maxCabin')"
+          >
             <ConfigNumberInput
+              :id="id"
               v-model="draft.guests.max_per_cabin"
               variant="field"
               :disabled="!props.canEdit('guests.max_per_cabin')"
@@ -27,8 +31,12 @@ const { t } = useI18n()
               step="1"
             />
           </EngineField>
-          <EngineField :label="t('engineSettings.maxYacht')">
+          <EngineField
+            v-slot="{ id }"
+            :label="t('engineSettings.maxYacht')"
+          >
             <ConfigNumberInput
+              :id="id"
               v-model="draft.guests.max_per_yacht"
               variant="field"
               :disabled="!props.canEdit('guests.max_per_yacht')"
@@ -40,8 +48,12 @@ const { t } = useI18n()
           </EngineField>
         </div>
         <div class="cols2">
-          <EngineField :label="t('engineSettings.childFrom')">
+          <EngineField
+            v-slot="{ id }"
+            :label="t('engineSettings.childFrom')"
+          >
             <ConfigNumberInput
+              :id="id"
               v-model="draft.guests.child_min_age"
               variant="field"
               :disabled="!props.canEdit('guests.child_min_age')"
@@ -51,8 +63,12 @@ const { t } = useI18n()
               step="1"
             />
           </EngineField>
-          <EngineField :label="t('engineSettings.childTo')">
+          <EngineField
+            v-slot="{ id }"
+            :label="t('engineSettings.childTo')"
+          >
             <ConfigNumberInput
+              :id="id"
               v-model="draft.guests.child_max_age"
               variant="field"
               :disabled="!props.canEdit('guests.child_max_age')"
@@ -64,11 +80,13 @@ const { t } = useI18n()
           </EngineField>
         </div>
         <EngineField
+          v-slot="{ id }"
           :label="t('engineSettings.underAge')"
           :count="draft.guests.under_age_message.length"
           :max="UNDER_AGE_LIMIT"
         >
           <input
+            :id="id"
             v-model="draft.guests.under_age_message"
             type="text"
             :maxlength="UNDER_AGE_LIMIT"

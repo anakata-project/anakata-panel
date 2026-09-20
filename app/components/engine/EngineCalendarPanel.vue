@@ -15,22 +15,36 @@ const { t } = useI18n()
 
     <div class="setgrid">
       <div>
-        <EngineField :label="t('engineSettings.firstBookable')">
-          <div class="roval">
+        <EngineField
+          v-slot="{ id }"
+          :label="t('engineSettings.firstBookable')"
+        >
+          <div
+            :id="id"
+            class="roval"
+          >
             {{ t('engineSettings.firstBookableValue') }}
           </div>
         </EngineField>
         <div class="cols2">
-          <EngineField :label="t('engineSettings.searchFrom')">
+          <EngineField
+            v-slot="{ id }"
+            :label="t('engineSettings.searchFrom')"
+          >
             <input
+              :id="id"
               v-model="draft.calendar.default_search_from"
               type="month"
               :disabled="!props.canEdit('calendar.default_search_from')"
               :class="{ bad: props.errorsFor('calendar.default_search_from').length > 0 }"
             >
           </EngineField>
-          <EngineField :label="t('engineSettings.searchTo')">
+          <EngineField
+            v-slot="{ id }"
+            :label="t('engineSettings.searchTo')"
+          >
             <input
+              :id="id"
               v-model="draft.calendar.default_search_to"
               type="month"
               :disabled="!props.canEdit('calendar.default_search_to')"
@@ -39,8 +53,12 @@ const { t } = useI18n()
           </EngineField>
         </div>
         <div class="cols2">
-          <EngineField :label="t('engineSettings.defaultAdults')">
+          <EngineField
+            v-slot="{ id }"
+            :label="t('engineSettings.defaultAdults')"
+          >
             <ConfigNumberInput
+              :id="id"
               v-model="draft.calendar.default_adults"
               variant="field"
               :disabled="!props.canEdit('calendar.default_adults')"
@@ -50,8 +68,12 @@ const { t } = useI18n()
               step="1"
             />
           </EngineField>
-          <EngineField :label="t('engineSettings.horizon')">
+          <EngineField
+            v-slot="{ id }"
+            :label="t('engineSettings.horizon')"
+          >
             <ConfigNumberInput
+              :id="id"
               v-model="draft.calendar.horizon_months"
               variant="field"
               :disabled="!props.canEdit('calendar.horizon_months')"

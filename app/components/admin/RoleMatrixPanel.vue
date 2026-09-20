@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Permission, PermissionItem, Role, UpdateRoleRequest } from '../../types/api'
 import { firstApiMessage } from '../../utils/apiForm'
+import { roleDeleteTooltip, roleEllipsisTooltip } from './roleMenu'
 import { cellLabel, cellState } from './matrixCell'
 import {
   accessLoss,
@@ -165,22 +166,40 @@ function cancelDraft(): void {
   warn.value = ''
 }
 
-function menuTooltip(role: Role): string {
-  if (dirty.value) {
-    return t('admin.saveDraftFirst')
+function menuTooltip(): string {
+  return roleEllipsisTooltip(dirty.value, t('admin.saveDraftFirst'))
+}
+
+function deleteTooltip(role: Role): string {
+  return roleDeleteTooltip({
+    dirty: dirty.value,
+    usersCount: role.users_count,
+    deleteBlocked: t('admin.deleteBlocked', { n: String(role.users_count) })
+  })
+}
+
+function menuItemLabel(item: unknown): string {
+  if (typeof item !== 'object' || item === null || !('label' in item)) {
+    return ''
   }
 
-  if (!role.is_system && role.users_count > 0) {
-    return t('admin.deleteBlocked', { n: String(role.users_count) })
+  return typeof item.label === 'string' ? item.label : ''
+}
+
+function menuItemTooltip(item: unknown): string {
+  if (typeof item !== 'object' || item === null || !('tooltipText' in item)) {
+    return ''
   }
 
-  return ''
+  return typeof item.tooltipText === 'string' ? item.tooltipText : ''
 }
 
 function roleMenu(role: Role) {
   const items: Array<{
     label: string
     disabled?: boolean
+    slot?: string
+    tooltipText?: string
     onSelect: () => void
   }> = [
     {
@@ -201,7 +220,9 @@ function roleMenu(role: Role) {
     })
     items.push({
       label: t('admin.delete'),
+      slot: 'delete',
       disabled: dirty.value || role.users_count > 0,
+      tooltipText: deleteTooltip(role),
       onSelect: () => {
         if (!dirty.value && role.users_count === 0) {
           openDelete(role)
@@ -358,10 +379,18 @@ useUnsavedGuard(dirty, () => t('admin.leaveUnsaved'))
                 <span class="matrix-users">{{ usersLabel(role.users_count) }}</span>
                 <UTooltip
                   v-if="canEdit"
-                  :text="menuTooltip(role)"
-                  :disabled="menuTooltip(role) === ''"
+                  :text="menuTooltip()"
+                  :disabled="menuTooltip() === ''"
                 >
                   <UDropdownMenu :items="roleMenu(role)">
+                    <template #delete-label="{ item }">
+                      <UTooltip
+                        :text="menuItemTooltip(item)"
+                        :disabled="menuItemTooltip(item) === ''"
+                      >
+                        <span>{{ menuItemLabel(item) }}</span>
+                      </UTooltip>
+                    </template>
                     <UButton
                       variant="outline"
                       size="sm"

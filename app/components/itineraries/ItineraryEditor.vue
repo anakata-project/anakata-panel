@@ -412,15 +412,17 @@ useUnsavedGuard(dirty, () => t('config.leaveUnsaved'))
           <h4>{{ t('itineraries.basics') }}</h4>
           <div class="cols2">
             <div class="field">
-              <label>{{ t('itineraries.name') }}</label>
+              <label for="itin-name">{{ t('itineraries.name') }}</label>
               <input
+                id="itin-name"
                 v-model="draft.name"
                 maxlength="40"
               >
             </div>
             <div class="field">
-              <label>{{ t('itineraries.code') }}</label>
+              <label for="itin-code">{{ t('itineraries.code') }}</label>
               <input
+                id="itin-code"
                 v-model="draft.code"
                 class="itin-code"
                 maxlength="10"
@@ -432,8 +434,9 @@ useUnsavedGuard(dirty, () => t('config.leaveUnsaved'))
           </div>
           <div class="cols2">
             <div class="field">
-              <label>{{ t('itineraries.days') }}</label>
+              <label for="itin-days">{{ t('itineraries.days') }}</label>
               <input
+                id="itin-days"
                 v-model.number="draft.days"
                 type="number"
                 min="1"
@@ -441,8 +444,9 @@ useUnsavedGuard(dirty, () => t('config.leaveUnsaved'))
               >
             </div>
             <div class="field">
-              <label>{{ t('itineraries.nights') }}</label>
+              <label for="itin-nights">{{ t('itineraries.nights') }}</label>
               <input
+                id="itin-nights"
                 v-model.number="draft.nights"
                 type="number"
                 min="1"
@@ -452,26 +456,36 @@ useUnsavedGuard(dirty, () => t('config.leaveUnsaved'))
           </div>
           <div class="cols2">
             <div class="field">
-              <label>{{ t('itineraries.embark') }}</label>
-              <input v-model="draft.embark">
+              <label for="itin-embark">{{ t('itineraries.embark') }}</label>
+              <input
+                id="itin-embark"
+                v-model="draft.embark"
+              >
             </div>
             <div class="field">
-              <label>{{ t('itineraries.disembark') }}</label>
-              <input v-model="draft.disembark">
+              <label for="itin-disembark">{{ t('itineraries.disembark') }}</label>
+              <input
+                id="itin-disembark"
+                v-model="draft.disembark"
+              >
             </div>
           </div>
           <div class="cols2">
             <div class="field">
-              <label>{{ t('itineraries.order') }}</label>
+              <label for="itin-order">{{ t('itineraries.order') }}</label>
               <input
+                id="itin-order"
                 v-model.number="draft.sort_order"
                 type="number"
                 min="1"
               >
             </div>
             <div class="field">
-              <label>{{ t('itineraries.tagline') }}</label>
-              <input v-model="draft.tagline">
+              <label for="itin-tagline">{{ t('itineraries.tagline') }}</label>
+              <input
+                id="itin-tagline"
+                v-model="draft.tagline"
+              >
             </div>
           </div>
           <label class="chkline">
@@ -486,8 +500,9 @@ useUnsavedGuard(dirty, () => t('config.leaveUnsaved'))
         <div class="sec">
           <h4>{{ t('itineraries.cardSection') }}</h4>
           <div class="field">
-            <label>{{ t('itineraries.heroPhoto') }}</label>
+            <label for="itin-hero">{{ t('itineraries.heroPhoto') }}</label>
             <input
+              id="itin-hero"
               type="file"
               accept="image/*"
               :disabled="isNew || !canManage"
@@ -508,15 +523,17 @@ useUnsavedGuard(dirty, () => t('config.leaveUnsaved'))
           </div>
           <div class="cols2">
             <div class="field">
-              <label>{{ t('itineraries.alt') }}</label>
+              <label for="itin-alt">{{ t('itineraries.alt') }}</label>
               <input
+                id="itin-alt"
                 v-model="draft.hero_alt"
                 :placeholder="t('itineraries.altPlaceholder')"
               >
             </div>
             <div class="field">
-              <label>{{ t('itineraries.fallback') }}</label>
+              <label for="itin-fallback">{{ t('itineraries.fallback') }}</label>
               <select
+                id="itin-fallback"
                 :value="draft.fallback_gradient_key"
                 @change="setGradient(($event.target as HTMLSelectElement).value)"
               >
@@ -531,11 +548,12 @@ useUnsavedGuard(dirty, () => t('config.leaveUnsaved'))
             </div>
           </div>
           <div class="field">
-            <label>
+            <label for="itin-card-description">
               {{ t('itineraries.cardDescription') }}
               <span class="cnt">· {{ draft.card_description.length }} / 220</span>
             </label>
             <textarea
+              id="itin-card-description"
               v-model="draft.card_description"
               rows="3"
               maxlength="220"
@@ -543,16 +561,18 @@ useUnsavedGuard(dirty, () => t('config.leaveUnsaved'))
           </div>
           <div class="cols2">
             <div class="field">
-              <label>{{ t('itineraries.highlights') }}</label>
+              <label for="itin-highlights">{{ t('itineraries.highlights') }}</label>
               <textarea
+                id="itin-highlights"
                 :value="highlightsText"
                 rows="4"
                 @input="onHighlightsInput"
               />
             </div>
             <div class="field">
-              <label>{{ t('itineraries.chips') }}</label>
+              <label for="itin-chips">{{ t('itineraries.chips') }}</label>
               <textarea
+                id="itin-chips"
                 :value="chipsText"
                 rows="4"
                 @input="onChipsInput"
@@ -560,8 +580,9 @@ useUnsavedGuard(dirty, () => t('config.leaveUnsaved'))
             </div>
           </div>
           <div class="field">
-            <label>{{ t('itineraries.overview') }}</label>
+            <label for="itin-overview">{{ t('itineraries.overview') }}</label>
             <textarea
+              id="itin-overview"
               v-model="draft.overview"
               rows="2"
             />
@@ -572,8 +593,9 @@ useUnsavedGuard(dirty, () => t('config.leaveUnsaved'))
         <div class="sec">
           <h4>{{ t('itineraries.tripSection') }}</h4>
           <div class="field">
-            <label>{{ t('itineraries.longDescription') }}</label>
+            <label for="itin-long-description">{{ t('itineraries.longDescription') }}</label>
             <textarea
+              id="itin-long-description"
               v-model="draft.long_description"
               rows="4"
             />
@@ -621,16 +643,18 @@ useUnsavedGuard(dirty, () => t('config.leaveUnsaved'))
         <div class="sec">
           <h4>{{ t('itineraries.includesSection') }}</h4>
           <div class="field">
-            <label>{{ t('itineraries.included') }}</label>
+            <label for="itin-included">{{ t('itineraries.included') }}</label>
             <textarea
+              id="itin-included"
               :value="includedText"
               rows="4"
               @input="onIncludedInput"
             />
           </div>
           <div class="field">
-            <label>{{ t('itineraries.excluded') }}</label>
+            <label for="itin-excluded">{{ t('itineraries.excluded') }}</label>
             <textarea
+              id="itin-excluded"
               :value="excludedText"
               rows="4"
               @input="onExcludedInput"
@@ -674,28 +698,31 @@ useUnsavedGuard(dirty, () => t('config.leaveUnsaved'))
         <div class="sec">
           <h4>{{ t('itineraries.searchSection') }}</h4>
           <div class="field">
-            <label>{{ t('itineraries.slug') }}</label>
+            <label for="itin-slug">{{ t('itineraries.slug') }}</label>
             <input
+              id="itin-slug"
               v-model="draft.slug"
               :placeholder="t('itineraries.slugPlaceholder')"
             >
           </div>
           <div class="field">
-            <label>
+            <label for="itin-seo-title">
               {{ t('itineraries.seoTitle') }}
               <span class="cnt">· {{ draft.meta_title.length }} / 60</span>
             </label>
             <input
+              id="itin-seo-title"
               v-model="draft.meta_title"
               maxlength="60"
             >
           </div>
           <div class="field">
-            <label>
+            <label for="itin-seo-description">
               {{ t('itineraries.seoDescription') }}
               <span class="cnt">· {{ draft.meta_description.length }} / 155</span>
             </label>
             <textarea
+              id="itin-seo-description"
               v-model="draft.meta_description"
               rows="2"
               maxlength="155"

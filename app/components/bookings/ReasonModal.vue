@@ -14,6 +14,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
+const reasonId = useId()
 const reason = ref('')
 
 watch(open, (isOpen) => {
@@ -41,13 +42,14 @@ watch(open, (isOpen) => {
           {{ error }}
         </div>
         <div class="field">
-          <label>
+          <label :for="reasonId">
             {{ t('bookings.reason') }}
             <span class="cnt">
               {{ hint === 'required' ? t('bookings.reasonRequired') : t('bookings.reasonOptional') }}
             </span>
           </label>
           <textarea
+            :id="reasonId"
             v-model="reason"
             rows="3"
           />
