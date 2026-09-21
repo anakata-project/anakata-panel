@@ -9,10 +9,6 @@ const uiLayer = existsSync(localUi)
 export default defineNuxtConfig({
   extends: [uiLayer],
 
-  alias: existsSync(localUi)
-    ? { '#anakata-ui': localUi }
-    : {},
-
   modules: [
     (_options, nuxt) => {
       const layer = nuxt.options._layers.find(item => item.cwd.includes('anakata-ui'))
@@ -26,13 +22,17 @@ export default defineNuxtConfig({
 
   ssr: false,
 
-  css: ['~/assets/css/shell.css', '~/assets/css/lists.css', '~/assets/css/config.css', '~/assets/css/inventory.css', '~/assets/css/bookings.css', '~/assets/css/documents.css'],
+  css: ['~/assets/css/shell.css', '~/assets/css/lists.css', '~/assets/css/config.css', '~/assets/css/inventory.css', '~/assets/css/bookings.css', '~/assets/css/documents.css', '~/assets/css/crm.css'],
 
   runtimeConfig: {
     public: {
       apiBase: 'http://localhost:8000'
     }
   },
+
+  alias: existsSync(localUi)
+    ? { '#anakata-ui': localUi }
+    : {},
 
   devServer: {
     port: 3001

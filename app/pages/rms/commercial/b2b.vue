@@ -38,6 +38,8 @@ const { useFetch, request } = useApi()
 const { format } = useDates()
 const { format: money } = useMoney()
 const toast = useToast()
+const route = useRoute()
+const openedFromQuery = ref(false)
 
 const from = ref<string | null>(null)
 const to = ref<string | null>(null)
@@ -161,6 +163,41 @@ async function onSaved(agency: Agency): Promise<void> {
   selected.value = agency
   await refresh()
 }
+
+watch(
+  [listPayload, () => route.query.open],
+  async ([payload, open]) => {
+    if (openedFromQuery.value || payload === undefined) {
+      return
+    }
+
+    const raw = Array.isArray(open) ? open[0] : open
+    const id = typeof raw === 'string' ? Number(raw) : Number.NaN
+
+    if (!Number.isFinite(id)) {
+      openedFromQuery.value = true
+      return
+    }
+
+    const fromList = payload.data.find(row => row.id === id)
+
+    if (fromList !== undefined) {
+      await openAgency(fromList)
+      openedFromQuery.value = true
+      return
+    }
+
+    try {
+      selected.value = await request(`/api/rms/agencies/${String(id)}`) as Agency
+      drawerOpen.value = true
+    } catch {
+      // Unknown id: leave the list as it is.
+    }
+
+    openedFromQuery.value = true
+  },
+  { immediate: true }
+)
 </script>
 
 <template>

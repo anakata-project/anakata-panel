@@ -142,7 +142,19 @@ export type {
   OfferType,
   CharterEnquiry,
   CharterEnquiryStatus,
-  CompleteLink
+  CompleteLink,
+  ContactBooking,
+  ContactDuplicate,
+  ContactFilters,
+  ContactMerge,
+  ContactMergeResult,
+  ContactProfile,
+  ContactType,
+  ContactUnmergeResult,
+  CrmContact,
+  Lifecycle,
+  Segment,
+  TimelineItem
 } from '#anakata-ui/app/types'
 
 export type Permission = components['schemas']['Permission']
