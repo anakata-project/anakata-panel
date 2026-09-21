@@ -398,6 +398,10 @@ tr.rdiff td:first-child {
   margin-bottom: 10px;
 }
 
+.prevbox .list + .prevl {
+  margin-top: 14px;
+}
+
 .roval {
   padding: 11px 12px;
   border: 1px dashed var(--hair);

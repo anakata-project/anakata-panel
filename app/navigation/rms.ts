@@ -61,7 +61,8 @@ export const rmsNav: Array<NavGroup> = [
         labelKey: 'nav.rms.b2b',
         glyph: '⬡',
         to: '/rms/commercial/b2b',
-        sprint: 11
+        sprint: 5,
+        permission: ['agencies.manage', 'bookings.view_all']
       },
       {
         id: 'contacts-in',
@@ -88,7 +89,8 @@ export const rmsNav: Array<NavGroup> = [
         labelKey: 'nav.rms.refunds',
         glyph: '↺',
         to: '/rms/operations/refunds',
-        sprint: 5
+        sprint: 5,
+        permission: ['refunds.approve', 'refunds.execute']
       },
       {
         id: 'blocks',

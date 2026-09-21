@@ -44,7 +44,7 @@ const emit = defineEmits<{
   openGroup: [groupId: number]
 }>()
 
-type ReasonKind = 'transition' | 'delete' | 'release' | 'overdue-extend' | 'overdue-cancel'
+type ReasonKind = 'transition' | 'delete' | 'release' | 'overdue-extend' | 'overdue-cancel' | 'commission-approve' | 'commission-reject'
 
 const { t } = useI18n()
 const { can } = useAuth()
@@ -81,6 +81,7 @@ const canMove = computed(() => can('bookings.move'))
 const canConfirm = computed(() => can('requests.confirm'))
 const canRelease = computed(() => can('requests.release'))
 const canOverdueDecision = computed(() => can('bookings.overdue_decision'))
+const canOverrideCap = computed(() => can('commissions.override_cap'))
 const extendDate = ref('')
 const { rules } = useOpenRequests()
 const confirmOpen = ref(false)
@@ -130,6 +131,14 @@ const reasonTitle = computed(() => {
     return t('bookings.overdueCancelTitle')
   }
 
+  if (reasonKind.value === 'commission-approve') {
+    return t('bookings.commissionApproveTitle')
+  }
+
+  if (reasonKind.value === 'commission-reject') {
+    return t('bookings.commissionRejectTitle')
+  }
+
   return reasonModalTitle(source.value?.status ?? '', reasonTo.value ?? '')
 })
 
@@ -143,6 +152,12 @@ const balanceTone = computed(() => {
   }
 
   return ''
+})
+
+const commissionHold = computed(() => {
+  return source.value !== null
+    && source.value.status === 'ON_HOLD_AGENCY'
+    && !source.value.commission_approved
 })
 
 const overdueText = computed(() => {
@@ -357,6 +372,27 @@ async function onReason(reason: string): Promise<void> {
       return
     }
 
+    if (reasonKind.value === 'commission-approve' || reasonKind.value === 'commission-reject') {
+      const updated = await request(`/api/rms/bookings/${source.value.id}/commission-approval`, {
+        method: 'POST',
+        body: {
+          approve: reasonKind.value === 'commission-approve',
+          reason
+        }
+      }) as Booking
+
+      current.value = updated
+      toast.add({
+        title: reasonKind.value === 'commission-approve'
+          ? t('bookings.commissionApprovedToast')
+          : t('bookings.commissionRejectedToast')
+      })
+      reasonOpen.value = false
+      emit('updated', updated)
+      history.value = []
+      return
+    }
+
     if (reasonKind.value === 'overdue-extend' || reasonKind.value === 'overdue-cancel') {
       const updated = await request(`/api/rms/bookings/${source.value.id}/overdue-decision`, {
         method: 'POST',
@@ -443,6 +479,14 @@ function startOverdue(kind: 'overdue-extend' | 'overdue-cancel'): void {
   reasonRequired.value = true
   reasonError.value = ''
   extendDate.value = ''
+  reasonOpen.value = true
+}
+
+function startCommission(kind: 'commission-approve' | 'commission-reject'): void {
+  reasonKind.value = kind
+  reasonTo.value = null
+  reasonRequired.value = true
+  reasonError.value = ''
   reasonOpen.value = true
 }
 
@@ -625,6 +669,37 @@ async function onPaymentsUpdated(booking?: Booking): Promise<void> {
                 class="pay-tick"
               >✓</span>
             </span>
+          </div>
+
+          <div
+            v-if="commissionHold"
+            class="warnbox"
+          >
+            <h4>{{ t('bookings.commissionHoldTitle') }}</h4>
+            <p>
+              {{ t('bookings.commissionHoldNotice', {
+                rate: String(source.commission_pct ?? 0),
+                cap: String(source.commission_cap_pct)
+              }) }}
+            </p>
+            <div
+              v-if="canOverrideCap"
+              class="transbtns"
+            >
+              <UButton
+                :disabled="!canActOn(source)"
+                @click="startCommission('commission-approve')"
+              >
+                {{ t('bookings.commissionApprove') }}
+              </UButton>
+              <UButton
+                variant="outline"
+                :disabled="!canActOn(source)"
+                @click="startCommission('commission-reject')"
+              >
+                {{ t('bookings.commissionReject') }}
+              </UButton>
+            </div>
           </div>
 
           <div class="sec">

@@ -199,6 +199,34 @@ describe('seeded admin nav', () => {
     })
   })
 
+  it('hides Refund Approvals without approve or execute', () => {
+    const hidden = visibleNav(sections.rms, allow('panel.rms', 'bookings.view_all'))
+    const shownApprove = visibleNav(sections.rms, allow('panel.rms', 'refunds.approve'))
+    const shownExecute = visibleNav(sections.rms, allow('panel.rms', 'refunds.execute'))
+
+    expect(hidden.find(group => group.id === 'operations')?.items.map(item => item.id)).not.toContain('refunds')
+    expect(shownApprove.find(group => group.id === 'operations')?.items.map(item => item.id)).toContain('refunds')
+    expect(shownExecute.find(group => group.id === 'operations')?.items.map(item => item.id)).toContain('refunds')
+    expect(pageDecision('/rms/operations/refunds', allow('panel.rms', 'bookings.view_all'))).toEqual({
+      to: RMS_HOME,
+      toast: true
+    })
+  })
+
+  it('hides B2B without agencies.manage or bookings.view_all', () => {
+    const hidden = visibleNav(sections.rms, allow('panel.rms', 'bookings.create'))
+    const shownManage = visibleNav(sections.rms, allow('panel.rms', 'agencies.manage'))
+    const shownView = visibleNav(sections.rms, allow('panel.rms', 'bookings.view_all'))
+
+    expect(hidden.find(group => group.id === 'commercial')?.items.map(item => item.id)).not.toContain('b2b')
+    expect(shownManage.find(group => group.id === 'commercial')?.items.map(item => item.id)).toContain('b2b')
+    expect(shownView.find(group => group.id === 'commercial')?.items.map(item => item.id)).toContain('b2b')
+    expect(pageDecision('/rms/commercial/b2b', allow('panel.rms', 'bookings.create'))).toEqual({
+      to: RMS_HOME,
+      toast: true
+    })
+  })
+
   it('hides Payments & Revenue without bookings.view_all', () => {
     const hidden = visibleNav(sections.rms, allow('panel.rms', 'bookings.create'))
     const shown = visibleNav(sections.rms, allow('panel.rms', 'bookings.view_all'))
