@@ -6,7 +6,7 @@ Staff SPA for **RMS** and **CRM** in one Nuxt 4 app. The URL decides the section
 |---|---|
 | Port | **3001** |
 | Render | SPA (`ssr: false`) |
-| Layer | `extends: ['../anakata-ui']` (`v0.6.1`) |
+| Layer | `extends: ['../anakata-ui']` (`v0.6.2`) |
 | API | `NUXT_PUBLIC_API_BASE` (default `http://localhost:8000`) |
 
 The API must already allow this origin. CORS is configured on the API via `FRONTEND_PANEL_URL=http://localhost:3001`.

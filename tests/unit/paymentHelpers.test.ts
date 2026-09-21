@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import type { Booking, PaymentOption } from '../../app/types/api'
+import type { Booking, PaymentOption, PaymentsKpis } from '../../app/types/api'
 import {
   defaultPaymentAmount,
+  galapagosMonthRange,
   labelFrom,
   overdueNotice,
   paymentStatusPillClass,
+  pendingDueLabel,
+  paymentsKpiCards,
+  reconciliationTone,
   recordableOptions,
   signedMoney
 } from '../../app/components/payments/paymentHelpers'
@@ -54,5 +58,48 @@ describe('paymentHelpers', () => {
 
     expect(defaultPaymentAmount(unpaid)).toBe(2660)
     expect(defaultPaymentAmount(partial)).toBe(23940)
+  })
+
+  it('shapes KPI cards from API meta without arithmetic', () => {
+    const meta = {
+      collected: 5000,
+      deposits: 2660,
+      pending: 23940,
+      pending_count: 2,
+      overdue_count: 1,
+      overdue_amount: 12000,
+      commission_accrued: 2660,
+      cabin_deposit_pct: 10,
+      charter_deposit_pct: 20,
+      cabin_balance_days: 120,
+      commission_payable_days: 30,
+      commission_cap_pct: 12,
+      wire_window_hours: 72
+    } as PaymentsKpis
+
+    const cards = paymentsKpiCards(meta)
+
+    expect(cards.map(card => card.value)).toEqual([5000, 2660, 23940, 12000, 2660])
+    expect(cards[1]?.subParams).toEqual({ cabin: '10', charter: '20' })
+    expect(cards[2]?.subParams).toEqual({ n: '2', days: '120' })
+    expect(cards[3]?.tone).toBe('coral')
+    expect(cards[4]?.subParams).toEqual({ days: '30' })
+  })
+
+  it('marks a non-zero reconciliation count as coral', () => {
+    expect(reconciliationTone(0)).toBe('default')
+    expect(reconciliationTone(2)).toBe('coral')
+  })
+
+  it('uses the wire window for PENDING_PAYMENT and the due date otherwise', () => {
+    expect(pendingDueLabel({ status: 'PENDING_PAYMENT', balance_due_date: '2027-08-14' } as Booking, 72))
+      .toBe('72h wire window')
+    expect(pendingDueLabel({ status: 'CONFIRMED', balance_due_date: '2027-08-14' } as Booking, 72))
+      .toBe('2027-08-14')
+  })
+
+  it('returns the Galápagos calendar month that contains today', () => {
+    expect(galapagosMonthRange('2026-09-21')).toEqual({ from: '2026-09-01', to: '2026-09-30' })
+    expect(galapagosMonthRange('2026-02-03')).toEqual({ from: '2026-02-01', to: '2026-02-28' })
   })
 })

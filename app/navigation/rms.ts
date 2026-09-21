@@ -46,7 +46,8 @@ export const rmsNav: Array<NavGroup> = [
         labelKey: 'nav.rms.payments',
         glyph: '◈',
         to: '/rms/commercial/payments',
-        sprint: 5
+        sprint: 5,
+        permission: 'bookings.view_all'
       },
       {
         id: 'rates',

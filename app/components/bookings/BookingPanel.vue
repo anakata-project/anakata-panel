@@ -35,6 +35,7 @@ const open = defineModel<boolean>('open', { required: true })
 const props = defineProps<{
   booking: Booking | null
   businessDayMinutes?: number
+  initialTab?: BookingTabId
 }>()
 
 const emit = defineEmits<{
@@ -173,7 +174,7 @@ watch(
       return
     }
 
-    tab.value = 'overview'
+    tab.value = props.initialTab ?? 'overview'
     warn.value = ''
     reasonOpen.value = false
     moveOpen.value = false

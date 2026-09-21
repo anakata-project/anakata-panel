@@ -199,6 +199,20 @@ describe('seeded admin nav', () => {
     })
   })
 
+  it('hides Payments & Revenue without bookings.view_all', () => {
+    const hidden = visibleNav(sections.rms, allow('panel.rms', 'bookings.create'))
+    const shown = visibleNav(sections.rms, allow('panel.rms', 'bookings.view_all'))
+    const commercialHidden = hidden.find(group => group.id === 'commercial')
+    const commercialShown = shown.find(group => group.id === 'commercial')
+
+    expect(commercialHidden?.items.map(item => item.id)).not.toContain('payments')
+    expect(commercialShown?.items.map(item => item.id)).toContain('payments')
+    expect(pageDecision('/rms/commercial/payments', allow('panel.rms', 'bookings.create'))).toEqual({
+      to: RMS_HOME,
+      toast: true
+    })
+  })
+
   it('gates the real RMS Permissions and Business Rules items', () => {
     const admin = visibleNav(sections.rms, allow(
       'users.manage',
