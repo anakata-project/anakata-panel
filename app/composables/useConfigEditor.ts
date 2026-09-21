@@ -8,6 +8,8 @@ import type {
   EngineSettingsDocument,
   EngineSettingsValidation,
   EngineSettingsVersion,
+  ExtrasDocument,
+  ExtrasVersion,
   Paginated,
   RatesDocument,
   RatesVersion
@@ -18,7 +20,7 @@ import { hasValidationErrors, isConfigDirty } from '../utils/isConfigDirty'
 import { applyPublishOutcome, normaliseErrors, stripDocumentPrefix } from '../utils/publishOutcome'
 import { createValidationQueue } from '../utils/validationQueue'
 
-export type ConfigKindSlug = 'rates' | 'engine-settings' | 'business-rules'
+export type ConfigKindSlug = 'rates' | 'engine-settings' | 'business-rules' | 'extras'
 
 export type ConfigEditorApi<
   TDoc,
@@ -88,6 +90,7 @@ function asValidation<TValidation extends ConfigValidation>(
 export function useConfigEditor(kind: 'rates'): ConfigEditorApi<RatesDocument, ConfigValidation, RatesVersion>
 export function useConfigEditor(kind: 'engine-settings'): ConfigEditorApi<EngineSettingsDocument, EngineSettingsValidation, EngineSettingsVersion>
 export function useConfigEditor(kind: 'business-rules'): ConfigEditorApi<BusinessRulesDocument, ConfigValidation, BusinessRulesVersion>
+export function useConfigEditor(kind: 'extras'): ConfigEditorApi<ExtrasDocument, ConfigValidation, ExtrasVersion>
 export function useConfigEditor<
   TDoc,
   TValidation extends ConfigValidation = ConfigValidation,

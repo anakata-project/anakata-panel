@@ -237,6 +237,21 @@ describe('describeHistory', () => {
       before: null,
       after: { what: 'Consent recorded — Privacy policy' }
     }, t)).toBe('Consent recorded — Privacy policy')
+    expect(describeHistory({
+      event: 'extra.added',
+      before: null,
+      after: { what: 'Extra added — Domestic flights GYE/UIO ↔ SCY (round-trip) × 2 @ USD 420' }
+    }, t)).toBe('Extra added — Domestic flights GYE/UIO ↔ SCY (round-trip) × 2 @ USD 420')
+    expect(describeHistory({
+      event: 'extra.removed',
+      before: null,
+      after: { what: 'Extra removed — Spa treatment × 1' }
+    }, t)).toBe('Extra removed — Spa treatment × 1')
+    expect(describeHistory({
+      event: 'booking.fees_changed',
+      before: null,
+      after: { what: 'PNG park entry fee — collected by Anakata (invoiced, due with the balance)' }
+    }, t)).toBe('PNG park entry fee — collected by Anakata (invoiced, due with the balance)')
   })
 
   it('never renders raw JSON for an unknown event', () => {

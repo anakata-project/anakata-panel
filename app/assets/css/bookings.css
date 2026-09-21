@@ -419,3 +419,30 @@ html.light .slat.bad {
   color: var(--iv38);
   margin-top: 6px;
 }
+
+.extras-intro {
+  font-size: 12px;
+  color: var(--iv62);
+  margin: 4px 0 12px;
+}
+
+.extras-sub {
+  text-align: right;
+  color: var(--iv62);
+}
+
+.extras-fees {
+  font-size: 11.5px;
+  color: var(--iv62);
+  margin-top: 6px;
+}
+
+.extras-due {
+  color: var(--iv62);
+}
+
+.charges-rule {
+  height: 0;
+  margin: 6px 0;
+  border-top: 1px solid var(--hair);
+}

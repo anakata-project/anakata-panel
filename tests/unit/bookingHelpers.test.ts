@@ -57,11 +57,10 @@ describe('bookingHelpers', () => {
     expect(tabAvailability('overview').disabled).toBe(false)
     expect(tabAvailability('history').disabled).toBe(false)
     expect(tabAvailability('guests').disabled).toBe(false)
-    expect(tabAvailability('extras').arrivesSprint).toBe(6)
+    expect(tabAvailability('extras').disabled).toBe(false)
     expect(tabAvailability('payments').disabled).toBe(false)
     expect(tabAvailability('documents').arrivesSprint).toBe(7)
     expect(BOOKING_TABS.filter(tab => tab.disabled).map(tab => tab.id)).toEqual([
-      'extras',
       'documents'
     ])
   })

@@ -30,6 +30,8 @@ import { confirmRequest, releaseRequest } from './requestActions'
 import { overdueNotice } from '../payments/paymentHelpers'
 import BookingPaymentsTab from '../payments/BookingPaymentsTab.vue'
 import BookingGuestsTab from '../guests/BookingGuestsTab.vue'
+import BookingExtrasTab from '../extras/BookingExtrasTab.vue'
+import { chargesRows } from '../extras/extraHelpers'
 
 const open = defineModel<boolean>('open', { required: true })
 
@@ -167,6 +169,10 @@ const overdueText = computed(() => {
   }
 
   return overdueNotice(source.value.overdue_days, source.value.balance, money)
+})
+
+const overviewCharges = computed(() => {
+  return source.value === null ? [] : chargesRows(source.value)
 })
 
 const cancelRefundHint = computed(() => {
@@ -651,39 +657,95 @@ async function onPaymentsUpdated(booking?: Booking): Promise<void> {
               <span>{{ source.request.notes }}</span>
             </div>
           </template>
-          <div class="kv">
-            <span>{{ t('bookings.kvCabinTotal') }}</span>
-            <span>{{ money(source.total) }}</span>
-          </div>
-          <div class="kv">
-            <span>{{ t('bookings.kvPaid') }}</span>
-            <span>{{ money(source.paid) }}</span>
-          </div>
-          <p
-            v-if="source.pledged > 0"
-            class="note pay-pledged"
+          <template
+            v-for="row in overviewCharges"
+            :key="row.id"
           >
-            {{ t('bookings.pledgedWire', {
-              amount: money(source.pledged),
-              when: source.wire_window_ends_at === null ? '—' : format(source.wire_window_ends_at, 'dateTime')
-            }) }}
-          </p>
-          <div class="kv">
-            <span>{{ t('bookings.kvBalance') }}</span>
-            <span :class="balanceTone">
-              {{ t('bookings.balanceDue', { amount: money(source.balance), date: format(source.balance_due_date, 'short') }) }}
-            </span>
-          </div>
-          <div class="kv">
-            <span>{{ t('bookings.kvDeposit') }}</span>
-            <span>
-              {{ t('bookings.depositRow', { pct: String(source.deposit_pct), amount: money(source.deposit_amount) }) }}
-              <span
-                v-if="source.paid >= source.deposit_amount"
-                class="pay-tick"
-              >✓</span>
-            </span>
-          </div>
+            <div
+              v-if="row.id === 'cruise'"
+              class="kv"
+            >
+              <span>{{ t('bookings.kvCruise') }}</span>
+              <span>{{ money(row.amount) }}</span>
+            </div>
+            <div
+              v-else-if="row.id === 'extras'"
+              class="kv"
+            >
+              <span>{{ t('bookings.kvExtras') }}</span>
+              <span>{{ money(row.amount) }}</span>
+            </div>
+            <div
+              v-else-if="row.id === 'fees'"
+              class="kv"
+            >
+              <span>
+                {{ t('bookings.kvFeesCollected') }}
+                <span
+                  v-if="row.pendingCount > 0"
+                  class="gmeta"
+                >{{ t('bookings.feesPendingData') }}</span>
+              </span>
+              <span>{{ money(row.amount) }}</span>
+            </div>
+            <div
+              v-else-if="row.id === 'rule'"
+              class="charges-rule"
+            />
+            <div
+              v-else-if="row.id === 'charges'"
+              class="kv"
+            >
+              <span>{{ t('bookings.kvChargesTotal') }}</span>
+              <span>{{ money(row.amount) }}</span>
+            </div>
+            <div
+              v-else-if="row.id === 'paid'"
+              class="kv"
+            >
+              <span>{{ t('bookings.kvPaid') }}</span>
+              <span>{{ money(row.amount) }}</span>
+            </div>
+            <p
+              v-else-if="row.id === 'pledged'"
+              class="note pay-pledged"
+            >
+              {{ t('bookings.pledgedWire', {
+                amount: money(row.amount),
+                when: row.endsAt === null ? '—' : format(row.endsAt, 'dateTime')
+              }) }}
+            </p>
+            <div
+              v-else-if="row.id === 'balance'"
+              class="kv"
+            >
+              <span>{{ t('bookings.kvBalance') }}</span>
+              <span :class="balanceTone">
+                {{ t('bookings.balanceDue', { amount: money(row.amount), date: format(row.dueDate, 'short') }) }}
+              </span>
+            </div>
+            <div
+              v-else-if="row.id === 'deposit'"
+              class="kv"
+            >
+              <span>{{ t('bookings.depositOfCruise', { pct: String(row.pct) }) }}</span>
+              <span>
+                {{ money(row.amount) }}
+                <span
+                  v-if="source.paid >= row.amount"
+                  class="pay-tick"
+                >✓</span>
+              </span>
+            </div>
+            <p
+              v-else-if="row.id === 'extrasDue'"
+              class="note extras-due"
+            >
+              {{ t('bookings.extrasDueBy', {
+                date: row.dueAt === null ? '—' : format(row.dueAt, 'dateTime')
+              }) }}
+            </p>
+          </template>
 
           <div
             v-if="commissionHold"
@@ -884,6 +946,13 @@ async function onPaymentsUpdated(booking?: Booking): Promise<void> {
 
         <template v-else-if="tab === 'guests'">
           <BookingGuestsTab
+            :booking="source"
+            @updated="onPaymentsUpdated"
+          />
+        </template>
+
+        <template v-else-if="tab === 'extras'">
+          <BookingExtrasTab
             :booking="source"
             @updated="onPaymentsUpdated"
           />

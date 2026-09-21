@@ -254,6 +254,9 @@ export function describeHistory(
     case 'guest.removed':
     case 'guest.guardian_consented':
     case 'consent.recorded':
+    case 'extra.added':
+    case 'extra.removed':
+    case 'booking.fees_changed':
       return stringField(after, 'what') ?? entry.event
     default: {
       const summary = compactDiff(before, after)

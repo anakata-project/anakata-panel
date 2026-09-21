@@ -480,3 +480,24 @@ tr.rdiff td:first-child {
 .rules-scroll {
   overflow-x: auto;
 }
+
+.anccat-wrap {
+  overflow-x: auto;
+}
+
+table.anccat th,
+table.anccat td {
+  vertical-align: top;
+}
+
+.anccat-code {
+  width: 88px;
+}
+
+.anccat-name {
+  width: 220px;
+}
+
+.anccat-price {
+  width: 96px;
+}

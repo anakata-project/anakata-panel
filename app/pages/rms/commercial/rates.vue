@@ -1,7 +1,14 @@
 <script setup lang="ts">
-import type { EngineSettingsVersion, PriceCheckRow } from '../../../types/api'
+import type { EngineSettingsVersion, ExtrasCatalogue, PriceCheckRow } from '../../../types/api'
 import type { ConfigValueFormat } from '../../../utils/formatConfigValue'
 import { rateFieldLabels, RATES_DRAFT_KEY, type RatesDraft } from '../../../components/rates/rateHelpers'
+import {
+  EXTRAS_DRAFT_KEY,
+  extrasFieldLabels,
+  extrasFormats,
+  publishedCodes,
+  type ExtrasDraft
+} from '../../../components/extras/extrasCatalogueHelpers'
 import { cloneDocument } from '../../../utils/documentsEqual'
 
 const { can } = useAuth()
@@ -9,12 +16,30 @@ const { t } = useI18n()
 const { request, useFetch } = useApi()
 
 const editor = useConfigEditor('rates')
+const extrasEditor = useConfigEditor('extras')
 const canPublish = computed(() => can('rates.manage'))
+const canPublishExtras = computed(() => can('extras.manage'))
 const draft = computed(() => editor.draft as RatesDraft | null)
+const extrasDraft = computed(() => extrasEditor.draft as ExtrasDraft | null)
 
 provide(RATES_DRAFT_KEY, draft)
+provide(EXTRAS_DRAFT_KEY, extrasDraft)
 
-useUnsavedGuard(() => editor.dirty, () => t('config.leaveUnsaved'))
+useUnsavedGuard(() => editor.dirty || extrasEditor.dirty, () => t('config.leaveUnsaved'))
+
+const extrasLabels = computed(() => {
+  return extrasDraft.value ? extrasFieldLabels(extrasDraft.value) : {}
+})
+
+const extrasValueFormats = computed(() => {
+  return extrasDraft.value ? extrasFormats(extrasDraft.value) : {}
+})
+
+const extrasPublishedCodes = computed(() => {
+  const document = extrasEditor.current?.document as ExtrasCatalogue | undefined
+
+  return document === undefined ? new Set<string>() : publishedCodes(document)
+})
 
 const { data: engineSettings } = useFetch<EngineSettingsVersion>('/api/rms/engine-settings')
 
@@ -141,14 +166,33 @@ watch(
       @load-older="editor.loadOlder()"
     />
 
-    <AnkPanel :title="t('rates.extrasTitle')">
-      <template #actions>
-        <AnkPill>{{ t('rates.adminDirector') }}</AnkPill>
-      </template>
-      <p class="note">
-        {{ t('rates.extrasNote') }}
-      </p>
-    </AnkPanel>
+    <template v-if="extrasDraft">
+      <ConfigPublishBar
+        :editor="extrasEditor"
+        :can-publish="canPublishExtras"
+        :approval-required="true"
+        :read-only-text="t('rates.extrasViewOnly')"
+        :confirm-note="t('rates.confirmExtras')"
+        :formats="extrasValueFormats"
+        :labels="extrasLabels"
+      />
+
+      <ExtrasCataloguePanel
+        :can-publish="canPublishExtras"
+        :published-codes="extrasPublishedCodes"
+        :errors-for="extrasEditor.errorsFor"
+      />
+
+      <ConfigHistoryPanel
+        :title="t('rates.extrasHistoryTitle')"
+        :empty-text="t('rates.extrasHistoryEmpty')"
+        :versions="extrasEditor.versions"
+        :has-more="extrasEditor.hasMore"
+        :loading="extrasEditor.historyLoading"
+        :formats="extrasValueFormats"
+        @load-older="extrasEditor.loadOlder()"
+      />
+    </template>
 
     <AnkPanel :title="t('rates.promotionsTitle')">
       <template #actions>

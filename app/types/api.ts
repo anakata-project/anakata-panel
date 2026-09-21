@@ -116,7 +116,13 @@ export type {
   Guest,
   GuestIssue,
   GuestIssueSeverity,
-  GuestListSummary
+  GuestListSummary,
+  BookingExtra,
+  ExtrasCatalogue,
+  ExtrasCatalogueItem,
+  ExtrasDocument,
+  ExtrasListSummary,
+  ExtrasVersion
 } from '../../../anakata-ui/app/types'
 
 export type Permission = components['schemas']['Permission']
