@@ -16,7 +16,7 @@ import type {
   PaymentLink,
   PreferredChannel
 } from '../../types/api'
-import { ApiError } from '../../../../anakata-ui/app/composables/useApi'
+import { ApiError } from '#imports'
 import { confirmUnsaved } from '../../composables/useUnsavedGuard'
 import { applyApiFormError, firstApiMessage } from '../../utils/apiForm'
 import { createValidationQueue } from '../../utils/validationQueue'

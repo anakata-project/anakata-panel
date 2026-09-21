@@ -1,4 +1,4 @@
-import type { components } from '../../../anakata-ui/app/types/api'
+import type { components } from '#anakata-ui/app/types/api'
 
 export type {
   AllowedTransition,
@@ -143,7 +143,7 @@ export type {
   CharterEnquiry,
   CharterEnquiryStatus,
   CompleteLink
-} from '../../../anakata-ui/app/types'
+} from '#anakata-ui/app/types'
 
 export type Permission = components['schemas']['Permission']
 export type UserStatus = components['schemas']['UserStatus']

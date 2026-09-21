@@ -14,7 +14,7 @@ import type {
   RatesDocument,
   RatesVersion
 } from '../types/api'
-import { ApiError } from '../../../anakata-ui/app/composables/useApi'
+import { ApiError } from '#imports'
 import { cloneDocument } from '../utils/documentsEqual'
 import { hasValidationErrors, isConfigDirty } from '../utils/isConfigDirty'
 import { applyPublishOutcome, normaliseErrors, stripDocumentPrefix } from '../utils/publishOutcome'

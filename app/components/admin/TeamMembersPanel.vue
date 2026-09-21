@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Paginated, Role, UserListItem, UserStatus } from '../../types/api'
-import { ApiError } from '../../../../anakata-ui/app/composables/useApi'
+import { ApiError } from '#imports'
 import { formatFlags } from './formatFlags'
 
 type PillTone = 'neutral' | 'ok' | 'warn' | 'coral' | 'sand'

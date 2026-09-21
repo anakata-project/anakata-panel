@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Booking, CabinAvailability, Departure, MovePreview, Paginated, PriceLine } from '../../types/api'
 import { firstApiMessage } from '../../utils/apiForm'
-import { ApiError } from '../../../../anakata-ui/app/composables/useApi'
+import { ApiError } from '#imports'
 import {
   departureOptionLabel,
   formatMoveDifference,

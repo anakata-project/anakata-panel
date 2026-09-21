@@ -1,5 +1,5 @@
 import type { Booking } from '../../types/api'
-import type { ApiRequestOptions } from '../../../../anakata-ui/app/composables/useApi'
+import type { ApiRequestOptions } from '#imports'
 
 type RequestFn = (url: string, options?: ApiRequestOptions) => Promise<unknown>
 

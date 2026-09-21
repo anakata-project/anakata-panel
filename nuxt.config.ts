@@ -9,7 +9,17 @@ const uiLayer = existsSync(localUi)
 export default defineNuxtConfig({
   extends: [uiLayer],
 
+  alias: existsSync(localUi)
+    ? { '#anakata-ui': localUi }
+    : {},
+
   modules: [
+    (_options, nuxt) => {
+      const layer = nuxt.options._layers.find(item => item.cwd.includes('anakata-ui'))
+      if (layer) {
+        nuxt.options.alias['#anakata-ui'] = layer.cwd
+      }
+    },
     '@nuxt/ui',
     '@nuxt/eslint'
   ],

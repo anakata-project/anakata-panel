@@ -1,4 +1,4 @@
-import { ApiError } from '../../../anakata-ui/app/composables/useApi'
+import { ApiError } from '#imports'
 
 export type FormFieldErrors = Record<string, string>
 
