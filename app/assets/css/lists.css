@@ -394,3 +394,32 @@ td.matrix-cell--dirty {
 .drbar.active .drc {
   color: var(--coral-400);
 }
+
+.contacts-notice {
+  max-width: 860px;
+}
+
+.ct-source {
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: .08em;
+  color: var(--iv38);
+}
+
+.ct-advisor {
+  margin-top: 3px;
+}
+
+.natbar-cell {
+  width: 40%;
+}
+
+.natbar {
+  height: 6px;
+  background: var(--hair);
+}
+
+.natbar i {
+  display: block;
+  height: 100%;
+  background: var(--sand);
+}

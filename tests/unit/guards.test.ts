@@ -227,6 +227,18 @@ describe('seeded admin nav', () => {
     })
   })
 
+  it('shows Contacts In with panel.rms and hides it without', () => {
+    const shown = visibleNav(sections.rms, allow('panel.rms'))
+    const hidden = visibleNav(sections.rms, allow('bookings.create'))
+
+    expect(shown.find(group => group.id === 'commercial')?.items.map(item => item.id)).toContain('contacts-in')
+    expect(hidden.find(group => group.id === 'commercial')?.items.map(item => item.id)).not.toContain('contacts-in')
+    expect(pageDecision('/rms/commercial/contacts-in', allow('bookings.create'))).toEqual({
+      to: RMS_HOME,
+      toast: true
+    })
+  })
+
   it('hides Payments & Revenue without bookings.view_all', () => {
     const hidden = visibleNav(sections.rms, allow('panel.rms', 'bookings.create'))
     const shown = visibleNav(sections.rms, allow('panel.rms', 'bookings.view_all'))

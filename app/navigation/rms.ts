@@ -69,7 +69,8 @@ export const rmsNav: Array<NavGroup> = [
         labelKey: 'nav.rms.contactsIn',
         glyph: '◉',
         to: '/rms/commercial/contacts-in',
-        sprint: 6
+        sprint: 6,
+        permission: 'panel.rms'
       }
     ]
   },

@@ -1294,5 +1294,28 @@
       "ACTIVE": "Active",
       "DISABLED": "Disabled"
     }
+  },
+  "contactsIn": {
+    "noun": "contacts",
+    "fieldLabel": "Booking departure date",
+    "notice": "Every booking and request creates or links a CRM contact automatically. This view shows who is arriving through the engine and where their booking stands — full profiles, segmentation and automations live in the CRM module.",
+    "listTitle": "Contacts from bookings & requests",
+    "natTitle": "Guests by nationality — top 10 (§9.1)",
+    "colContact": "Contact",
+    "colSegment": "Segment",
+    "colSource": "Source",
+    "colBooking": "Booking",
+    "colStatus": "Status",
+    "colValue": "Value",
+    "colOwner": "Owner",
+    "colRank": "#",
+    "colNationality": "Nationality",
+    "colGuests": "Guests",
+    "colBookings": "Bookings",
+    "advisor": "TRAVEL ADVISOR",
+    "empty": "No contacts in this date range.",
+    "natEmpty": "No nationalities recorded yet.",
+    "unknownOne": "{n} guest without nationality yet. Nationality also sets each guest's PNG entry-fee category (FIN-004).",
+    "unknownMany": "{n} guests without nationality yet. Nationality also sets each guest's PNG entry-fee category (FIN-004)."
   }
 }
