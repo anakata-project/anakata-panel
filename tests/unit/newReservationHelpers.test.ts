@@ -32,16 +32,27 @@ describe('newReservationHelpers', () => {
       back_to_back: false,
       cabins: [{ adults: 8, children: 1 }]
     })
+
+    expect(quoteRequestPayload(12, 'CHARTER', [
+      { cabinCode: 'S1', adults: 8, children: 1 }
+    ], false, 'B2B')).toEqual({
+      departure_id: 12,
+      type: 'CHARTER',
+      back_to_back: false,
+      cabins: [{ adults: 8, children: 1 }],
+      main_channel: 'B2B'
+    })
   })
 
   it('builds cabin rows only when every cabin is picked', () => {
     expect(quoteRequestPayload(12, 'CABIN', [
       { cabinCode: 'S1', adults: 2, children: 0 }
-    ], true)).toEqual({
+    ], true, 'B2B – Travel Advisor')).toEqual({
       departure_id: 12,
       type: 'CABIN',
       back_to_back: true,
-      cabins: [{ cabin_code: 'S1', adults: 2, children: 0 }]
+      cabins: [{ cabin_code: 'S1', adults: 2, children: 0 }],
+      main_channel: 'B2B – Travel Advisor'
     })
 
     expect(quoteRequestPayload(12, 'CABIN', [

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Booking, Delivery, IssuedDocument, Payment, PaymentLink, PaymentOptions } from '../../types/api'
+import type { Booking, CompleteLink, Delivery, IssuedDocument, Payment, PaymentLink, PaymentOptions } from '../../types/api'
 import { applyApiFormError, firstApiMessage, type FormFieldErrors } from '../../utils/apiForm'
 import {
   defaultPaymentAmount,
@@ -73,6 +73,8 @@ const wireSending = ref(false)
 const wireError = ref('')
 const wireWarning = ref('')
 const lastWireTo = ref<Array<string>>([])
+const guestLinkLoading = ref(false)
+const guestLinkError = ref('')
 
 const kindOptions = computed(() => recordableOptions(options.value?.kinds ?? []))
 const methodOptions = computed(() => recordableOptions(options.value?.methods ?? []))
@@ -279,6 +281,23 @@ async function copyLink(url: string): Promise<void> {
   toast.add({ title: t('payments.linkCopiedToast') })
 }
 
+async function copyGuestLink(): Promise<void> {
+  guestLinkError.value = ''
+  guestLinkLoading.value = true
+
+  try {
+    const result = await request(`/api/rms/bookings/${props.booking.id}/complete-link`, {
+      method: 'POST'
+    }) as CompleteLink
+    await navigator.clipboard.writeText(result.url)
+    toast.add({ title: t('payments.guestLinkCopiedToast') })
+  } catch (error: unknown) {
+    guestLinkError.value = firstApiMessage(error) ?? t('payments.guestLinkFailed')
+  } finally {
+    guestLinkLoading.value = false
+  }
+}
+
 function receiptFor(payment: Payment): IssuedDocument | null {
   return issued.value.find(document => document.kind === 'RECEIPT' && document.payment_id === payment.id) ?? null
 }
@@ -447,6 +466,29 @@ async function submitWireSend(): Promise<void> {
         </tr>
       </tbody>
     </table>
+
+    <div
+      v-if="booking.can_act"
+      class="sec"
+    >
+      <h4>{{ t('payments.guestLinkTitle') }}</h4>
+      <p class="note">
+        {{ t('payments.guestLinkNote') }}
+      </p>
+      <UButton
+        variant="outline"
+        :loading="guestLinkLoading"
+        @click="copyGuestLink"
+      >
+        {{ t('payments.copyGuestLink') }}
+      </UButton>
+      <p
+        v-if="guestLinkError"
+        class="pline-err"
+      >
+        {{ guestLinkError }}
+      </p>
+    </div>
 
     <template v-if="canRecord">
       <div class="sec">

@@ -135,7 +135,14 @@ export type {
   DocumentPlanKind,
   DocumentPlanRow,
   DocumentStatus,
-  IssuedDocument
+  IssuedDocument,
+  Offer,
+  OfferChannel,
+  OfferStatus,
+  OfferType,
+  CharterEnquiry,
+  CharterEnquiryStatus,
+  CompleteLink
 } from '../../../anakata-ui/app/types'
 
 export type Permission = components['schemas']['Permission']
@@ -145,3 +152,5 @@ export type UpdateUserRequest = components['schemas']['UpdateUserRequest']
 export type DisableUserRequest = components['schemas']['DisableUserRequest']
 export type StoreRoleRequest = components['schemas']['StoreRoleRequest']
 export type UpdateRoleRequest = components['schemas']['UpdateRoleRequest']
+export type StoreOfferRequest = components['schemas']['StoreOfferRequest']
+export type UpdateOfferRequest = components['schemas']['UpdateOfferRequest']

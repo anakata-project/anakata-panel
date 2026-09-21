@@ -149,7 +149,13 @@ const existingNotice = computed(() => {
 })
 
 const quotePayload = computed(() => {
-  return quoteRequestPayload(departureId.value, type.value, cabinRows.value, backToBack.value)
+  return quoteRequestPayload(
+    departureId.value,
+    type.value,
+    cabinRows.value,
+    backToBack.value,
+    mainChannel.value
+  )
 })
 
 const quoteErrors = computed(() => {

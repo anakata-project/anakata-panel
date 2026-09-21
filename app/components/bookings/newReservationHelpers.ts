@@ -1,4 +1,4 @@
-import type { BookingFormOptions, BookingQuoteRequest, BookingType } from '../../types/api'
+import type { BookingFormOptions, BookingQuoteRequest, BookingType, MainChannel } from '../../types/api'
 
 export type ReservationCabinRow = {
   cabinCode: string
@@ -15,11 +15,16 @@ export function quoteRequestPayload(
   departureId: number | null,
   type: BookingType,
   rows: Array<ReservationCabinRow>,
-  backToBack: boolean
+  backToBack: boolean,
+  mainChannel: MainChannel | '' | null = null
 ): BookingQuoteRequest | null {
   if (departureId === null) {
     return null
   }
+
+  const channel = mainChannel === '' || mainChannel === null
+    ? undefined
+    : mainChannel
 
   if (type === 'CHARTER') {
     const party = rows[0] ?? { cabinCode: '', adults: 2, children: 0 }
@@ -31,7 +36,8 @@ export function quoteRequestPayload(
       cabins: [{
         adults: party.adults,
         children: party.children
-      }]
+      }],
+      ...(channel === undefined ? {} : { main_channel: channel })
     }
   }
 
@@ -47,7 +53,8 @@ export function quoteRequestPayload(
       cabin_code: row.cabinCode,
       adults: row.adults,
       children: row.children
-    }))
+    })),
+    ...(channel === undefined ? {} : { main_channel: channel })
   }
 }
 

@@ -10,6 +10,7 @@ import {
   type ExtrasDraft
 } from '../../../components/extras/extrasCatalogueHelpers'
 import { cloneDocument } from '../../../utils/documentsEqual'
+import RatesPromotionsPanel from '../../../components/offers/RatesPromotionsPanel.vue'
 
 const { can } = useAuth()
 const { t } = useI18n()
@@ -194,21 +195,6 @@ watch(
       />
     </template>
 
-    <AnkPanel :title="t('rates.promotionsTitle')">
-      <template #actions>
-        <AnkPill tone="coral">
-          {{ t('rates.promotionsPill') }}
-        </AnkPill>
-      </template>
-      <p class="note">
-        {{ t('rates.promotionsNote') }}
-        <NuxtLink
-          class="lnk"
-          to="/rms/booking-engine/offers"
-        >
-          {{ t('rates.offersLink') }}
-        </NuxtLink>
-      </p>
-    </AnkPanel>
+    <RatesPromotionsPanel />
   </div>
 </template>

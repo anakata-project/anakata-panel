@@ -34,6 +34,14 @@ const strings: Record<string, string> = {
   'history.events.blockReleased': 'Released',
   'history.events.blockUpdated': 'Updated · {summary}',
   'history.events.blockUpdatedBare': 'Updated',
+  'history.events.offerCreated': 'Created',
+  'history.events.offerUpdated': 'Updated · {summary}',
+  'history.events.offerUpdatedBare': 'Updated',
+  'history.events.offerSubmitted': 'Submitted for Director approval',
+  'history.events.offerApproved': 'Approved',
+  'history.events.offerRejected': 'Rejected',
+  'history.events.offerPaused': 'Paused',
+  'history.events.offerResumed': 'Resumed',
   'history.events.bookingCreated': 'Created',
   'history.events.bookingRequested': 'Requested',
   'history.events.bookingStatusChanged': 'Status {before} → {after}',
@@ -282,6 +290,18 @@ describe('describeHistory', () => {
       before: null,
       after: { what: 'Payment link send failed' }
     }, t)).toBe('Payment link send failed')
+    expect(describeHistory({ event: 'offer.created', before: null, after: null }, t)).toBe('Created')
+    expect(describeHistory({ event: 'offer.submitted', before: null, after: null }, t)).toBe('Submitted for Director approval')
+    expect(describeHistory({ event: 'offer.approved', before: null, after: null }, t)).toBe('Approved')
+    expect(describeHistory({ event: 'offer.rejected', before: null, after: null }, t)).toBe('Rejected')
+    expect(describeHistory({ event: 'offer.paused', before: null, after: null }, t)).toBe('Paused')
+    expect(describeHistory({ event: 'offer.resumed', before: null, after: null }, t)).toBe('Resumed')
+    expect(describeHistory({
+      event: 'offer.updated',
+      before: { name: 'Old' },
+      after: { name: 'New' }
+    }, t)).toBe('Updated · name: Old → New')
+    expect(describeHistory({ event: 'offer.updated', before: null, after: null }, t)).toBe('Updated')
   })
 
   it('never renders raw JSON for an unknown event', () => {

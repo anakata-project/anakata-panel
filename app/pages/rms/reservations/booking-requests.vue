@@ -4,6 +4,7 @@ import DateRangeFilter from '../../../components/lists/DateRangeFilter.vue'
 import BookingPanel from '../../../components/bookings/BookingPanel.vue'
 import ReasonModal from '../../../components/bookings/ReasonModal.vue'
 import ConfirmRequestModal from '../../../components/requests/ConfirmRequestModal.vue'
+import CharterEnquiriesPanel from '../../../components/requests/CharterEnquiriesPanel.vue'
 import { confirmRequest, releaseRequest } from '../../../components/bookings/requestActions'
 import {
   formatHoldRemaining,
@@ -277,6 +278,8 @@ onMounted(() => {
         </table>
       </div>
     </div>
+
+    <CharterEnquiriesPanel />
 
     <BookingPanel
       v-model:open="panelOpen"

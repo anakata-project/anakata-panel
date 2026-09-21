@@ -195,6 +195,25 @@ export function describeHistory(
         ? t('history.events.blockUpdated', { summary })
         : t('history.events.blockUpdatedBare')
     }
+    case 'offer.created':
+      return t('history.events.offerCreated')
+    case 'offer.submitted':
+      return t('history.events.offerSubmitted')
+    case 'offer.approved':
+      return t('history.events.offerApproved')
+    case 'offer.rejected':
+      return t('history.events.offerRejected')
+    case 'offer.paused':
+      return t('history.events.offerPaused')
+    case 'offer.resumed':
+      return t('history.events.offerResumed')
+    case 'offer.updated': {
+      const summary = compactDiff(before, after)
+
+      return summary
+        ? t('history.events.offerUpdated', { summary })
+        : t('history.events.offerUpdatedBare')
+    }
     case 'booking.created':
       return stringField(after, 'what') ?? t('history.events.bookingCreated')
     case 'booking.requested':

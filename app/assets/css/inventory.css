@@ -849,3 +849,74 @@ html:not(.dark) .cab.s-hold .st {
   gap: 4px 16px;
   margin-top: 8px;
 }
+
+.of-notice {
+  max-width: 900px;
+}
+
+.of-code {
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: .1em;
+  color: var(--sand);
+}
+
+.of-scope {
+  max-width: 240px;
+}
+
+.of-placement,
+.of-hits {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: .08em;
+  color: var(--iv38);
+}
+
+.of-hits {
+  margin-top: 4px;
+}
+
+.badge-offer {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  background: #E85646;
+  color: #141B17;
+}
+
+.promo-off {
+  opacity: .5;
+}
+
+.of-promo-note {
+  padding: 12px 20px;
+}
+
+.field-label {
+  display: block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--iv62);
+  margin-bottom: 6px;
+}
+
+.pdrow {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.pline.off {
+  color: var(--ok);
+}
+
+.of-code-input,
+input.of-code {
+  text-transform: uppercase;
+}
