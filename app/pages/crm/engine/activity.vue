@@ -1,0 +1,289 @@
+<script setup lang="ts">
+import type {
+  ActivityEvent,
+  ActivityKpis,
+  CrmContact,
+  EventCatalogueRow,
+  Paginated
+} from '../../../types/api'
+import DateRangeFilter from '../../../components/lists/DateRangeFilter.vue'
+import {
+  isAnonymousContact,
+  sideTokens,
+  systemBadgeClass,
+  uniqueContactId
+} from '../../../components/crm/syncHelpers'
+
+type ActivityPayload = Paginated<ActivityEvent> & {
+  meta: Paginated<ActivityEvent>['meta'] & {
+    kpis: ActivityKpis
+  }
+}
+
+const emptyKpis: ActivityKpis = {
+  events_today: 0,
+  identified: 0,
+  anonymous: 0,
+  inventory_touching: 0,
+  web_hold_minutes: 0,
+  web_hold_extension_minutes: 0
+}
+
+const { t } = useI18n()
+const { useFetch, request } = useApi()
+const { format } = useDates()
+const toast = useToast()
+const config = useRuntimeConfig()
+
+const from = ref<string | null>(null)
+const to = ref<string | null>(null)
+const nameFilter = ref('')
+const identifiedFilter = ref('')
+const page = ref(1)
+const eventNames = ref<Array<string>>([])
+const today = computed(() => format(new Date(), 'iso'))
+
+watch([from, to, nameFilter, identifiedFilter], () => {
+  page.value = 1
+})
+
+const listUrl = computed(() => {
+  const params = new URLSearchParams({
+    page: String(page.value),
+    per_page: '50'
+  })
+
+  if (from.value !== null) {
+    params.set('from', from.value)
+  }
+
+  if (to.value !== null) {
+    params.set('to', to.value)
+  }
+
+  if (nameFilter.value !== '') {
+    params.set('name', nameFilter.value)
+  }
+
+  if (identifiedFilter.value === '1' || identifiedFilter.value === '0') {
+    params.set('identified', identifiedFilter.value)
+  }
+
+  return `/api/crm/activity?${params.toString()}`
+})
+
+const { data: listPayload } = useFetch<ActivityPayload>(listUrl)
+
+const rows = computed(() => listPayload.value?.data ?? [])
+const meta = computed(() => listPayload.value?.meta)
+const kpis = computed(() => listPayload.value?.meta.kpis ?? emptyKpis)
+const total = computed(() => meta.value?.total ?? 0)
+const showEventFilter = computed(() => eventNames.value.length > 0)
+
+onMounted(async () => {
+  try {
+    const result = await $fetch<{ data: Array<EventCatalogueRow> }>('/api/crm/sync/events', {
+      credentials: 'include',
+      baseURL: String(config.public.apiBase)
+    })
+    eventNames.value = result.data
+      .filter(row => row.family === 'behavioural')
+      .map(row => row.name)
+  } catch {
+    eventNames.value = []
+  }
+})
+
+async function openNamedContact(name: string): Promise<void> {
+  if (isAnonymousContact(name)) {
+    return
+  }
+
+  const trimmed = name.trim()
+
+  try {
+    const result = await request(`/api/crm/contacts?q=${encodeURIComponent(trimmed)}&per_page=100`) as Paginated<CrmContact>
+    const id = uniqueContactId(trimmed, result.data, result.data.length >= 100)
+
+    if (id !== null) {
+      await navigateTo({
+        path: '/crm/sales/contacts',
+        query: { open: String(id) }
+      })
+      return
+    }
+  } catch {
+    // fall through to the toast
+  }
+
+  toast.add({ title: t('crmActivity.contactUnresolved') })
+}
+</script>
+
+<template>
+  <div>
+    <DateRangeFilter
+      v-model:from="from"
+      v-model:to="to"
+      :field-label="t('crmActivity.fieldLabel')"
+      :noun="t('crmActivity.noun')"
+      :total="total"
+      :today="today"
+    />
+
+    <div class="krow">
+      <AnkKpi
+        :label="t('crmActivity.kpiEventsToday')"
+        :sub="t('crmActivity.kpiEventsTodaySub')"
+      >
+        {{ kpis.events_today }}
+      </AnkKpi>
+      <AnkKpi
+        :label="t('crmActivity.kpiIdentified')"
+        :sub="t('crmActivity.kpiIdentifiedSub')"
+      >
+        {{ kpis.identified }}
+      </AnkKpi>
+      <AnkKpi
+        :label="t('crmActivity.kpiAnonymous')"
+        :sub="t('crmActivity.kpiAnonymousSub')"
+      >
+        {{ kpis.anonymous }}
+      </AnkKpi>
+      <AnkKpi
+        :label="t('crmActivity.kpiInventory')"
+        :sub="t('crmActivity.kpiInventorySub')"
+      >
+        {{ kpis.inventory_touching }}
+      </AnkKpi>
+      <AnkKpi
+        :label="t('crmActivity.kpiWebHold')"
+        :sub="t('crmActivity.kpiWebHoldSub', { minutes: String(kpis.web_hold_extension_minutes) })"
+      >
+        {{ t('crmActivity.kpiWebHoldValue', { minutes: String(kpis.web_hold_minutes) }) }}
+      </AnkKpi>
+    </div>
+
+    <p class="notice crm-notice">
+      {{ t('crmActivity.notice') }}
+    </p>
+
+    <div class="panel">
+      <h3>{{ t('crmActivity.streamTitle') }}</h3>
+      <div class="crm-filters">
+        <select
+          v-if="showEventFilter"
+          v-model="nameFilter"
+        >
+          <option value="">
+            {{ t('crmActivity.filterEvent') }}
+          </option>
+          <option
+            v-for="name in eventNames"
+            :key="name"
+            :value="name"
+          >
+            {{ name }}
+          </option>
+        </select>
+        <select v-model="identifiedFilter">
+          <option value="">
+            {{ t('crmActivity.filterIdentified') }}
+          </option>
+          <option value="1">
+            {{ t('crmActivity.identifiedYes') }}
+          </option>
+          <option value="0">
+            {{ t('crmActivity.identifiedNo') }}
+          </option>
+        </select>
+      </div>
+      <div class="bk-table-wrap">
+        <table class="list">
+          <thead>
+            <tr>
+              <th class="nw">
+                {{ t('crmActivity.colWhen') }}
+              </th>
+              <th class="nw">
+                {{ t('crmActivity.colEvent') }}
+              </th>
+              <th class="nw">
+                {{ t('crmActivity.colContact') }}
+              </th>
+              <th>{{ t('crmActivity.colDetail') }}</th>
+              <th class="nw">
+                {{ t('crmActivity.colSide') }}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-if="rows.length === 0"
+              class="dr-empty"
+            >
+              <td colspan="5">
+                {{ t('crmActivity.empty') }}
+              </td>
+            </tr>
+            <tr
+              v-for="row in rows"
+              :key="`${row.at}-${row.name}-${row.contact}`"
+            >
+              <td class="nw">
+                {{ format(row.at, 'dateTime') }}
+              </td>
+              <td class="nw crm-event">
+                {{ row.name }}
+              </td>
+              <td class="nw">
+                <button
+                  v-if="!isAnonymousContact(row.contact)"
+                  type="button"
+                  class="lnk"
+                  @click="openNamedContact(row.contact)"
+                >
+                  {{ row.contact }}
+                </button>
+                <template v-else>
+                  {{ row.contact }}
+                </template>
+              </td>
+              <td>{{ row.detail }}</td>
+              <td class="nw">
+                <div class="crm-side">
+                  <span
+                    v-for="token in sideTokens(row.side)"
+                    :key="token"
+                    class="sysbadge"
+                    :class="systemBadgeClass(token)"
+                  >{{ token }}</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div
+        v-if="meta && meta.last_page > 1"
+        class="list-pager"
+      >
+        <button
+          type="button"
+          :disabled="meta.current_page <= 1"
+          @click="page -= 1"
+        >
+          {{ t('bookings.previous') }}
+        </button>
+        <span>{{ t('bookings.pager', { from: String(meta.from ?? 0), to: String(meta.to ?? 0), total: String(meta.total) }) }}</span>
+        <button
+          type="button"
+          :disabled="meta.current_page >= meta.last_page"
+          @click="page += 1"
+        >
+          {{ t('bookings.next') }}
+        </button>
+      </div>
+    </div>
+  </div>
+</template>

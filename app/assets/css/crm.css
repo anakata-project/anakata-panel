@@ -18,6 +18,73 @@
   color: var(--ok);
 }
 
+.pill.bad {
+  border-color: var(--coral);
+  color: var(--coral-400);
+}
+
+.sysbadge.sys-crm {
+  border-color: var(--coral);
+  color: var(--coral-400);
+}
+
+.sysbadge.sys-eng {
+  border-color: var(--ok);
+  color: var(--ok);
+}
+
+.sysbadge.sys-ext {
+  border-color: var(--iv38);
+  color: var(--iv62);
+}
+
+.crm-grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+@media (max-width: 1100px) {
+  .crm-grid2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.crm-side {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.crm-event {
+  color: var(--coral-400);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: .04em;
+  text-transform: none;
+}
+
+.crm-code {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--iv38);
+}
+
+.crm-job-failed {
+  background: rgba(232, 86, 70, .08);
+}
+
+.crm-notice-wide {
+  max-width: 960px;
+}
+
+.crm-bus-note {
+  font-size: 12px;
+  color: var(--iv62);
+  padding: 0 20px 14px;
+  margin: 0;
+}
+
 .ro {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 8px;

@@ -154,7 +154,16 @@ export type {
   CrmContact,
   Lifecycle,
   Segment,
-  TimelineItem
+  TimelineItem,
+  ActivityEvent,
+  ActivityKpis,
+  EventCatalogueRow,
+  OwnershipRow,
+  RetrySyncFailure,
+  ScheduledJobRun,
+  SyncFailure,
+  SyncIdentityRow,
+  SyncKpis
 } from '#anakata-ui/app/types'
 
 export type Permission = components['schemas']['Permission']
