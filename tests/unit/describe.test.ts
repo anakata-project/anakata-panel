@@ -252,6 +252,36 @@ describe('describeHistory', () => {
       before: null,
       after: { what: 'PNG park entry fee — collected by Anakata (invoiced, due with the balance)' }
     }, t)).toBe('PNG park entry fee — collected by Anakata (invoiced, due with the balance)')
+    expect(describeHistory({
+      event: 'document.issued',
+      before: null,
+      after: { what: 'Invoice issued · v1' }
+    }, t)).toBe('Invoice issued · v1')
+    expect(describeHistory({
+      event: 'document.sent',
+      before: null,
+      after: { what: 'Invoice sent' }
+    }, t)).toBe('Invoice sent')
+    expect(describeHistory({
+      event: 'document.send_failed',
+      before: null,
+      after: { what: 'Invoice send failed' }
+    }, t)).toBe('Invoice send failed')
+    expect(describeHistory({
+      event: 'booking.billing_changed',
+      before: null,
+      after: { what: 'Billing details updated' }
+    }, t)).toBe('Billing details updated')
+    expect(describeHistory({
+      event: 'payment_request.sent',
+      before: null,
+      after: { what: 'Payment link sent' }
+    }, t)).toBe('Payment link sent')
+    expect(describeHistory({
+      event: 'payment_request.send_failed',
+      before: null,
+      after: { what: 'Payment link send failed' }
+    }, t)).toBe('Payment link send failed')
   })
 
   it('never renders raw JSON for an unknown event', () => {

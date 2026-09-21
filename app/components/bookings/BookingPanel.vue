@@ -31,6 +31,8 @@ import { overdueNotice } from '../payments/paymentHelpers'
 import BookingPaymentsTab from '../payments/BookingPaymentsTab.vue'
 import BookingGuestsTab from '../guests/BookingGuestsTab.vue'
 import BookingExtrasTab from '../extras/BookingExtrasTab.vue'
+import BookingDocumentsTab from '../documents/BookingDocumentsTab.vue'
+import BookingBillingBlock from './BookingBillingBlock.vue'
 import { chargesRows } from '../extras/extraHelpers'
 
 const open = defineModel<boolean>('open', { required: true })
@@ -242,6 +244,13 @@ function selectTab(item: BookingTab): void {
   }
 
   tab.value = item.id
+}
+
+function openBilling(): void {
+  tab.value = 'overview'
+  void nextTick(() => {
+    document.getElementById('booking-billing')?.scrollIntoView({ block: 'start' })
+  })
 }
 
 function tabTooltip(item: BookingTab): string {
@@ -892,6 +901,11 @@ async function onPaymentsUpdated(booking?: Booking): Promise<void> {
             </UButton>
           </div>
 
+          <BookingBillingBlock
+            :booking="source"
+            @updated="onPaymentsUpdated"
+          />
+
           <div class="sec">
             <h4>{{ t('bookings.notesTitle') }}</h4>
             <div class="field">
@@ -962,6 +976,14 @@ async function onPaymentsUpdated(booking?: Booking): Promise<void> {
           <BookingPaymentsTab
             :booking="source"
             @updated="onPaymentsUpdated"
+          />
+        </template>
+
+        <template v-else-if="tab === 'documents'">
+          <BookingDocumentsTab
+            :booking="source"
+            @updated="onPaymentsUpdated"
+            @open-billing="openBilling"
           />
         </template>
 

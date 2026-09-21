@@ -446,3 +446,75 @@ html.light .slat.bad {
   margin: 6px 0;
   border-top: 1px solid var(--hair);
 }
+
+.doc-blocked {
+  color: var(--coral);
+}
+
+.doc-error {
+  color: var(--coral);
+}
+
+.doc-trigger {
+  color: var(--iv62);
+  font-size: 11.5px;
+}
+
+.doc-versions {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+}
+
+.doc-versions li {
+  margin-top: 2px;
+}
+
+.billing-muted {
+  color: var(--iv38);
+}
+
+.billing-form {
+  margin-top: 10px;
+}
+
+.pay-receipt {
+  margin-left: 8px;
+  font-size: 11px;
+}
+
+.doc-modal {
+  --ui-container-max: 96vw;
+}
+
+.docbox {
+  width: 920px;
+  max-width: 96vw;
+  padding: 22px 26px;
+}
+
+.docbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.docbar h2 {
+  margin: 0;
+}
+
+.docbar-acts {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.doc-frame {
+  width: 100%;
+  min-height: 70vh;
+  border: 1px solid var(--hair);
+  background: #FAF9F0;
+}

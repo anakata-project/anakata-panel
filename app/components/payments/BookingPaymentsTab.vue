@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Booking, Payment, PaymentLink, PaymentOptions } from '../../types/api'
+import type { Booking, Delivery, IssuedDocument, Payment, PaymentLink, PaymentOptions } from '../../types/api'
 import { applyApiFormError, firstApiMessage, type FormFieldErrors } from '../../utils/apiForm'
 import {
   defaultPaymentAmount,
@@ -9,6 +9,8 @@ import {
   signedMoney
 } from './paymentHelpers'
 import MarkWireModal from './MarkWireModal.vue'
+import DocumentConfirmModal from '../documents/DocumentConfirmModal.vue'
+import DocumentPreviewModal from '../documents/DocumentPreviewModal.vue'
 
 const props = defineProps<{
   booking: Booking
@@ -51,6 +53,26 @@ const markOpen = ref(false)
 const markPaymentId = ref<number | null>(null)
 const markSubmitting = ref(false)
 const markError = ref('')
+
+const issued = ref<Array<IssuedDocument>>([])
+const deliveries = ref<Array<Delivery>>([])
+
+const previewOpen = ref(false)
+const previewTitle = ref('')
+const previewHtmlPath = ref<string | null>(null)
+const previewFilePath = ref<string | null>(null)
+const previewFileName = ref('')
+
+const linkSendOpen = ref(false)
+const linkToSend = ref<PaymentLink | null>(null)
+const linkSending = ref(false)
+const linkSendError = ref('')
+
+const wireOpen = ref(false)
+const wireSending = ref(false)
+const wireError = ref('')
+const wireWarning = ref('')
+const lastWireTo = ref<Array<string>>([])
 
 const kindOptions = computed(() => recordableOptions(options.value?.kinds ?? []))
 const methodOptions = computed(() => recordableOptions(options.value?.methods ?? []))
@@ -99,9 +121,51 @@ async function loadOptions(): Promise<void> {
   }
 }
 
+const lastPaymentLink = computed(() => {
+  return deliveries.value.find(item => item.kind === 'PAYMENT_LINK') ?? null
+})
+
+const lastPaymentLinkLine = computed(() => {
+  const delivery = lastPaymentLink.value
+
+  if (delivery === null) {
+    return ''
+  }
+
+  const when = delivery.sent_at ?? delivery.created_at ?? ''
+
+  return t('payments.lastLinkEmail', {
+    status: delivery.status,
+    to: delivery.to.join(', '),
+    date: when === '' ? '—' : format(when, 'dateTime')
+  })
+})
+
+async function loadIssued(): Promise<void> {
+  const result = await request(`/api/rms/bookings/${props.booking.id}/documents`) as { data: Array<IssuedDocument> }
+  issued.value = result.data
+}
+
+async function loadDeliveries(): Promise<void> {
+  const result = await request(`/api/rms/bookings/${props.booking.id}/deliveries`) as { data: Array<Delivery> }
+  deliveries.value = result.data
+}
+
 onMounted(() => {
   void loadLedger()
   void loadOptions()
+  void loadIssued()
+  void loadDeliveries()
+})
+
+watch(() => props.booking.id, () => {
+  issued.value = []
+  deliveries.value = []
+  wireWarning.value = ''
+  lastWireTo.value = []
+  void loadLedger()
+  void loadIssued()
+  void loadDeliveries()
 })
 
 function kindLabel(value: string): string {
@@ -134,6 +198,7 @@ async function submitMark(bankReference: string): Promise<void> {
     markOpen.value = false
     toast.add({ title: t('payments.markedToast') })
     await loadLedger()
+    await loadIssued()
     emit('updated')
   } catch (error: unknown) {
     markError.value = firstApiMessage(error) ?? (error instanceof Error ? error.message : '')
@@ -167,6 +232,7 @@ async function submitRecord(): Promise<void> {
     warnings.value = recorded.warnings
     toast.add({ title: t('payments.recordedToast') })
     await loadLedger()
+    await loadIssued()
     emit('updated', recorded.booking)
     resetForm()
   } catch (error: unknown) {
@@ -211,6 +277,93 @@ async function cancelLink(link: PaymentLink): Promise<void> {
 async function copyLink(url: string): Promise<void> {
   await navigator.clipboard.writeText(url)
   toast.add({ title: t('payments.linkCopiedToast') })
+}
+
+function receiptFor(payment: Payment): IssuedDocument | null {
+  return issued.value.find(document => document.kind === 'RECEIPT' && document.payment_id === payment.id) ?? null
+}
+
+function openReceipt(payment: Payment): void {
+  const document = receiptFor(payment)
+
+  if (document === null) {
+    return
+  }
+
+  previewTitle.value = document.kind_label
+  previewHtmlPath.value = `/api/rms/documents/${document.id}/html`
+  previewFilePath.value = `/api/rms/documents/${document.id}/file`
+  previewFileName.value = `${document.kind}-v${String(document.version)}.pdf`
+  previewOpen.value = true
+}
+
+function startLinkSend(link: PaymentLink): void {
+  linkToSend.value = link
+  linkSendError.value = ''
+  linkSendOpen.value = true
+}
+
+async function submitLinkSend(): Promise<void> {
+  const link = linkToSend.value
+
+  if (link === null) {
+    return
+  }
+
+  linkSending.value = true
+  linkSendError.value = ''
+
+  try {
+    await request(`/api/rms/payment-links/${link.id}/send`, { method: 'POST' }) as Delivery
+    toast.add({ title: t('payments.linkSentToast') })
+    linkSendOpen.value = false
+    linkToSend.value = null
+    await loadDeliveries()
+    emit('updated')
+  } catch (error: unknown) {
+    linkSendError.value = firstApiMessage(error) ?? (error instanceof Error ? error.message : '')
+  } finally {
+    linkSending.value = false
+  }
+}
+
+function startWireSend(): void {
+  wireError.value = ''
+  wireOpen.value = true
+}
+
+function previewWire(): void {
+  previewTitle.value = t('payments.wireTitle')
+  previewHtmlPath.value = `/api/rms/bookings/${props.booking.id}/documents/WIRE_INSTRUCTIONS/html`
+  previewFilePath.value = null
+  previewFileName.value = ''
+  previewOpen.value = true
+}
+
+async function submitWireSend(): Promise<void> {
+  wireSending.value = true
+  wireError.value = ''
+
+  try {
+    const delivery = await request(`/api/rms/bookings/${props.booking.id}/wire-instructions/send`, {
+      method: 'POST'
+    }) as Delivery
+    toast.add({ title: t('payments.wireSentToast') })
+    wireOpen.value = false
+    lastWireTo.value = delivery.to
+
+    if (delivery.warning !== null && delivery.warning !== '') {
+      wireWarning.value = delivery.warning
+    }
+
+    await loadDeliveries()
+    await loadIssued()
+    emit('updated')
+  } catch (error: unknown) {
+    wireError.value = firstApiMessage(error) ?? (error instanceof Error ? error.message : '')
+  } finally {
+    wireSending.value = false
+  }
 }
 </script>
 
@@ -282,6 +435,14 @@ async function copyLink(url: string): Promise<void> {
               class="pill"
               :class="paymentStatusPillClass(row.status)"
             >{{ row.status.replaceAll('_', ' ') }}</span>
+            <button
+              v-if="row.status === 'SETTLED' && row.amount > 0 && receiptFor(row) !== null"
+              type="button"
+              class="lnk pay-receipt"
+              @click="openReceipt(row)"
+            >
+              {{ t('payments.receipt') }}
+            </button>
           </td>
         </tr>
       </tbody>
@@ -426,8 +587,11 @@ async function copyLink(url: string): Promise<void> {
         >
           {{ t('payments.stripeTestMode') }}
         </p>
-        <p class="note">
-          {{ t('payments.linkManual') }}
+        <p
+          v-if="lastPaymentLinkLine !== ''"
+          class="note"
+        >
+          {{ lastPaymentLinkLine }}
         </p>
         <div class="transbtns">
           <UButton
@@ -465,12 +629,45 @@ async function copyLink(url: string): Promise<void> {
               v-if="link.status === 'OPEN'"
               type="button"
               class="mini"
+              @click="startLinkSend(link)"
+            >
+              {{ t('payments.sendLink') }}
+            </button>
+            <button
+              v-if="link.status === 'OPEN'"
+              type="button"
+              class="mini"
               @click="cancelLink(link)"
             >
               {{ t('payments.cancelLink') }}
             </button>
           </li>
         </ul>
+      </div>
+
+      <div
+        v-if="booking.status === 'PENDING_PAYMENT'"
+        class="sec"
+      >
+        <h4>{{ t('payments.wireTitle') }}</h4>
+        <div
+          v-if="wireWarning !== ''"
+          class="warnbox"
+        >
+          {{ wireWarning }}
+        </div>
+        <p
+          v-if="lastWireTo.length > 0"
+          class="note"
+        >
+          {{ t('payments.wireSentTo', { to: lastWireTo.join(', ') }) }}
+        </p>
+        <UButton
+          variant="outline"
+          @click="startWireSend"
+        >
+          {{ t('payments.sendWire') }}
+        </UButton>
       </div>
     </template>
     <p
@@ -486,5 +683,35 @@ async function copyLink(url: string): Promise<void> {
     :submitting="markSubmitting"
     :error="markError"
     @submit="submitMark"
+  />
+
+  <DocumentPreviewModal
+    v-model:open="previewOpen"
+    :title="previewTitle"
+    :html-path="previewHtmlPath"
+    :file-path="previewFilePath"
+    :file-name="previewFileName"
+  />
+
+  <DocumentConfirmModal
+    v-model:open="linkSendOpen"
+    :title="t('payments.sendLinkTitle')"
+    :body="t('payments.sendLinkBody')"
+    :submitting="linkSending"
+    :error="linkSendError"
+    :confirm-label="t('payments.sendLink')"
+    @confirm="submitLinkSend"
+  />
+
+  <DocumentConfirmModal
+    v-model:open="wireOpen"
+    :title="t('payments.sendWireTitle')"
+    :body="t('payments.sendWireBody')"
+    :submitting="wireSending"
+    :error="wireError"
+    :confirm-label="t('payments.sendWire')"
+    :preview-label="t('bookings.docPreview')"
+    @confirm="submitWireSend"
+    @preview="previewWire"
   />
 </template>

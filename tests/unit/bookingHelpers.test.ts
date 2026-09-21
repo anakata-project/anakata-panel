@@ -59,10 +59,9 @@ describe('bookingHelpers', () => {
     expect(tabAvailability('guests').disabled).toBe(false)
     expect(tabAvailability('extras').disabled).toBe(false)
     expect(tabAvailability('payments').disabled).toBe(false)
-    expect(tabAvailability('documents').arrivesSprint).toBe(7)
-    expect(BOOKING_TABS.filter(tab => tab.disabled).map(tab => tab.id)).toEqual([
-      'documents'
-    ])
+    expect(tabAvailability('documents').disabled).toBe(false)
+    expect(tabAvailability('documents').arrivesSprint).toBeNull()
+    expect(BOOKING_TABS.filter(tab => tab.disabled).map(tab => tab.id)).toEqual([])
   })
 
   it('allows moves only from the four movable statuses', () => {

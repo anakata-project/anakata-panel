@@ -125,7 +125,15 @@ export type {
   ExtrasCatalogueItem,
   ExtrasDocument,
   ExtrasListSummary,
-  ExtrasVersion
+  ExtrasVersion,
+  Delivery,
+  DeliveryKind,
+  DeliveryStatus,
+  DocumentKind,
+  DocumentPlanKind,
+  DocumentPlanRow,
+  DocumentStatus,
+  IssuedDocument
 } from '../../../anakata-ui/app/types'
 
 export type Permission = components['schemas']['Permission']

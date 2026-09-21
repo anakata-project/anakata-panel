@@ -257,7 +257,24 @@ export function describeHistory(
     case 'extra.added':
     case 'extra.removed':
     case 'booking.fees_changed':
-      return stringField(after, 'what') ?? entry.event
+    case 'document.issued':
+    case 'document.sent':
+    case 'document.send_failed':
+    case 'booking.billing_changed':
+    case 'payment_request.sent':
+    case 'payment_request.send_failed': {
+      const what = stringField(after, 'what')
+
+      if (what !== undefined) {
+        return what
+      }
+
+      const summary = compactDiff(before, after)
+
+      return summary
+        ? t('history.events.unknown', { event: entry.event, summary })
+        : entry.event
+    }
     default: {
       const summary = compactDiff(before, after)
 

@@ -2,12 +2,14 @@
 import type {
   Booking,
   BookingExtra,
+  DocumentPlanRow,
   ExtrasCatalogueItem,
   ExtrasListSummary,
   ExtrasVersion
 } from '../../types/api'
 import { applyApiFormError, firstApiMessage, type FormFieldErrors } from '../../utils/apiForm'
 import { extraAddDefaults, extrasWritable, feeLabel } from './extraHelpers'
+import { invoiceHasBeenIssued } from '../documents/documentHelpers'
 
 const props = defineProps<{
   booking: Booking
@@ -43,6 +45,8 @@ const removeOpen = ref(false)
 const removing = ref<BookingExtra | null>(null)
 const removeError = ref('')
 const removeSubmitting = ref(false)
+
+const invoiceIssued = ref(false)
 
 const canWrite = computed(() => extrasWritable(props.booking.status, props.booking.can_act))
 
@@ -110,12 +114,17 @@ async function loadCatalogue(): Promise<void> {
   }
 }
 
+async function loadInvoiceFlag(): Promise<void> {
+  const result = await request(`/api/rms/bookings/${props.booking.id}/documents/plan`) as { data: Array<DocumentPlanRow> }
+  invoiceIssued.value = invoiceHasBeenIssued(result.data)
+}
+
 async function loadAll(): Promise<void> {
   loading.value = true
   loadError.value = ''
 
   try {
-    await Promise.all([loadExtras(), loadCatalogue()])
+    await Promise.all([loadExtras(), loadCatalogue(), loadInvoiceFlag()])
   } catch (error: unknown) {
     loadError.value = firstApiMessage(error) ?? (error instanceof Error ? error.message : t('bookings.extrasFailed'))
   } finally {
@@ -125,6 +134,7 @@ async function loadAll(): Promise<void> {
 
 async function afterWrite(booking?: Booking): Promise<void> {
   await loadExtras()
+  await loadInvoiceFlag()
 
   if (booking !== undefined) {
     emit('updated', booking)
@@ -141,6 +151,7 @@ onMounted(() => {
 watch(() => props.booking.id, () => {
   extras.value = []
   addNote.value = ''
+  invoiceIssued.value = false
   void loadAll()
 })
 
@@ -252,6 +263,12 @@ async function onFee(field: 'png_collected' | 'tct_collected', value: boolean): 
   <div>
     <p class="note extras-intro">
       {{ t('bookings.extrasIntro') }}
+    </p>
+    <p
+      v-if="invoiceIssued"
+      class="notice"
+    >
+      {{ t('bookings.extrasInvoiceNotice') }}
     </p>
 
     <p
