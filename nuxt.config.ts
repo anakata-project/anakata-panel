@@ -8,7 +8,7 @@ export default defineNuxtConfig({
 
   ssr: false,
 
-  css: ['~/assets/css/shell.css', '~/assets/css/lists.css', '~/assets/css/config.css', '~/assets/css/inventory.css', '~/assets/css/bookings.css'],
+  css: ['~/assets/css/shell.css', '~/assets/css/lists.css', '~/assets/css/config.css', '~/assets/css/inventory.css', '~/assets/css/bookings.css', '~/assets/css/documents.css'],
 
   runtimeConfig: {
     public: {

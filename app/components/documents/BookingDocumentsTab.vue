@@ -5,7 +5,9 @@ import {
   documentRowActions,
   documentStatusPillClass,
   issuedVersionsFor,
-  versionLabel
+  previewTargetFor,
+  versionLabel,
+  type DocumentPreviewTarget
 } from './documentHelpers'
 import DocumentConfirmModal from './DocumentConfirmModal.vue'
 import DocumentPreviewModal from './DocumentPreviewModal.vue'
@@ -20,13 +22,6 @@ const emit = defineEmits<{
   openBilling: []
 }>()
 
-type PreviewTarget = {
-  title: string
-  htmlPath: string
-  filePath: string | null
-  fileName: string
-}
-
 const { t } = useI18n()
 const { request } = useApi()
 const { format } = useDates()
@@ -38,7 +33,7 @@ const loading = ref(false)
 const loadError = ref('')
 
 const previewOpen = ref(false)
-const preview = ref<PreviewTarget | null>(null)
+const preview = ref<DocumentPreviewTarget | null>(null)
 
 const resendOpen = ref(false)
 const resendRow = ref<DocumentPlanRow | null>(null)
@@ -105,35 +100,8 @@ function earlierVersions(row: DocumentPlanRow): Array<IssuedDocument> {
   return issuedVersionsFor(row, issued.value).filter(document => document.id !== row.document_id)
 }
 
-function previewPath(row: DocumentPlanRow, document: IssuedDocument | null): PreviewTarget {
-  if (document !== null) {
-    return {
-      title: row.name,
-      htmlPath: `/api/rms/documents/${document.id}/html`,
-      filePath: `/api/rms/documents/${document.id}/file`,
-      fileName: `${document.kind}-v${String(document.version)}.pdf`
-    }
-  }
-
-  if (row.kind === 'RECEIPT' && row.payment_id !== null) {
-    return {
-      title: row.name,
-      htmlPath: `/api/rms/bookings/${props.booking.id}/receipts/${row.payment_id}/html`,
-      filePath: null,
-      fileName: ''
-    }
-  }
-
-  return {
-    title: row.name,
-    htmlPath: `/api/rms/bookings/${props.booking.id}/documents/${row.kind}/html`,
-    filePath: null,
-    fileName: ''
-  }
-}
-
 function openPreview(row: DocumentPlanRow): void {
-  preview.value = previewPath(row, currentIssued(row))
+  preview.value = previewTargetFor(row)
   previewOpen.value = true
 }
 

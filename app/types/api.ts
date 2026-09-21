@@ -126,6 +126,8 @@ export type {
   ExtrasDocument,
   ExtrasListSummary,
   ExtrasVersion,
+  ClientDocumentFilters,
+  ClientDocumentRow,
   Delivery,
   DeliveryKind,
   DeliveryStatus,

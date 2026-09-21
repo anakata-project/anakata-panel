@@ -1361,5 +1361,24 @@
     "natEmpty": "No nationalities recorded yet.",
     "unknownOne": "{n} guest without nationality yet. Nationality also sets each guest's PNG entry-fee category (FIN-004).",
     "unknownMany": "{n} guests without nationality yet. Nationality also sets each guest's PNG entry-fee category (FIN-004)."
+  },
+  "documents": {
+    "noun": "documents",
+    "fieldLabel": "Departure date",
+    "notice": "Every document the system generates (§4.5): confirmations & invoices, booking summaries, payment receipts, balance reminders, pre-trip itineraries, transfer vouchers and final invoices. Client documents are in English and follow invoice mockup v6. Departure manifests arrive in Sprint 11.",
+    "title": "Client documents",
+    "manifestsTitle": "Departure manifests — arrives in Sprint 11",
+    "manifestsBody": "Passenger-data readiness, the DPNG list and the captain's manifest are built in Sprint 11.",
+    "filterAll": "All",
+    "search": "Search",
+    "searchPlaceholder": "Booking or client",
+    "colBooking": "Booking",
+    "colClient": "Client",
+    "colDocument": "Document",
+    "colTrigger": "Trigger",
+    "colDate": "Date",
+    "colStatus": "Status",
+    "empty": "No documents in this date range.",
+    "footnote": "Anakata decisions (12 Sep 2026): the guest chooses whether the PNG park entry fee is paid to Anakata or directly at SCY airport — set it per booking in the Extras tab; fees Anakata collects are invoiced, the rest appear as information only. The deposit is calculated on cruise charges only; extras and collected fees are due with the balance. Invoice issued by PONTOS LLC (EIN 42-4742064); bank details still pending."
   }
 }

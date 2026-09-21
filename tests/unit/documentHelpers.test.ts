@@ -5,6 +5,7 @@ import {
   documentStatusPillClass,
   invoiceHasBeenIssued,
   issuedVersionsFor,
+  previewTargetFor,
   versionLabel
 } from '../../app/components/documents/documentHelpers'
 
@@ -78,5 +79,49 @@ describe('documentHelpers', () => {
 
     expect(issuedVersionsFor(invoiceRow, [invoiceV2, invoiceV1, receipt]).map(item => item.id)).toEqual([2, 1])
     expect(issuedVersionsFor(receiptRow, [invoiceV2, receipt]).map(item => item.id)).toEqual([3])
+  })
+
+  it('builds preview URLs from the plan row', () => {
+    expect(previewTargetFor({
+      booking_id: 9,
+      kind: 'INVOICE',
+      name: 'Booking Confirmation & Invoice',
+      document_id: 12,
+      payment_id: null,
+      version: 2
+    })).toEqual({
+      title: 'Booking Confirmation & Invoice',
+      htmlPath: '/api/rms/documents/12/html',
+      filePath: '/api/rms/documents/12/file',
+      fileName: 'INVOICE-v2.pdf'
+    })
+
+    expect(previewTargetFor({
+      booking_id: 9,
+      kind: 'RECEIPT',
+      name: 'Payment confirmation — Deposit',
+      document_id: null,
+      payment_id: 40,
+      version: null
+    })).toEqual({
+      title: 'Payment confirmation — Deposit',
+      htmlPath: '/api/rms/bookings/9/receipts/40/html',
+      filePath: null,
+      fileName: ''
+    })
+
+    expect(previewTargetFor({
+      booking_id: 9,
+      kind: 'SUMMARY',
+      name: 'Booking Summary (guest version)',
+      document_id: null,
+      payment_id: null,
+      version: null
+    })).toEqual({
+      title: 'Booking Summary (guest version)',
+      htmlPath: '/api/rms/bookings/9/documents/SUMMARY/html',
+      filePath: null,
+      fileName: ''
+    })
   })
 })

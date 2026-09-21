@@ -6,6 +6,44 @@ export type DocumentRowActions = {
   resend: boolean
 }
 
+export type DocumentPreviewTarget = {
+  title: string
+  htmlPath: string
+  filePath: string | null
+  fileName: string
+}
+
+export function previewTargetFor(
+  row: Pick<DocumentPlanRow, 'booking_id' | 'kind' | 'name' | 'document_id' | 'payment_id' | 'version'>
+): DocumentPreviewTarget {
+  if (row.document_id !== null) {
+    const version = row.version ?? 1
+
+    return {
+      title: row.name,
+      htmlPath: `/api/rms/documents/${String(row.document_id)}/html`,
+      filePath: `/api/rms/documents/${String(row.document_id)}/file`,
+      fileName: `${row.kind}-v${String(version)}.pdf`
+    }
+  }
+
+  if (row.kind === 'RECEIPT' && row.payment_id !== null) {
+    return {
+      title: row.name,
+      htmlPath: `/api/rms/bookings/${String(row.booking_id)}/receipts/${String(row.payment_id)}/html`,
+      filePath: null,
+      fileName: ''
+    }
+  }
+
+  return {
+    title: row.name,
+    htmlPath: `/api/rms/bookings/${String(row.booking_id)}/documents/${row.kind}/html`,
+    filePath: null,
+    fileName: ''
+  }
+}
+
 export function documentStatusPillClass(status: DocumentStatus | string): string {
   if (status === 'SENT') {
     return 'p-conf'

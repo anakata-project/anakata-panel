@@ -227,6 +227,18 @@ describe('seeded admin nav', () => {
     })
   })
 
+  it('shows Documents & Manifests with panel.rms and hides it without', () => {
+    const shown = visibleNav(sections.rms, allow('panel.rms'))
+    const hidden = visibleNav(sections.rms, allow('bookings.create'))
+
+    expect(shown.find(group => group.id === 'operations')?.items.map(item => item.id)).toContain('documents')
+    expect(hidden.find(group => group.id === 'operations')?.items.map(item => item.id)).not.toContain('documents')
+    expect(pageDecision('/rms/operations/documents', allow('bookings.create'))).toEqual({
+      to: RMS_HOME,
+      toast: true
+    })
+  })
+
   it('shows Contacts In with panel.rms and hides it without', () => {
     const shown = visibleNav(sections.rms, allow('panel.rms'))
     const hidden = visibleNav(sections.rms, allow('bookings.create'))

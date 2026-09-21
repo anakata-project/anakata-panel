@@ -105,7 +105,8 @@ export const rmsNav: Array<NavGroup> = [
         labelKey: 'nav.rms.documents',
         glyph: '▤',
         to: '/rms/operations/documents',
-        sprint: 7
+        sprint: 7,
+        permission: 'panel.rms'
       },
       {
         id: 'guest-experience',
