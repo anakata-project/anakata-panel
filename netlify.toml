@@ -1,0 +1,15 @@
+# Build settings belong here, not in the Netlify UI — this file wins.
+# NITRO_PRESET=static keeps generate on .output/public even though NETLIFY=true.
+[build]
+  command = "pnpm generate"
+  publish = ".output/public"
+
+[build.environment]
+  NODE_VERSION = "22"
+  PNPM_FLAGS = "--shamefully-hoist"
+  NITRO_PRESET = "static"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

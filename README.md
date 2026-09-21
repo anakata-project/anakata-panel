@@ -6,7 +6,7 @@ Staff SPA for **RMS** and **CRM** in one Nuxt 4 app. The URL decides the section
 |---|---|
 | Port | **3001** |
 | Render | SPA (`ssr: false`) |
-| Layer | `extends: ['../anakata-ui']` (`v0.9.0`) |
+| Layer | local `../anakata-ui`; Netlify `github:anakata-project/anakata-ui#v0.9.0` |
 | API | `NUXT_PUBLIC_API_BASE` (default `http://localhost:8000`) |
 
 The API must already allow this origin. CORS is configured on the API via `FRONTEND_PANEL_URL=http://localhost:3001`.
@@ -53,10 +53,19 @@ i18n/locales/en.json      panel chrome + nav labels (merged with the layer’s t
 
 One codebase, one `useApi()`. CRM screens never call booking, payment, refund, commission, document or pricing mutations.
 
+## Deploy (Netlify)
+
+`netlify.toml` owns the build command (`pnpm generate`) and publish directory (`.output/public`). Do not set those in the Netlify UI. Set `NUXT_PUBLIC_API_BASE` in the site env.
+
+Staff login is Sanctum cookies. Use a custom domain under the same parent as the API (`SESSION_DOMAIN=.yourdomain.com`). A `*.netlify.app` origin will not keep the session with the default `SameSite=lax` cookie.
+
+The API must allow this origin: `FRONTEND_PANEL_URL`, plus the host in `SANCTUM_STATEFUL_DOMAINS`.
+
 ## Quality
 
 ```bash
 pnpm lint
 pnpm typecheck
 pnpm build
+pnpm generate
 ```
