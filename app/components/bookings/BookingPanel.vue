@@ -584,6 +584,15 @@ async function onPaymentsUpdated(booking?: Booking): Promise<void> {
             <span>{{ t('bookings.kvMain') }}</span>
             <span>{{ source.main_channel }}</span>
           </div>
+          <div
+            v-if="source.agency"
+            class="kv"
+          >
+            <span>{{ t('bookings.kvAgency') }}</span>
+            <span>{{ source.commission_approved
+              ? t('bookings.agencyRow', { name: source.agency.name, pct: String(source.commission_pct ?? source.agency.commission_pct) })
+              : t('bookings.agencyRowPending', { name: source.agency.name, pct: String(source.commission_pct ?? source.agency.commission_pct) }) }}</span>
+          </div>
           <div class="kv">
             <span>{{ t('bookings.kvParty') }}</span>
             <span>{{ source.party_label }}</span>

@@ -116,3 +116,53 @@ export function depositLineText(
 ): string {
   return `Deposit ${String(pct)}% · ${depositLabel} · balance at T−${String(balanceDays)}`
 }
+
+export function commissionWarning(rate: number, cap: number): string | null {
+  if (rate <= cap) {
+    return null
+  }
+
+  return `Commission above ${String(cap)}% is blocked (FIN-005). The booking is created and holds its cabin, but stays ON_HOLD_AGENCY and cannot be confirmed until someone with commissions.override_cap approves it.`
+}
+
+export function heldCreatedToast(rate: number, cap: number): string {
+  return `Reservation created but HELD: commission ${String(rate)}% exceeds the ${String(cap)}% cap (FIN-005). It cannot reach CONFIRMED until the Commercial Director approves. Alert sent.`
+}
+
+export function depositMethodOptions(wireWindowHours: number): Array<{ value: 'card' | 'wire', label: string }> {
+  return [
+    { value: 'card', label: 'Card — payment link' },
+    { value: 'wire', label: `Wire transfer (${String(wireWindowHours)}h · PENDING_PAYMENT)` }
+  ]
+}
+
+export function agencyOptionLabel(
+  agency: { name: string, network: string | null, commission_pct: number },
+  cap: number
+): string {
+  const base = agency.network === null || agency.network === ''
+    ? agency.name
+    : `${agency.name} — ${agency.network}`
+
+  if (agency.commission_pct <= cap) {
+    return base
+  }
+
+  return `${base} · >${String(cap)}%`
+}
+
+export function tradeCreateFields(
+  isTrade: boolean,
+  agencyId: number | null,
+  commissionPct: number | null
+): { agency_id: number, commission_pct?: number } | Record<string, never> {
+  if (!isTrade || agencyId === null) {
+    return {}
+  }
+
+  if (commissionPct === null) {
+    return { agency_id: agencyId }
+  }
+
+  return { agency_id: agencyId, commission_pct: commissionPct }
+}

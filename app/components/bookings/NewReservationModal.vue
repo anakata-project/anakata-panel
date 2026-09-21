@@ -13,6 +13,7 @@ import type {
   Group,
   MainChannel,
   Paginated,
+  PaymentLink,
   PreferredChannel
 } from '../../types/api'
 import { ApiError } from '../../../../anakata-ui/app/composables/useApi'
@@ -21,15 +22,20 @@ import { applyApiFormError, firstApiMessage } from '../../utils/apiForm'
 import { createValidationQueue } from '../../utils/validationQueue'
 import { departureOptionLabel, galapagosTomorrowIso } from './bookingHelpers'
 import {
+  agencyOptionLabel,
   charterNoticeText,
+  commissionWarning,
   createdToast,
   depositLineText,
+  depositMethodOptions,
   existingContactSelected,
+  heldCreatedToast,
   isTradeMain,
   quoteRequestPayload,
   showBackToBack,
   showGroupNameField,
   showGroupRow,
+  tradeCreateFields,
   type ReservationCabinRow
 } from './newReservationHelpers'
 
@@ -48,6 +54,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const { can } = useAuth()
 const { request } = useApi()
 const { format } = useDates()
 const { format: money } = useMoney()
@@ -82,6 +89,14 @@ const existingGroupId = ref<number | null>(null)
 const groupName = ref('')
 const backToBack = ref(false)
 const notes = ref('')
+const agencyId = ref<number | null>(null)
+const commissionPct = ref(10)
+const depositMethod = ref<'card' | 'wire'>('card')
+const phase = ref<'form' | 'success'>('form')
+const created = ref<CreateReservationResponse | null>(null)
+const paymentLinks = ref<Array<PaymentLink>>([])
+const linkError = ref('')
+const linkSkipped = ref(false)
 
 let extraKey = 0
 let contactTimer: ReturnType<typeof setTimeout> | undefined
@@ -109,13 +124,25 @@ const backToBackVisible = computed(() => {
   return showBackToBack(isCharter.value, selectedDeparture.value?.festive ?? false)
 })
 
-const tradeNotice = computed(() => {
+const isTrade = computed(() => {
   if (mainChannel.value === '' || options.value === null) {
     return false
   }
 
   return isTradeMain(mainChannel.value, options.value.main)
 })
+
+const capPct = computed(() => options.value?.commission.cap_pct ?? 0)
+
+const defaultPct = computed(() => options.value?.commission.default_pct ?? 0)
+
+const wireWindowHours = computed(() => options.value?.payments.wire_window_hours ?? 0)
+
+const capWarning = computed(() => commissionWarning(commissionPct.value, capPct.value))
+
+const methodOptions = computed(() => depositMethodOptions(wireWindowHours.value))
+
+const canRecordLink = computed(() => can('payments.record'))
 
 const existingNotice = computed(() => {
   return existingContactSelected(email.value, selectedContact.value?.email ?? null)
@@ -146,6 +173,7 @@ const canCreate = computed(() => {
     && guestName.value.trim() !== ''
     && mainChannel.value !== ''
     && origin.value !== ''
+    && (!isTrade.value || agencyId.value !== null)
     && quotePayload.value !== null
     && quote.value !== null
     && !quoteHasErrors.value
@@ -234,6 +262,14 @@ function reset(): void {
   groupName.value = ''
   backToBack.value = false
   notes.value = ''
+  agencyId.value = null
+  commissionPct.value = options.value?.commission.default_pct ?? 10
+  depositMethod.value = 'card'
+  phase.value = 'form'
+  created.value = null
+  paymentLinks.value = []
+  linkError.value = ''
+  linkSkipped.value = false
   contacts.value = []
   selectedContact.value = null
   groups.value = []
@@ -360,7 +396,49 @@ function scheduleQuote(): void {
   queue.schedule(payload)
 }
 
+function onAgencyChange(value: string): void {
+  const id = Number(value) || null
+  agencyId.value = id
+  const agency = options.value?.agencies.find(item => item.id === id)
+  commissionPct.value = agency?.commission_pct ?? defaultPct.value
+}
+
+async function copyCreatedLink(url: string): Promise<void> {
+  await navigator.clipboard.writeText(url)
+  toast.add({ title: t('bookings.linkCopiedToast') })
+}
+
+function finish(): void {
+  const response = created.value
+
+  if (response === null) {
+    open.value = false
+    return
+  }
+
+  const first = response.bookings[0]
+  const overCap = first !== undefined
+    && first.status === 'ON_HOLD_AGENCY'
+    && !first.commission_approved
+
+  toast.add({
+    title: overCap
+      ? heldCreatedToast(first.commission_pct ?? commissionPct.value, first.commission_cap_pct)
+      : createdToast(response.bookings, response.group?.reference ?? null)
+  })
+  dirty.value = false
+  phase.value = 'form'
+  open.value = false
+  emit('created', response)
+  created.value = null
+}
+
 function onUpdateOpen(next: boolean): void {
+  if (!next && phase.value === 'success' && created.value !== null) {
+    finish()
+    return
+  }
+
   if (!next && dirty.value && !confirmUnsaved(t('bookings.leaveUnsaved'))) {
     return
   }
@@ -381,6 +459,7 @@ async function submit(): Promise<void> {
 
   const body: CreateReservationRequest = {
     ...payload,
+    ...tradeCreateFields(isTrade.value, agencyId.value, commissionPct.value),
     client: {
       name: guestName.value.trim(),
       email: email.value.trim() === '' ? null : email.value.trim(),
@@ -399,17 +478,36 @@ async function submit(): Promise<void> {
   }
 
   try {
-    const created = await request('/api/rms/bookings', {
+    const response = await request('/api/rms/bookings', {
       method: 'POST',
       body
     }) as CreateReservationResponse
 
+    created.value = response
+    paymentLinks.value = []
+    linkError.value = ''
+    linkSkipped.value = false
+
+    if (depositMethod.value === 'card') {
+      if (!canRecordLink.value) {
+        linkSkipped.value = true
+      } else {
+        for (const booking of response.bookings) {
+          try {
+            const link = await request(`/api/rms/bookings/${String(booking.id)}/payment-link`, {
+              method: 'POST',
+              body: { kind: 'DEPOSIT' }
+            }) as PaymentLink
+            paymentLinks.value = [...paymentLinks.value, link]
+          } catch {
+            linkError.value = t('bookings.linkFailed')
+          }
+        }
+      }
+    }
+
     dirty.value = false
-    open.value = false
-    toast.add({
-      title: createdToast(created.bookings, created.group?.reference ?? null)
-    })
-    emit('created', created)
+    phase.value = 'success'
   } catch (error: unknown) {
     if (error instanceof ApiError && error.status === 409) {
       warn.value = firstApiMessage(error) ?? error.message
@@ -466,6 +564,13 @@ watch(backToBackVisible, (visible) => {
   }
 })
 
+watch(isTrade, (trade) => {
+  if (!trade) {
+    agencyId.value = null
+    commissionPct.value = defaultPct.value
+  }
+})
+
 watch(departureId, () => {
   existingGroupId.value = null
   void loadGroups()
@@ -492,7 +597,79 @@ onUnmounted(() => {
     @update:open="onUpdateOpen"
   >
     <template #body>
+      <div
+        v-if="phase === 'success'"
+        class="modal-form"
+      >
+        <p class="notice">
+          {{ created
+            ? createdToast(created.bookings, created.group?.reference ?? null)
+            : '' }}
+        </p>
+        <div
+          v-if="created?.bookings[0]?.status === 'ON_HOLD_AGENCY'"
+          class="warnbox"
+        >
+          {{ heldCreatedToast(
+            created.bookings[0].commission_pct ?? commissionPct,
+            created.bookings[0].commission_cap_pct
+          ) }}
+        </div>
+        <template v-if="depositMethod === 'card'">
+          <p
+            v-if="linkSkipped"
+            class="notice"
+          >
+            {{ t('bookings.linkFinanceCreates') }}
+          </p>
+          <template v-else>
+            <ul
+              v-if="paymentLinks.length > 0"
+              class="pay-links"
+            >
+              <li
+                v-for="link in paymentLinks"
+                :key="link.id"
+                class="pay-link-row"
+              >
+                <span class="pay-link-url">{{ link.url }}</span>
+                <button
+                  type="button"
+                  class="mini"
+                  @click="copyCreatedLink(link.url)"
+                >
+                  {{ t('bookings.copyLink') }}
+                </button>
+              </li>
+            </ul>
+            <p
+              v-if="linkError === '' && paymentLinks.length > 0"
+              class="notice"
+            >
+              {{ t('bookings.linkManual') }}
+            </p>
+            <div
+              v-if="linkError"
+              class="warnbox"
+            >
+              {{ linkError }}
+            </div>
+          </template>
+        </template>
+        <p
+          v-else
+          class="notice"
+        >
+          {{ t('bookings.wireIssuedManual', { hours: String(wireWindowHours) }) }}
+        </p>
+        <div class="modal-actions">
+          <UButton @click="finish">
+            {{ t('bookings.createdDone') }}
+          </UButton>
+        </div>
+      </div>
       <form
+        v-else
         class="modal-form"
         @submit.prevent="submit"
         @input="dirty = true"
@@ -568,12 +745,59 @@ onUnmounted(() => {
           </select>
         </div>
 
-        <p
-          v-if="tradeNotice"
-          class="notice"
-        >
-          {{ t('bookings.agencySprint') }}
-        </p>
+        <template v-if="isTrade">
+          <div class="cols2">
+            <div class="field">
+              <label for="nb-agent">{{ t('bookings.agency') }}</label>
+              <select
+                id="nb-agent"
+                :value="agencyId ?? ''"
+                @change="onAgencyChange(($event.target as HTMLSelectElement).value)"
+              >
+                <option value="">
+                  {{ t('bookings.pickAgency') }}
+                </option>
+                <option
+                  v-for="agency in options?.agencies ?? []"
+                  :key="agency.id"
+                  :value="agency.id"
+                >
+                  {{ agencyOptionLabel(agency, capPct) }}
+                </option>
+              </select>
+              <p
+                v-if="fieldErrors.agency_id"
+                class="field-hint"
+              >
+                {{ fieldErrors.agency_id }}
+              </p>
+            </div>
+            <div class="field">
+              <label for="nb-comm">{{ t('bookings.commissionPct') }}</label>
+              <input
+                id="nb-comm"
+                v-model.number="commissionPct"
+                type="number"
+                min="0"
+              >
+              <p
+                v-if="fieldErrors.commission_pct"
+                class="field-hint"
+              >
+                {{ fieldErrors.commission_pct }}
+              </p>
+            </div>
+          </div>
+          <div
+            v-if="capWarning"
+            class="warnbox"
+          >
+            {{ capWarning }}
+          </div>
+          <p class="notice">
+            {{ t('bookings.agencyNetNotice') }}
+          </p>
+        </template>
 
         <div class="cols2">
           <div class="field">
@@ -705,29 +929,47 @@ onUnmounted(() => {
           >{{ item }}</span>
         </div>
 
-        <div
-          v-if="!isCharter"
-          class="field"
-        >
-          <label for="nb-cabin">{{ t('bookings.cabin') }}</label>
-          <select
-            id="nb-cabin"
-            :value="cabinCode"
-            :disabled="selectedDeparture === null"
-            @change="cabinCode = ($event.target as HTMLSelectElement).value"
+        <div class="cols2">
+          <div
+            v-if="!isCharter"
+            class="field"
           >
-            <option value="">
-              {{ t('bookings.pickCabin') }}
-            </option>
-            <option
-              v-for="item in cabins"
-              :key="item.cabin.code"
-              :value="item.cabin.code"
-              :disabled="!cabinEnabled(item)"
+            <label for="nb-cabin">{{ t('bookings.cabin') }}</label>
+            <select
+              id="nb-cabin"
+              :value="cabinCode"
+              :disabled="selectedDeparture === null"
+              @change="cabinCode = ($event.target as HTMLSelectElement).value"
             >
-              {{ item.cabin.label }}{{ cabinEnabled(item) ? '' : ` · ${t('bookings.cabinTaken')}` }}
-            </option>
-          </select>
+              <option value="">
+                {{ t('bookings.pickCabin') }}
+              </option>
+              <option
+                v-for="item in cabins"
+                :key="item.cabin.code"
+                :value="item.cabin.code"
+                :disabled="!cabinEnabled(item)"
+              >
+                {{ item.cabin.label }}{{ cabinEnabled(item) ? '' : ` · ${t('bookings.cabinTaken')}` }}
+              </option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="nb-deposit-method">{{ t('bookings.depositMethod') }}</label>
+            <select
+              id="nb-deposit-method"
+              :value="depositMethod"
+              @change="depositMethod = ($event.target as HTMLSelectElement).value as 'card' | 'wire'"
+            >
+              <option
+                v-for="item in methodOptions"
+                :key="item.value"
+                :value="item.value"
+              >
+                {{ item.label }}
+              </option>
+            </select>
+          </div>
         </div>
 
         <p

@@ -1,14 +1,19 @@
 import { describe, expect, it } from 'vitest'
 import {
+  agencyOptionLabel,
   charterNoticeText,
+  commissionWarning,
   createdToast,
   depositLineText,
+  depositMethodOptions,
   existingContactSelected,
+  heldCreatedToast,
   isTradeMain,
   quoteRequestPayload,
   showBackToBack,
   showGroupNameField,
-  showGroupRow
+  showGroupRow,
+  tradeCreateFields
 } from '../../app/components/bookings/newReservationHelpers'
 
 const MAIN = [
@@ -101,5 +106,55 @@ describe('newReservationHelpers', () => {
     })).toBe(
       'CHARTER blocks the entire yacht for the departure. Deposit 20% within 5 business days of written confirmation; balance 80% at 120 days; DPNG manifest 30 days pre-departure.'
     )
+  })
+
+  it('warns only when the rate is above the cap', () => {
+    expect(commissionWarning(10, 12)).toBeNull()
+    expect(commissionWarning(12, 12)).toBeNull()
+    expect(commissionWarning(15, 12)).toBe(
+      'Commission above 12% is blocked (FIN-005). The booking is created and holds its cabin, but stays ON_HOLD_AGENCY and cannot be confirmed until someone with commissions.override_cap approves it.'
+    )
+  })
+
+  it('wording for an over-cap create', () => {
+    expect(heldCreatedToast(15, 12)).toBe(
+      'Reservation created but HELD: commission 15% exceeds the 12% cap (FIN-005). It cannot reach CONFIRMED until the Commercial Director approves. Alert sent.'
+    )
+  })
+
+  it('builds deposit method labels from the wire window', () => {
+    expect(depositMethodOptions(72)).toEqual([
+      { value: 'card', label: 'Card — payment link' },
+      { value: 'wire', label: 'Wire transfer (72h · PENDING_PAYMENT)' }
+    ])
+  })
+
+  it('labels an agency with its network and an over-cap marker', () => {
+    expect(agencyOptionLabel({
+      name: 'Blue Latitude',
+      network: 'Virtuoso',
+      commission_pct: 10
+    }, 12)).toBe('Blue Latitude — Virtuoso')
+
+    expect(agencyOptionLabel({
+      name: 'Meridian Voyages',
+      network: 'ILTM',
+      commission_pct: 15
+    }, 12)).toBe('Meridian Voyages — ILTM · >12%')
+
+    expect(agencyOptionLabel({
+      name: 'Andes Luxe',
+      network: null,
+      commission_pct: 10
+    }, 12)).toBe('Andes Luxe')
+  })
+
+  it('omits agency and commission when the channel is not trade', () => {
+    expect(tradeCreateFields(false, 3, 10)).toEqual({})
+    expect(tradeCreateFields(true, null, 10)).toEqual({})
+    expect(tradeCreateFields(true, 3, 15)).toEqual({
+      agency_id: 3,
+      commission_pct: 15
+    })
   })
 })
