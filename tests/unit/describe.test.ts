@@ -42,6 +42,12 @@ const strings: Record<string, string> = {
   'history.events.bookingOwnerChanged': 'Owner changed · {before} → {after}',
   'history.events.bookingDeleted': 'Reservation deleted',
   'history.events.bookingReleased': 'Request released — hold returned to inventory',
+  'history.events.bookingOverdueExtended': 'OPS-007 decision — extension granted · OVERDUE → CONFIRMED',
+  'history.events.bookingOverdueFlagged': 'OVERDUE flag · {days} days · {balance}',
+  'history.events.paymentRecorded': 'Payment recorded · {reference} · {amount} · {status}',
+  'history.events.paymentSettled': 'Wire received · {reference} · {bank}',
+  'history.events.refundNotDue': 'Nothing was paid, so nothing is owed.',
+  'history.events.refundRequested': 'Refund requested · penalty {penalty} · refund due {refund}',
   'history.events.unknown': '{event} · {summary}'
 }
 
@@ -176,6 +182,36 @@ describe('describeHistory', () => {
     }, t)).toBe('Owner changed · Mateo R. → Lucía B.')
     expect(describeHistory({ event: 'booking.deleted', before: null, after: { what: 'Reservation deleted' } }, t)).toBe('Reservation deleted')
     expect(describeHistory({ event: 'booking.released', before: null, after: { what: 'Request released — hold returned to inventory' } }, t)).toBe('Request released — hold returned to inventory')
+    expect(describeHistory({
+      event: 'booking.overdue_extended',
+      before: null,
+      after: { what: 'OPS-007 decision — extension granted · OVERDUE → CONFIRMED' }
+    }, t)).toBe('OPS-007 decision — extension granted · OVERDUE → CONFIRMED')
+    expect(describeHistory({
+      event: 'booking.overdue_flagged',
+      before: null,
+      after: { overdue_days: 12, balance: 23940 }
+    }, t)).toBe('OVERDUE flag · 12 days · USD 23,940')
+    expect(describeHistory({
+      event: 'payment.recorded',
+      before: null,
+      after: { reference: 'ANK-2026-0014-D01', amount: 2660, status: 'AWAITING_WIRE' }
+    }, t)).toBe('Payment recorded · ANK-2026-0014-D01 · USD 2,660 · AWAITING WIRE')
+    expect(describeHistory({
+      event: 'payment.settled',
+      before: null,
+      after: { reference: 'ANK-2026-0014-D01', bank_reference: 'WIRE-991' }
+    }, t)).toBe('Wire received · ANK-2026-0014-D01 · WIRE-991')
+    expect(describeHistory({
+      event: 'refund.not_due',
+      before: null,
+      after: { what: 'Nothing was paid, so nothing is owed.' }
+    }, t)).toBe('Nothing was paid, so nothing is owed.')
+    expect(describeHistory({
+      event: 'refund.requested',
+      before: null,
+      after: { penalty_amount: 1330, refund_due: 1330 }
+    }, t)).toBe('Refund requested · penalty USD 1,330 · refund due USD 1,330')
   })
 
   it('never renders raw JSON for an unknown event', () => {

@@ -1,27 +1,23 @@
 <script setup lang="ts">
 const open = defineModel<boolean>('open', { required: true })
 
-const props = defineProps<{
-  title: string
-  hint: 'required' | 'optional'
+defineProps<{
   submitting: boolean
   error: string
-  extraRequired?: boolean
-  extraValid?: boolean
 }>()
 
 const emit = defineEmits<{
-  submit: [reason: string]
+  submit: [bankReference: string]
 }>()
 
 const { t } = useI18n()
 
-const reasonId = useId()
-const reason = ref('')
+const fieldId = useId()
+const bankReference = ref('')
 
 watch(open, (isOpen) => {
   if (isOpen) {
-    reason.value = ''
+    bankReference.value = ''
   }
 })
 </script>
@@ -29,13 +25,13 @@ watch(open, (isOpen) => {
 <template>
   <UModal
     :open="open"
-    :title="title"
+    :title="t('payments.markReceivedTitle')"
     @update:open="open = $event"
   >
     <template #body>
       <form
         class="modal-form"
-        @submit.prevent="emit('submit', reason.trim())"
+        @submit.prevent="emit('submit', bankReference.trim())"
       >
         <div
           v-if="error"
@@ -44,19 +40,16 @@ watch(open, (isOpen) => {
           {{ error }}
         </div>
         <div class="field">
-          <label :for="reasonId">
-            {{ t('bookings.reason') }}
-            <span class="cnt">
-              {{ hint === 'required' ? t('bookings.reasonRequired') : t('bookings.reasonOptional') }}
-            </span>
+          <label :for="fieldId">
+            {{ t('payments.bankReference') }}
+            <span class="cnt">{{ t('bookings.reasonRequired') }}</span>
           </label>
-          <textarea
-            :id="reasonId"
-            v-model="reason"
-            rows="3"
-          />
+          <input
+            :id="fieldId"
+            v-model="bankReference"
+            type="text"
+          >
         </div>
-        <slot name="extra" />
         <div class="modal-actions">
           <UButton
             variant="outline"
@@ -68,9 +61,9 @@ watch(open, (isOpen) => {
           <UButton
             type="submit"
             :loading="submitting"
-            :disabled="submitting || (hint === 'required' && reason.trim() === '') || (props.extraRequired === true && props.extraValid !== true)"
+            :disabled="submitting || bankReference.trim() === ''"
           >
-            {{ t('bookings.reasonSubmit') }}
+            {{ t('payments.markReceived') }}
           </UButton>
         </div>
       </form>

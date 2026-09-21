@@ -35,6 +35,7 @@ const segment = ref<'ALL' | BookingSegment>('ALL')
 const searchInput = ref('')
 const search = ref('')
 const mine = ref(false)
+const overdueOnly = ref(false)
 const page = ref(1)
 const auditPage = ref(1)
 const today = computed(() => format(new Date(), 'iso'))
@@ -58,7 +59,7 @@ onUnmounted(() => {
   clearTimeout(searchTimer)
 })
 
-watch([search, segment, mine, from, to], () => {
+watch([search, segment, mine, overdueOnly, from, to], () => {
   page.value = 1
   auditPage.value = 1
 })
@@ -90,6 +91,10 @@ const listUrl = computed(() => {
 
   if (mine.value) {
     params.set('mine', '1')
+  }
+
+  if (overdueOnly.value) {
+    params.set('overdue', '1')
   }
 
   return `/api/rms/bookings?${params.toString()}`
@@ -321,6 +326,14 @@ watch(
           >
             {{ t('bookings.mine') }}
           </button>
+          <button
+            type="button"
+            class="fchip bk-mine"
+            :class="{ on: overdueOnly }"
+            @click="overdueOnly = !overdueOnly"
+          >
+            {{ t('bookings.overdueOnly') }}
+          </button>
         </div>
       </div>
       <div class="bk-table-wrap">
@@ -384,6 +397,10 @@ watch(
                   class="pill"
                   :class="statusPillClass(row.status)"
                 >{{ statusLabel(row.status) }}</span>
+                <span
+                  v-if="row.overdue"
+                  class="pill p-over"
+                >{{ t('bookings.overduePill') }}</span>
               </td>
               <td>
                 {{ row.owner.name }}{{ row.can_act ? '' : ` ${t('bookings.ownedLock')}` }}

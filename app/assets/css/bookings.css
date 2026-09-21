@@ -190,6 +190,45 @@ html.light .kv {
   border-bottom-color: rgba(32, 43, 38, .08);
 }
 
+.pay-pledged {
+  color: var(--warn);
+}
+
+.pay-tick {
+  color: var(--ok);
+  margin-left: 8px;
+}
+
+.pay-amt-refund {
+  color: var(--coral-400);
+}
+
+.pay-links {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+}
+
+.pay-link-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(242, 241, 225, .08);
+}
+
+.pay-link-url {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: .04em;
+  word-break: break-all;
+}
+
+.pill + .pill {
+  margin-left: 6px;
+}
+
 .nb-suggest {
   border: 1px solid var(--hair);
   background: var(--forest-950);

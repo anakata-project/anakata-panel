@@ -224,6 +224,31 @@ export function describeHistory(
       return stringField(after, 'what') ?? t('history.events.bookingDeleted')
     case 'booking.released':
       return stringField(after, 'what') ?? t('history.events.bookingReleased')
+    case 'booking.overdue_extended':
+      return stringField(after, 'what') ?? t('history.events.bookingOverdueExtended')
+    case 'booking.overdue_flagged':
+      return t('history.events.bookingOverdueFlagged', {
+        days: compactValue(after.overdue_days),
+        balance: moneyUsd(after.balance)
+      })
+    case 'payment.recorded':
+      return t('history.events.paymentRecorded', {
+        reference: stringField(after, 'reference') ?? compactValue(after.reference),
+        amount: moneyUsd(after.amount),
+        status: statusWords(stringField(after, 'status') ?? compactValue(after.status))
+      })
+    case 'payment.settled':
+      return t('history.events.paymentSettled', {
+        reference: stringField(after, 'reference') ?? compactValue(after.reference),
+        bank: stringField(after, 'bank_reference') ?? compactValue(after.bank_reference)
+      })
+    case 'refund.not_due':
+      return stringField(after, 'what') ?? t('history.events.refundNotDue')
+    case 'refund.requested':
+      return t('history.events.refundRequested', {
+        penalty: moneyUsd(after.penalty_amount),
+        refund: moneyUsd(after.refund_due)
+      })
     default: {
       const summary = compactDiff(before, after)
 

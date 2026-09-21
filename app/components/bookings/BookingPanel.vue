@@ -18,6 +18,7 @@ import {
   BOOKING_TABS,
   canMoveStatus,
   departureOverviewLabel,
+  galapagosTomorrowIso,
   reasonHint,
   reasonModalTitle,
   statusLabel,
@@ -26,6 +27,8 @@ import {
   type BookingTabId
 } from './bookingHelpers'
 import { confirmRequest, releaseRequest } from './requestActions'
+import { overdueNotice } from '../payments/paymentHelpers'
+import BookingPaymentsTab from '../payments/BookingPaymentsTab.vue'
 
 const open = defineModel<boolean>('open', { required: true })
 
@@ -40,7 +43,7 @@ const emit = defineEmits<{
   openGroup: [groupId: number]
 }>()
 
-type ReasonKind = 'transition' | 'delete' | 'release'
+type ReasonKind = 'transition' | 'delete' | 'release' | 'overdue-extend' | 'overdue-cancel'
 
 const { t } = useI18n()
 const { can } = useAuth()
@@ -76,6 +79,8 @@ const canChangeStatus = computed(() => can('bookings.change_status'))
 const canMove = computed(() => can('bookings.move'))
 const canConfirm = computed(() => can('requests.confirm'))
 const canRelease = computed(() => can('requests.release'))
+const canOverdueDecision = computed(() => can('bookings.overdue_decision'))
+const extendDate = ref('')
 const { rules } = useOpenRequests()
 const confirmOpen = ref(false)
 const confirmSubmitting = ref(false)
@@ -116,6 +121,14 @@ const reasonTitle = computed(() => {
     return t('bookings.releaseTitle')
   }
 
+  if (reasonKind.value === 'overdue-extend') {
+    return t('bookings.overdueExtendTitle')
+  }
+
+  if (reasonKind.value === 'overdue-cancel') {
+    return t('bookings.overdueCancelTitle')
+  }
+
   return reasonModalTitle(source.value?.status ?? '', reasonTo.value ?? '')
 })
 
@@ -124,8 +137,32 @@ const balanceTone = computed(() => {
     return 'bk-balance--zero'
   }
 
-  return 'bk-balance'
+  if (source.value.overdue) {
+    return 'bk-balance'
+  }
+
+  return ''
 })
+
+const overdueText = computed(() => {
+  if (source.value === null || !source.value.overdue || source.value.overdue_days === null) {
+    return ''
+  }
+
+  return overdueNotice(source.value.overdue_days, source.value.balance, money)
+})
+
+const cancelRefundHint = computed(() => {
+  if (source.value === null || source.value.paid <= 0) {
+    return t('bookings.overdueCancelNothingPaid')
+  }
+
+  return t('bookings.overdueCancelRefundQueued')
+})
+
+const extendMin = computed(() => galapagosTomorrowIso(new Date(), (value, style, options) => format(value, style, options)))
+const extendMax = computed(() => source.value?.departure.date ?? '')
+const extendValid = computed(() => extendDate.value !== '')
 
 useUnsavedGuard(dirty, () => t('bookings.leaveUnsaved'))
 
@@ -319,6 +356,24 @@ async function onReason(reason: string): Promise<void> {
       return
     }
 
+    if (reasonKind.value === 'overdue-extend' || reasonKind.value === 'overdue-cancel') {
+      const updated = await request(`/api/rms/bookings/${source.value.id}/overdue-decision`, {
+        method: 'POST',
+        body: {
+          decision: reasonKind.value === 'overdue-extend' ? 'EXTEND' : 'CANCEL',
+          reason,
+          new_due_date: reasonKind.value === 'overdue-extend' ? extendDate.value : undefined
+        }
+      }) as Booking
+
+      current.value = updated
+      toast.add({ title: t('bookings.overdueDecidedToast') })
+      reasonOpen.value = false
+      emit('updated', updated)
+      history.value = []
+      return
+    }
+
     if (reasonTo.value === null) {
       return
     }
@@ -380,6 +435,29 @@ async function loadOlder(): Promise<void> {
 function canActOn(booking: Booking): boolean {
   return booking.can_act
 }
+
+function startOverdue(kind: 'overdue-extend' | 'overdue-cancel'): void {
+  reasonKind.value = kind
+  reasonTo.value = null
+  reasonRequired.value = true
+  reasonError.value = ''
+  extendDate.value = ''
+  reasonOpen.value = true
+}
+
+async function onPaymentsUpdated(booking?: Booking): Promise<void> {
+  if (booking !== undefined) {
+    current.value = booking
+    emit('updated', booking)
+  } else if (source.value !== null) {
+    await refreshBooking(source.value.id)
+    if (current.value !== null) {
+      emit('updated', current.value)
+    }
+  }
+
+  history.value = []
+}
 </script>
 
 <template>
@@ -398,6 +476,10 @@ function canActOn(booking: Booking): boolean {
             class="pill"
             :class="statusPillClass(source.status)"
           >{{ statusLabel(source.status) }}</span>
+          <span
+            v-if="source.overdue"
+            class="pill p-over"
+          >{{ t('bookings.overduePill') }}</span>
           <template v-if="source.group">
             ·
             <button
@@ -516,15 +598,31 @@ function canActOn(booking: Booking): boolean {
           </div>
           <div class="kv">
             <span>{{ t('bookings.kvPaid') }}</span>
-            <span>{{ t('bookings.paidZero') }}</span>
+            <span>{{ money(source.paid) }}</span>
           </div>
-          <p class="note">
-            {{ t('bookings.paymentsSprint') }}
+          <p
+            v-if="source.pledged > 0"
+            class="note pay-pledged"
+          >
+            {{ t('bookings.pledgedWire', {
+              amount: money(source.pledged),
+              when: source.wire_window_ends_at === null ? '—' : format(source.wire_window_ends_at, 'dateTime')
+            }) }}
           </p>
           <div class="kv">
             <span>{{ t('bookings.kvBalance') }}</span>
             <span :class="balanceTone">
               {{ t('bookings.balanceDue', { amount: money(source.balance), date: format(source.balance_due_date, 'short') }) }}
+            </span>
+          </div>
+          <div class="kv">
+            <span>{{ t('bookings.kvDeposit') }}</span>
+            <span>
+              {{ t('bookings.depositRow', { pct: String(source.deposit_pct), amount: money(source.deposit_amount) }) }}
+              <span
+                v-if="source.paid >= source.deposit_amount"
+                class="pay-tick"
+              >✓</span>
             </span>
           </div>
 
@@ -573,6 +671,28 @@ function canActOn(booking: Booking): boolean {
             >
               {{ t('bookings.requestSla', { hours: String(rules.response_hours) }) }}
             </p>
+          </div>
+
+          <div
+            v-if="source.overdue"
+            class="warnbox"
+          >
+            <p>{{ overdueText }}</p>
+            <div class="transbtns">
+              <UButton
+                :disabled="!canActOn(source) || !canOverdueDecision"
+                @click="startOverdue('overdue-extend')"
+              >
+                {{ t('bookings.overdueExtend') }}
+              </UButton>
+              <UButton
+                variant="outline"
+                :disabled="!canActOn(source) || !canOverdueDecision"
+                @click="startOverdue('overdue-cancel')"
+              >
+                {{ t('bookings.overdueCancel') }}
+              </UButton>
+            </div>
           </div>
 
           <div class="sec">
@@ -672,6 +792,13 @@ function canActOn(booking: Booking): boolean {
           </div>
         </template>
 
+        <template v-else-if="tab === 'payments'">
+          <BookingPaymentsTab
+            :booking="source"
+            @updated="onPaymentsUpdated"
+          />
+        </template>
+
         <template v-else-if="tab === 'history'">
           <p class="history-note">
             {{ t('bookings.historyNote') }}
@@ -706,8 +833,37 @@ function canActOn(booking: Booking): boolean {
     :hint="reasonHint(reasonRequired)"
     :submitting="reasonSubmitting"
     :error="reasonError"
+    :extra-required="reasonKind === 'overdue-extend'"
+    :extra-valid="extendValid"
     @submit="onReason"
-  />
+  >
+    <template
+      v-if="reasonKind === 'overdue-extend'"
+      #extra
+    >
+      <div class="field">
+        <label for="overdue-due">
+          {{ t('bookings.overdueNewDue') }}
+          <span class="cnt">{{ t('bookings.reasonRequired') }}</span>
+        </label>
+        <input
+          id="overdue-due"
+          v-model="extendDate"
+          type="date"
+          :min="extendMin"
+          :max="extendMax"
+        >
+      </div>
+    </template>
+    <template
+      v-else-if="reasonKind === 'overdue-cancel'"
+      #extra
+    >
+      <p class="note">
+        {{ cancelRefundHint }}
+      </p>
+    </template>
+  </ReasonModal>
 
   <MoveBookingModal
     v-model:open="moveOpen"
