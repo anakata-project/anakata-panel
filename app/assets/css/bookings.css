@@ -355,3 +355,67 @@ button.lnk {
 html.light .slat.bad {
   color: #141B17;
 }
+
+.gcard {
+  border: 1px solid var(--hair);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  background: var(--forest-900);
+}
+
+.gcard-inc {
+  border-left: 2px solid var(--warn);
+}
+
+.gcard-edit {
+  border-color: var(--coral);
+}
+
+.gtop {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.gf-head {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--coral);
+  margin-bottom: 10px;
+}
+
+.gf-guard {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--warn);
+  margin: 12px 0 8px;
+}
+
+.gf-hint {
+  font-size: 11px;
+  color: var(--iv38);
+  margin-top: 4px;
+}
+
+.guests-ok {
+  color: var(--ok);
+}
+
+.guests-miss {
+  color: var(--coral-400);
+}
+
+.guests-muted {
+  color: var(--iv38);
+}
+
+.guests-line {
+  letter-spacing: .08em;
+}
+
+.guests-footnote {
+  font-size: 11px;
+  color: var(--iv38);
+  margin-top: 6px;
+}

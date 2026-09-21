@@ -212,6 +212,31 @@ describe('describeHistory', () => {
       before: null,
       after: { penalty_amount: 1330, refund_due: 1330 }
     }, t)).toBe('Refund requested · penalty USD 1,330 · refund due USD 1,330')
+    expect(describeHistory({
+      event: 'guest.added',
+      before: null,
+      after: { what: 'Guest slot added (3 guests)' }
+    }, t)).toBe('Guest slot added (3 guests)')
+    expect(describeHistory({
+      event: 'guest.updated',
+      before: null,
+      after: { what: 'Passenger updated — Julia Brandt: passport number, medical note' }
+    }, t)).toBe('Passenger updated — Julia Brandt: passport number, medical note')
+    expect(describeHistory({
+      event: 'guest.removed',
+      before: null,
+      after: { what: 'Empty guest slot removed (2 guests)' }
+    }, t)).toBe('Empty guest slot removed (2 guests)')
+    expect(describeHistory({
+      event: 'guest.guardian_consented',
+      before: null,
+      after: { what: 'Guardian consent recorded' }
+    }, t)).toBe('Guardian consent recorded')
+    expect(describeHistory({
+      event: 'consent.recorded',
+      before: null,
+      after: { what: 'Consent recorded — Privacy policy' }
+    }, t)).toBe('Consent recorded — Privacy policy')
   })
 
   it('never renders raw JSON for an unknown event', () => {

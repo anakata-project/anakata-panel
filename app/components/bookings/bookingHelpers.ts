@@ -38,7 +38,7 @@ export type BookingTab = {
 
 export const BOOKING_TABS: Array<BookingTab> = [
   { id: 'overview', labelKey: 'bookings.tabOverview', disabled: false, arrivesSprint: null },
-  { id: 'guests', labelKey: 'bookings.tabGuests', disabled: true, arrivesSprint: 6 },
+  { id: 'guests', labelKey: 'bookings.tabGuests', disabled: false, arrivesSprint: null },
   { id: 'extras', labelKey: 'bookings.tabExtras', disabled: true, arrivesSprint: 6 },
   { id: 'payments', labelKey: 'bookings.tabPayments', disabled: false, arrivesSprint: null },
   { id: 'documents', labelKey: 'bookings.tabDocuments', disabled: true, arrivesSprint: 7 },

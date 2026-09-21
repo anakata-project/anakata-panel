@@ -29,6 +29,7 @@ import {
 import { confirmRequest, releaseRequest } from './requestActions'
 import { overdueNotice } from '../payments/paymentHelpers'
 import BookingPaymentsTab from '../payments/BookingPaymentsTab.vue'
+import BookingGuestsTab from '../guests/BookingGuestsTab.vue'
 
 const open = defineModel<boolean>('open', { required: true })
 
@@ -595,7 +596,11 @@ async function onPaymentsUpdated(booking?: Booking): Promise<void> {
           </div>
           <div class="kv">
             <span>{{ t('bookings.kvParty') }}</span>
-            <span>{{ source.party_label }}</span>
+            <span>{{ t('bookings.partyWithGuests', {
+              party: source.party_label,
+              complete: String(source.guests_summary.complete),
+              total: String(source.guests_summary.total)
+            }) }}</span>
           </div>
           <div class="kv">
             <span>{{ t('bookings.kvDeparture') }}</span>
@@ -875,6 +880,13 @@ async function onPaymentsUpdated(booking?: Booking): Promise<void> {
               {{ t('bookings.cancel') }}
             </UButton>
           </div>
+        </template>
+
+        <template v-else-if="tab === 'guests'">
+          <BookingGuestsTab
+            :booking="source"
+            @updated="onPaymentsUpdated"
+          />
         </template>
 
         <template v-else-if="tab === 'payments'">

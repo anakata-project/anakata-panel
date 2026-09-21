@@ -249,6 +249,12 @@ export function describeHistory(
         penalty: moneyUsd(after.penalty_amount),
         refund: moneyUsd(after.refund_due)
       })
+    case 'guest.added':
+    case 'guest.updated':
+    case 'guest.removed':
+    case 'guest.guardian_consented':
+    case 'consent.recorded':
+      return stringField(after, 'what') ?? entry.event
     default: {
       const summary = compactDiff(before, after)
 

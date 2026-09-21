@@ -108,7 +108,15 @@ export type {
   RuleWhere,
   UserListItem,
   WaitlistEntry,
-  Yacht
+  Yacht,
+  BookingConsent,
+  ConsentDocument,
+  ConsentSource,
+  Country,
+  Guest,
+  GuestIssue,
+  GuestIssueSeverity,
+  GuestListSummary
 } from '../../../anakata-ui/app/types'
 
 export type Permission = components['schemas']['Permission']

@@ -8,6 +8,7 @@ const props = defineProps<{
   error: string
   extraRequired?: boolean
   extraValid?: boolean
+  label?: string
 }>()
 
 const emit = defineEmits<{
@@ -45,7 +46,7 @@ watch(open, (isOpen) => {
         </div>
         <div class="field">
           <label :for="reasonId">
-            {{ t('bookings.reason') }}
+            {{ props.label ?? t('bookings.reason') }}
             <span class="cnt">
               {{ hint === 'required' ? t('bookings.reasonRequired') : t('bookings.reasonOptional') }}
             </span>

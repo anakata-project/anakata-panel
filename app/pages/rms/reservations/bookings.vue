@@ -295,9 +295,6 @@ watch(
           {{ t('bookings.newReservation') }}
         </UButton>
       </div>
-      <p class="note">
-        {{ t('bookings.guestsOmitted') }}
-      </p>
       <div class="ebtool dep-toolbar">
         <div class="fchips">
           <button
@@ -376,6 +373,15 @@ watch(
                   class="bk-sub"
                 >
                   {{ t('bookings.groupLine', { reference: row.group.reference, name: row.group.coordinator.name }) }}
+                </div>
+                <div
+                  class="bk-sub guests-line"
+                  :class="row.guests_summary.complete === row.guests_summary.total ? 'guests-ok' : 'guests-muted'"
+                >
+                  {{ t('bookings.guestsLine', {
+                    complete: String(row.guests_summary.complete),
+                    total: String(row.guests_summary.total)
+                  }) }}
                 </div>
               </td>
               <td>

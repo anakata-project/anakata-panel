@@ -56,12 +56,11 @@ describe('bookingHelpers', () => {
   it('marks which tabs are disabled this sprint', () => {
     expect(tabAvailability('overview').disabled).toBe(false)
     expect(tabAvailability('history').disabled).toBe(false)
-    expect(tabAvailability('guests').arrivesSprint).toBe(6)
+    expect(tabAvailability('guests').disabled).toBe(false)
     expect(tabAvailability('extras').arrivesSprint).toBe(6)
     expect(tabAvailability('payments').disabled).toBe(false)
     expect(tabAvailability('documents').arrivesSprint).toBe(7)
     expect(BOOKING_TABS.filter(tab => tab.disabled).map(tab => tab.id)).toEqual([
-      'guests',
       'extras',
       'documents'
     ])
