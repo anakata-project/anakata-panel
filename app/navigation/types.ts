@@ -5,7 +5,7 @@ export type NavItem = {
   labelKey: string
   glyph: string
   to: string
-  sprint: number
+  sprint: number | 'later'
   badge?: boolean
   // Later sprints set their own. Only Permissions + Business Rules are gated in sprint 1.
   permission?: Permission | Array<Permission>

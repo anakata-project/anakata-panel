@@ -31,6 +31,7 @@ const emptyFilters: ClientDocumentFilters = {
 const SEARCH_DEBOUNCE_MS = 300
 
 const { t } = useI18n()
+const route = useRoute()
 const { useFetch, request } = useApi()
 const { format } = useDates()
 const toast = useToast()
@@ -120,6 +121,15 @@ async function openBooking(id: number): Promise<void> {
   selected.value = await request(`/api/rms/bookings/${String(id)}`) as Booking
   panelOpen.value = true
 }
+
+onMounted(() => {
+  const raw = route.query.booking
+  const id = typeof raw === 'string' ? Number(raw) : Number.NaN
+
+  if (Number.isInteger(id) && id > 0) {
+    void openBooking(id)
+  }
+})
 
 function openPreview(row: ClientDocumentRow, event: Event): void {
   event.stopPropagation()

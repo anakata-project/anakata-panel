@@ -24,7 +24,7 @@ export const crmNav: Array<NavGroup> = [
         labelKey: 'nav.crm.inbox',
         glyph: '✉',
         to: '/crm/sales/inbox',
-        sprint: 9
+        sprint: 'later'
       },
       {
         id: 'contacts',
@@ -38,7 +38,7 @@ export const crmNav: Array<NavGroup> = [
         labelKey: 'nav.crm.b2bPartners',
         glyph: '⬡',
         to: '/crm/sales/b2b-partners',
-        sprint: 9
+        sprint: 'later'
       },
       {
         id: 'documents',
@@ -58,14 +58,14 @@ export const crmNav: Array<NavGroup> = [
         labelKey: 'nav.crm.journeys',
         glyph: '➤',
         to: '/crm/marketing/journeys',
-        sprint: 10
+        sprint: 'later'
       },
       {
         id: 'segments',
         labelKey: 'nav.crm.segments',
         glyph: '◫',
         to: '/crm/marketing/segments',
-        sprint: 10
+        sprint: 'later'
       },
       {
         id: 'campaigns',
@@ -92,7 +92,7 @@ export const crmNav: Array<NavGroup> = [
         labelKey: 'nav.crm.automations',
         glyph: '↻',
         to: '/crm/engine/automations',
-        sprint: 10
+        sprint: 'later'
       },
       {
         id: 'alerts',

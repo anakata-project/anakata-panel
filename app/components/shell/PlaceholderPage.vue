@@ -31,7 +31,7 @@ const title = computed(() => t(navItem.labelKey))
 <template>
   <AnkPanel :title="title">
     <p class="placeholder-copy">
-      {{ t('pages.comingIn', { n: navItem.sprint }) }}
+      {{ navItem.sprint === 'later' ? t('pages.plannedLater') : t('pages.comingIn', { n: navItem.sprint }) }}
     </p>
   </AnkPanel>
 </template>
