@@ -1192,6 +1192,7 @@
     "commissionsEmpty": "No commissions in this date range.",
     "commissionsNote": "Commission is payable {days} days after cruise completion (FIN-005). Rates above {cap}% are system-blocked until Commercial Director approval.",
     "commissionAccrued": "Accrued — pays at COMPLETED",
+    "commissionPaid": "Paid",
     "commissionPayable": "Payable",
     "commissionCancelled": "Cancelled",
     "commissionBlocked": "BLOCKED >{cap}% · Director approval (FIN-005)",

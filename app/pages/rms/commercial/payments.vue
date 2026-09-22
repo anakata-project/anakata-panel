@@ -166,32 +166,44 @@ function dueLabel(booking: Booking): string {
 }
 
 function commissionStatusText(status: CommissionStatus): string {
-  if (status === 'BLOCKED') {
+  const value: string = status
+
+  if (value === 'BLOCKED') {
     return t('payments.commissionBlocked', { cap: String(kpis.value.commission_cap_pct) })
   }
 
-  if (status === 'ACCRUED') {
+  if (value === 'ACCRUED' || value === 'EARNED_ON_COMPLETION') {
     return t('payments.commissionAccrued')
   }
 
-  if (status === 'PAYABLE') {
+  if (value === 'PAYABLE') {
     return t('payments.commissionPayable')
+  }
+
+  if (value === 'PAID') {
+    return t('payments.commissionPaid')
   }
 
   return t('payments.commissionCancelled')
 }
 
 function commissionPillClass(status: CommissionStatus): string {
-  if (status === 'BLOCKED') {
+  const value: string = status
+
+  if (value === 'BLOCKED') {
     return 'p-over'
   }
 
-  if (status === 'ACCRUED') {
+  if (value === 'ACCRUED' || value === 'EARNED_ON_COMPLETION') {
     return 'p-pend'
   }
 
-  if (status === 'PAYABLE') {
+  if (value === 'PAYABLE') {
     return 'p-conf'
+  }
+
+  if (value === 'PAID') {
+    return 'p-full'
   }
 
   return 'p-canc'

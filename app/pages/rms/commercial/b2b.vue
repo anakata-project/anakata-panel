@@ -26,6 +26,8 @@ const emptyKpis: AgenciesKpis = {
   registrations_to_review: 0,
   agency_revenue: 0,
   commission_accrued: 0,
+  commission_payable: 0,
+  commission_paid: 0,
   agency_approval_business_days: 0,
   commission_payable_days: 0,
   commission_cap_pct: 0,
