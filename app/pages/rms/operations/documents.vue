@@ -7,6 +7,7 @@ import type {
 } from '../../../types/api'
 import DateRangeFilter from '../../../components/lists/DateRangeFilter.vue'
 import BookingPanel from '../../../components/bookings/BookingPanel.vue'
+import DepartureManifests from '../../../components/documents/DepartureManifests.vue'
 import DocumentConfirmModal from '../../../components/documents/DocumentConfirmModal.vue'
 import DocumentPreviewModal from '../../../components/documents/DocumentPreviewModal.vue'
 import {
@@ -15,6 +16,7 @@ import {
   previewTargetFor,
   type DocumentPreviewTarget
 } from '../../../components/documents/documentHelpers'
+import { offsetLabel, type ManifestNoticeOffsets } from '../../../components/documents/manifestHelpers'
 import { firstApiMessage } from '../../../utils/apiForm'
 
 type ClientDocumentsPayload = Paginated<ClientDocumentRow> & {
@@ -44,6 +46,11 @@ const searchInput = ref('')
 const search = ref('')
 const page = ref(1)
 const today = computed(() => format(new Date(), 'iso'))
+const manifestOffsets = ref<ManifestNoticeOffsets>({
+  fit: null,
+  charter: null,
+  captain: null
+})
 
 const panelOpen = ref(false)
 const selected = ref<Booking | null>(null)
@@ -199,15 +206,18 @@ async function onPanelUpdated(): Promise<void> {
     />
 
     <p class="notice">
-      {{ t('documents.notice') }}
+      {{ t('documents.notice', {
+        fit: offsetLabel(manifestOffsets.fit),
+        charter: offsetLabel(manifestOffsets.charter),
+        captain: offsetLabel(manifestOffsets.captain)
+      }) }}
     </p>
 
-    <div class="panel">
-      <h3>{{ t('documents.manifestsTitle') }}</h3>
-      <p class="note">
-        {{ t('documents.manifestsBody') }}
-      </p>
-    </div>
+    <DepartureManifests
+      :from="from"
+      :to="to"
+      @offsets="manifestOffsets = $event"
+    />
 
     <div class="panel">
       <h3>{{ t('documents.title') }}</h3>

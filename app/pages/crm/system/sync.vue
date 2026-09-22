@@ -3,6 +3,7 @@ import type {
   EventCatalogueRow,
   OwnershipRow,
   Paginated,
+  ScheduledJobCatalogueRow,
   ScheduledJobRun,
   SyncFailure,
   SyncIdentityRow,
@@ -18,7 +19,20 @@ type JobsPayload = {
   data: Array<ScheduledJobRun>
   meta: {
     kpis: SyncKpis
+    catalogue: Array<ScheduledJobCatalogueRow>
   }
+}
+
+type JobTableRow = {
+  key: string
+  label: string
+  command: string | null
+  cadence: string
+  lastRun: string
+  outcome: string | null
+  nextRun: string | null
+  purpose: string
+  failed: boolean
 }
 
 type EventsPayload = {
@@ -57,6 +71,7 @@ const identityUrl = computed(() => `/api/crm/sync/identity?page=${String(identit
 const { data: identityPayload } = useFetch<Paginated<SyncIdentityRow>>(identityUrl)
 
 const jobs = computed(() => jobsPayload.value?.data ?? [])
+const catalogue = computed(() => jobsPayload.value?.meta.catalogue ?? [])
 const kpis = computed(() => jobsPayload.value?.meta.kpis ?? emptyKpis)
 const ownership = computed(() => ownershipPayload.value?.data ?? [])
 const events = computed(() => eventsPayload.value?.data ?? [])
@@ -74,6 +89,52 @@ function jobCadence(row: ScheduledJobRun): string {
     ? row.cadence
     : `${row.cadence} · ${row.timezone}`
 }
+
+const tableJobs = computed((): Array<JobTableRow> => {
+  const runs = jobs.value
+  const covered = new Set<string>()
+  const rows: Array<JobTableRow> = catalogue.value.map((row) => {
+    const run = row.command === 'not needed'
+      ? undefined
+      : runs.find(job => job.command === row.command)
+
+    if (run !== undefined) {
+      covered.add(run.command)
+    }
+
+    return {
+      key: row.job,
+      label: row.job,
+      command: row.command,
+      cadence: run === undefined ? '' : jobCadence(run),
+      lastRun: run === undefined ? '' : jobLastRun(run),
+      outcome: run?.last_outcome ?? null,
+      nextRun: run?.next_run_at ?? null,
+      purpose: row.sentence,
+      failed: run?.last_outcome === 'failed'
+    }
+  })
+
+  for (const run of runs) {
+    if (covered.has(run.command)) {
+      continue
+    }
+
+    rows.push({
+      key: run.command,
+      label: run.command,
+      command: null,
+      cadence: jobCadence(run),
+      lastRun: jobLastRun(run),
+      outcome: run.last_outcome,
+      nextRun: run.next_run_at,
+      purpose: run.description,
+      failed: run.last_outcome === 'failed'
+    })
+  }
+
+  return rows
+})
 
 function listenersLabel(listeners: ReadonlyArray<string>): string {
   return listeners.length === 0 ? '—' : listeners.join(', ')
@@ -350,7 +411,7 @@ async function sendRetry(row: SyncFailure, kind: 'job' | 'delivery'): Promise<vo
             </thead>
             <tbody>
               <tr
-                v-if="jobs.length === 0"
+                v-if="tableJobs.length === 0"
                 class="dr-empty"
               >
                 <td colspan="6">
@@ -358,31 +419,39 @@ async function sendRetry(row: SyncFailure, kind: 'job' | 'delivery'): Promise<vo
                 </td>
               </tr>
               <tr
-                v-for="row in jobs"
-                :key="row.command"
-                :class="{ 'crm-job-failed': row.last_outcome === 'failed' }"
+                v-for="row in tableJobs"
+                :key="row.key"
+                :class="{ 'crm-job-failed': row.failed }"
               >
-                <td>{{ row.command }}</td>
-                <td class="nw">
-                  {{ jobCadence(row) }}
+                <td>
+                  {{ row.label }}
+                  <div
+                    v-if="row.command !== null && row.command !== row.label"
+                    class="gmeta"
+                  >
+                    {{ row.command }}
+                  </div>
                 </td>
                 <td class="nw">
-                  {{ jobLastRun(row) === '' ? t('crmSync.neverRun') : format(jobLastRun(row), 'dateTime') }}
+                  {{ row.cadence === '' ? t('crmSync.neverRun') : row.cadence }}
+                </td>
+                <td class="nw">
+                  {{ row.lastRun === '' ? t('crmSync.neverRun') : format(row.lastRun, 'dateTime') }}
                 </td>
                 <td class="nw">
                   <span
-                    v-if="row.last_outcome !== null"
+                    v-if="row.outcome !== null"
                     class="pill"
-                    :class="jobOutcomePillClass(row.last_outcome)"
-                  >{{ row.last_outcome }}</span>
+                    :class="jobOutcomePillClass(row.outcome)"
+                  >{{ row.outcome }}</span>
                   <template v-else>
                     {{ t('crmSync.neverRun') }}
                   </template>
                 </td>
                 <td class="nw">
-                  {{ format(row.next_run_at, 'dateTime') }}
+                  {{ row.nextRun === null ? t('crmSync.neverRun') : format(row.nextRun, 'dateTime') }}
                 </td>
-                <td>{{ row.description }}</td>
+                <td>{{ row.purpose }}</td>
               </tr>
             </tbody>
           </table>

@@ -137,6 +137,26 @@ main {
   color: var(--iv38);
 }
 
+.alert-bell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border: 1px solid var(--hair);
+  color: var(--ivory);
+  text-decoration: none;
+}
+
+.alert-bell-icon {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+.alert-bell:hover {
+  color: var(--coral);
+}
+
 .fchip {
   appearance: none;
   border: 1px solid var(--hair);

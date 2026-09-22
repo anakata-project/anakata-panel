@@ -109,6 +109,14 @@ export const rmsNav: Array<NavGroup> = [
         permission: 'panel.rms'
       },
       {
+        id: 'alerts',
+        labelKey: 'nav.rms.alerts',
+        glyph: '▲',
+        to: '/rms/operations/alerts',
+        sprint: 11,
+        permission: 'panel.rms'
+      },
+      {
         id: 'guest-experience',
         labelKey: 'nav.rms.guestExperience',
         glyph: '✧',

@@ -7,6 +7,16 @@ const { can, hasSection } = useAuth()
 const route = useRoute()
 const { openNew } = useNewReservation()
 const { count: requestCount, allowed: showRequestBadge, startPolling } = useOpenRequests()
+const {
+  total: alertTotal,
+  tone: alertTone,
+  visible: showAlertBell,
+  startPolling: startAlertPolling
+} = useAlertCounts()
+
+const alertsTo = computed(() => {
+  return sectionId.value === 'crm' ? '/crm/engine/alerts' : '/rms/operations/alerts'
+})
 
 function onNewReservation(): void {
   if (route.path === '/rms/reservations/bookings') {
@@ -34,6 +44,7 @@ useHead(() => ({
 
 onMounted(() => {
   startPolling()
+  startAlertPolling()
 })
 </script>
 
@@ -100,6 +111,35 @@ onMounted(() => {
           aria-hidden="true"
         />
         <div class="who">
+          <NuxtLink
+            v-if="showAlertBell"
+            :to="alertsTo"
+            class="alert-bell"
+            :aria-label="t('shell.alerts')"
+          >
+            <svg
+              class="alert-bell-icon"
+              viewBox="0 0 16 16"
+              aria-hidden="true"
+            >
+              <path
+                d="M8 1.5a4.5 4.5 0 0 0-4.5 4.5v2.2L2 10.5h12l-1.5-2.3V6A4.5 4.5 0 0 0 8 1.5z"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.2"
+              />
+              <path
+                d="M6.4 12.2a1.6 1.6 0 0 0 3.2 0"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.2"
+              />
+            </svg>
+            <span
+              class="pill"
+              :class="alertTone"
+            >{{ alertTotal }}</span>
+          </NuxtLink>
           <ShellSectionSwitch v-if="showSectionSwitch" />
           <span class="mono">{{ t('shell.loggedInAs') }}</span>
           <ShellWhoMenu />
