@@ -1,24 +1,34 @@
 <script setup lang="ts">
 import type {
   AgencyListItem,
+  ConsentPurpose,
+  ContactConsentEntry,
+  ContactConsentState,
   ContactMerge,
   ContactProfile,
   ContactType,
   ContactUnmergeResult,
+  CrmTask,
   Paginated,
   PreferredChannel,
+  RecordConsentInput,
   TimelineItem
 } from '../../types/api'
+import { ApiError } from '#imports'
 import type { FormFieldErrors } from '../../utils/apiForm'
 import { applyApiFormError, firstApiMessage } from '../../utils/apiForm'
 import { statusLabel } from '../bookings/bookingHelpers'
 import ReasonModal from '../bookings/ReasonModal.vue'
+import LogActivityModal from './LogActivityModal.vue'
+import { consentStateLabel } from './privacyHelpers'
+import { relativeDue, taskPriorityClass } from './salesHelpers'
 import {
   filterLabel,
   formatAttribution,
   isUndoWindowOpen,
   matchMergeForTimeline,
   matchPartnerByEmail,
+  emailConflictId,
   parseEmailConflictContactId,
   segmentPillClass,
   shouldLookupPartner
@@ -40,6 +50,7 @@ const emit = defineEmits<{
 }>()
 
 const CHANNELS: Array<PreferredChannel> = ['EMAIL', 'WHATSAPP', 'PHONE']
+const CONSENT_PURPOSES: Array<ConsentPurpose> = ['MARKETING', 'PROFILING', 'REMARKETING', 'WHATSAPP', 'ANALYTICS']
 
 const { t } = useI18n()
 const { can } = useAuth()
@@ -62,6 +73,8 @@ const saving = ref(false)
 
 const timelinePage = ref(1)
 const timeline = ref<Paginated<TimelineItem> | null>(null)
+const contactTasks = ref<Array<CrmTask>>([])
+const activityOpen = ref(false)
 const merges = ref<Array<ContactMerge>>([])
 const partner = ref<AgencyListItem | null>(null)
 
@@ -71,6 +84,17 @@ const undoSubmitting = ref(false)
 const undoError = ref('')
 
 const canManage = computed(() => can('contacts.manage'))
+const canRecordConsent = computed(() => can('consents.record'))
+const consentCurrent = ref<Array<ContactConsentState>>([])
+const consentHistory = ref<Array<ContactConsentEntry>>([])
+const showConsentHistory = ref(false)
+const recordOpen = ref(false)
+const recordPurpose = ref<ConsentPurpose>('MARKETING')
+const recordGranted = ref<'1' | '0'>('1')
+const recordHow = ref('')
+const recordVersion = ref('')
+const recordError = ref('')
+const recordSaving = ref(false)
 const canMerge = computed(() => can('contacts.merge'))
 const canRms = computed(() => can('panel.rms'))
 
@@ -155,13 +179,98 @@ watch(
 
     applyProfile(profile)
     timelinePage.value = 1
+    showConsentHistory.value = false
+    recordOpen.value = false
     await Promise.all([
       loadTimeline(profile.id),
+      loadContactTasks(profile.id),
       loadMerges(),
-      loadPartner(profile)
+      loadPartner(profile),
+      loadConsents(profile.id)
     ])
   }
 )
+
+async function loadConsents(contactId: number): Promise<void> {
+  const payload = await request(`/api/crm/contacts/${String(contactId)}/consents`) as {
+    current: Array<ContactConsentState>
+    history: Array<ContactConsentEntry>
+  }
+  consentCurrent.value = payload.current
+  consentHistory.value = payload.history
+}
+
+function consentPill(granted: boolean | null): string {
+  if (granted === true) {
+    return 'ok'
+  }
+
+  if (granted === false) {
+    return 'bad'
+  }
+
+  return 'new'
+}
+
+async function recordConsent(): Promise<void> {
+  if (props.profile === null || recordHow.value.trim() === '') {
+    return
+  }
+
+  const body: RecordConsentInput = {
+    purpose: recordPurpose.value,
+    granted: recordGranted.value === '1',
+    how_obtained: recordHow.value.trim()
+  }
+
+  if (recordVersion.value.trim() !== '') {
+    body.version = recordVersion.value.trim()
+  }
+
+  recordSaving.value = true
+  recordError.value = ''
+
+  try {
+    await request(`/api/crm/contacts/${String(props.profile.id)}/consents`, { method: 'POST', body })
+    recordOpen.value = false
+    recordHow.value = ''
+    recordVersion.value = ''
+    await loadConsents(props.profile.id)
+    toast.add({ title: t('crmContacts.consentRecorded') })
+  } catch (error: unknown) {
+    recordError.value = firstApiMessage(error) ?? t('crmContacts.consentRecordFailed')
+  } finally {
+    recordSaving.value = false
+  }
+}
+
+async function loadContactTasks(contactId: number): Promise<void> {
+  const scopes = can('records.act_on_any') ? ['all'] : ['mine', 'unassigned']
+  const pages = await Promise.all(scopes.map(scope =>
+    request(`/api/crm/tasks?scope=${scope}&status=open`) as Promise<{ data: Array<CrmTask> }>
+  ))
+  const seen = new Set<number>()
+
+  contactTasks.value = pages.flatMap(page => page.data).filter((task) => {
+    if (task.contact?.id !== contactId || seen.has(task.id)) {
+      return false
+    }
+
+    seen.add(task.id)
+    return true
+  })
+}
+
+async function onActivitySaved(): Promise<void> {
+  if (props.profile === null) {
+    return
+  }
+
+  await Promise.all([
+    loadTimeline(props.profile.id),
+    loadContactTasks(props.profile.id)
+  ])
+}
 
 watch(timelinePage, async () => {
   if (props.profile !== null && open.value) {
@@ -197,6 +306,13 @@ async function save(): Promise<void> {
     toast.add({ title: t('crmContacts.savedToast') })
     emit('updated', updated)
   } catch (error: unknown) {
+    if (error instanceof ApiError && error.status === 409) {
+      fieldErrors.value = {}
+      warn.value = error.message
+      conflictId.value = emailConflictId(error, error.message)
+      return
+    }
+
     if (!applyApiFormError(error, (fields, conflict) => {
       fieldErrors.value = fields
       warn.value = conflict
@@ -404,16 +520,136 @@ async function onUndo(reason: string): Promise<void> {
             <span>{{ t('crmContacts.consentTransactionalLabel') }}</span>
             <span class="pill ok">{{ t('crmContacts.consentAlwaysOn') }}</span>
           </div>
-          <div class="kv">
-            <span>{{ t('crmContacts.consentMarketingLabel') }}</span>
+          <div
+            v-for="row in consentCurrent"
+            :key="row.purpose"
+            class="kv"
+          >
+            <span>{{ row.label }}</span>
             <span
               class="pill"
-              :class="profile.consent.marketing ? 'ok' : 'new'"
-            >{{ profile.consent.marketing ? t('crmContacts.consentOptedIn') : t('crmContacts.consentNotOptedIn') }}</span>
+              :class="consentPill(row.granted)"
+            >{{ consentStateLabel(row.granted) }}</span>
           </div>
-          <p class="crm-held">
-            {{ t('crmContacts.consentRegister') }}
-          </p>
+          <div class="crm-deal-actions">
+            <UButton
+              variant="outline"
+              @click="showConsentHistory = !showConsentHistory"
+            >
+              {{ t('crmContacts.consentHistory') }}
+            </UButton>
+            <UButton
+              v-if="canRecordConsent"
+              variant="outline"
+              @click="recordOpen = !recordOpen"
+            >
+              {{ t('crmContacts.recordConsent') }}
+            </UButton>
+          </div>
+          <table
+            v-if="showConsentHistory"
+            class="list"
+          >
+            <thead>
+              <tr>
+                <th>{{ t('crmContacts.consentPurpose') }}</th>
+                <th>{{ t('crmContacts.consentGranted') }}</th>
+                <th>{{ t('crmContacts.consentVersion') }}</th>
+                <th>{{ t('crmContacts.consentWhen') }}</th>
+                <th>{{ t('crmContacts.consentCapture') }}</th>
+                <th>{{ t('crmContacts.consentBy') }}</th>
+                <th>{{ t('crmContacts.consentHow') }}</th>
+                <th>{{ t('crmContacts.consentIp') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-if="consentHistory.length === 0">
+                <td colspan="8">
+                  {{ t('crmContacts.consentHistoryEmpty') }}
+                </td>
+              </tr>
+              <tr
+                v-for="(entry, index) in consentHistory"
+                :key="`${entry.purpose}-${entry.captured_at}-${String(index)}`"
+              >
+                <td>{{ entry.label }}</td>
+                <td>{{ consentStateLabel(entry.granted) }}</td>
+                <td>{{ entry.version }}</td>
+                <td class="nw">
+                  {{ format(entry.captured_at, 'dateTime') }}
+                </td>
+                <td>{{ entry.capture_point }}</td>
+                <td>{{ entry.recorded_by?.name ?? '—' }}</td>
+                <td>{{ entry.how_obtained ?? '—' }}</td>
+                <td>{{ entry.ip_present ? t('crmContacts.consentIpRecorded') : '—' }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <form
+            v-if="recordOpen && canRecordConsent"
+            class="modal-form"
+            @submit.prevent="recordConsent"
+          >
+            <p
+              v-if="recordError"
+              class="warnbox"
+            >
+              {{ recordError }}
+            </p>
+            <div class="field">
+              <label for="consent-purpose">{{ t('crmContacts.consentPurpose') }}</label>
+              <select
+                id="consent-purpose"
+                v-model="recordPurpose"
+              >
+                <option
+                  v-for="purpose in CONSENT_PURPOSES"
+                  :key="purpose"
+                  :value="purpose"
+                >
+                  {{ purpose }}
+                </option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="consent-granted">{{ t('crmContacts.consentGranted') }}</label>
+              <select
+                id="consent-granted"
+                v-model="recordGranted"
+              >
+                <option value="1">
+                  {{ t('crmContacts.consentOptedIn') }}
+                </option>
+                <option value="0">
+                  {{ t('crmContacts.consentWithdrawn') }}
+                </option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="consent-how">{{ t('crmContacts.consentHow') }}</label>
+              <input
+                id="consent-how"
+                v-model="recordHow"
+                type="text"
+                required
+              >
+            </div>
+            <div class="field">
+              <label for="consent-version">{{ t('crmContacts.consentVersionOptional') }}</label>
+              <input
+                id="consent-version"
+                v-model="recordVersion"
+                type="text"
+              >
+            </div>
+            <UButton
+              type="submit"
+              :loading="recordSaving"
+              :disabled="recordSaving || recordHow.trim() === ''"
+            >
+              {{ t('crmContacts.recordConsent') }}
+            </UButton>
+          </form>
         </div>
 
         <div class="sec">
@@ -455,6 +691,46 @@ async function onUndo(reason: string): Promise<void> {
           >
             {{ t('crmContacts.bookingsEmpty') }}
           </p>
+        </div>
+
+        <div class="sec">
+          <h4>{{ t('crmContacts.tasksTitle') }}</h4>
+          <UButton
+            v-if="canManage"
+            variant="outline"
+            @click="activityOpen = true"
+          >
+            {{ t('crmPipeline.logActivity') }}
+          </UButton>
+          <p
+            v-if="contactTasks.length === 0"
+            class="crm-held"
+          >
+            {{ t('crmContacts.tasksEmpty') }}
+          </p>
+          <div
+            v-for="task in contactTasks"
+            :key="task.id"
+            class="taskrow"
+          >
+            <div
+              class="due"
+              :class="taskPriorityClass(task.priority)"
+            >
+              {{ relativeDue(task.due_at) }}
+            </div>
+            <div>
+              <div class="ttl">
+                {{ task.title }}
+              </div>
+              <div
+                v-if="task.context"
+                class="ctx"
+              >
+                {{ task.context }}
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="sec">
@@ -673,6 +949,12 @@ async function onUndo(reason: string): Promise<void> {
       </template>
     </template>
   </USlideover>
+
+  <LogActivityModal
+    v-model:open="activityOpen"
+    :contact-id="profile?.id ?? null"
+    @saved="onActivitySaved"
+  />
 
   <ReasonModal
     v-model:open="undoOpen"

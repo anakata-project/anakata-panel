@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { ContactMerge } from '../../app/types/api'
 import {
   consentPillLabel,
+  emailConflictId,
   instantsEqual,
   isUndoWindowOpen,
   lifecyclePillClass,
@@ -57,6 +58,20 @@ describe('parseEmailConflictContactId', () => {
   it('returns null when the message has no contact id', () => {
     expect(parseEmailConflictContactId('That email is already in use.')).toBeNull()
     expect(parseEmailConflictContactId('')).toBeNull()
+  })
+})
+
+describe('emailConflictId', () => {
+  it('prefers conflicting_contact and falls back to the message', () => {
+    expect(emailConflictId(
+      { conflictingContact: { id: 12, name: 'Ada' } },
+      'That email is already in use.'
+    )).toBe(12)
+    expect(emailConflictId(
+      { message: 'That email belongs to contact #4 (Bea).' },
+      'That email belongs to contact #4 (Bea).'
+    )).toBe(4)
+    expect(emailConflictId({}, 'That email is already in use.')).toBeNull()
   })
 })
 

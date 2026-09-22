@@ -2,7 +2,6 @@
 import type {
   ActivityEvent,
   ActivityKpis,
-  CrmContact,
   EventCatalogueRow,
   Paginated
 } from '../../../types/api'
@@ -10,8 +9,7 @@ import DateRangeFilter from '../../../components/lists/DateRangeFilter.vue'
 import {
   isAnonymousContact,
   sideTokens,
-  systemBadgeClass,
-  uniqueContactId
+  systemBadgeClass
 } from '../../../components/crm/syncHelpers'
 
 type ActivityPayload = Paginated<ActivityEvent> & {
@@ -30,9 +28,8 @@ const emptyKpis: ActivityKpis = {
 }
 
 const { t } = useI18n()
-const { useFetch, request } = useApi()
+const { useFetch } = useApi()
 const { format } = useDates()
-const toast = useToast()
 const config = useRuntimeConfig()
 
 const from = ref<string | null>(null)
@@ -94,29 +91,15 @@ onMounted(async () => {
   }
 })
 
-async function openNamedContact(name: string): Promise<void> {
-  if (isAnonymousContact(name)) {
+async function openContact(row: ActivityEvent): Promise<void> {
+  if (row.contact_id === null || isAnonymousContact(row.contact)) {
     return
   }
 
-  const trimmed = name.trim()
-
-  try {
-    const result = await request(`/api/crm/contacts?q=${encodeURIComponent(trimmed)}&per_page=100`) as Paginated<CrmContact>
-    const id = uniqueContactId(trimmed, result.data, result.data.length >= 100)
-
-    if (id !== null) {
-      await navigateTo({
-        path: '/crm/sales/contacts',
-        query: { open: String(id) }
-      })
-      return
-    }
-  } catch {
-    // fall through to the toast
-  }
-
-  toast.add({ title: t('crmActivity.contactUnresolved') })
+  await navigateTo({
+    path: '/crm/sales/contacts',
+    query: { open: String(row.contact_id) }
+  })
 }
 </script>
 
@@ -238,10 +221,10 @@ async function openNamedContact(name: string): Promise<void> {
               </td>
               <td class="nw">
                 <button
-                  v-if="!isAnonymousContact(row.contact)"
+                  v-if="row.contact_id !== null && !isAnonymousContact(row.contact)"
                   type="button"
                   class="lnk"
-                  @click="openNamedContact(row.contact)"
+                  @click="openContact(row)"
                 >
                   {{ row.contact }}
                 </button>

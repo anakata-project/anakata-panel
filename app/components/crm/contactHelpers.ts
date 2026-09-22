@@ -1,3 +1,4 @@
+import type { AttributionTouch } from '#anakata-ui/app/types'
 import type { ContactMerge, Segment } from '../../types/api'
 
 export function segmentPillClass(segment: Segment): string {
@@ -30,6 +31,23 @@ export function parseEmailConflictContactId(message: string): number | null {
   const id = Number(match[1])
 
   return Number.isFinite(id) ? id : null
+}
+
+export function emailConflictId(error: unknown, message: string): number | null {
+  if (typeof error === 'object' && error !== null && 'conflictingContact' in error) {
+    const contact = error.conflictingContact
+
+    if (
+      typeof contact === 'object'
+      && contact !== null
+      && 'id' in contact
+      && typeof contact.id === 'number'
+    ) {
+      return contact.id
+    }
+  }
+
+  return parseEmailConflictContactId(message)
 }
 
 export function instantsEqual(left: string | null | undefined, right: string | null | undefined): boolean {
@@ -135,17 +153,7 @@ export function duplicateReasonLabel(reason: string): string {
   return reason
 }
 
-export type AttributionTouch = {
-  source?: string
-  medium?: string
-  campaign?: string
-  content?: string
-  term?: string
-  landing_path?: string
-  captured_at?: string
-} | null
-
-export function formatAttribution(touch: AttributionTouch): string {
+export function formatAttribution(touch: AttributionTouch | null): string {
   if (touch === null) {
     return '—'
   }

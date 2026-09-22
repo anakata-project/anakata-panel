@@ -211,7 +211,224 @@
   font-size: 11.5px;
 }
 
+.pipe {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding: 16px 20px 20px;
+  align-items: flex-start;
+}
+
+.col {
+  flex: 0 0 240px;
+  background: var(--forest-900);
+  border: 1px solid var(--hair);
+}
+
+.col.drop {
+  border-color: var(--sand);
+}
+
+.col h3 {
+  display: block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--sand);
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--hair);
+  margin: 0;
+}
+
+.col h3 .sla,
+.col h3 .money {
+  display: block;
+  margin-top: 4px;
+  line-height: 1.5;
+  text-transform: none;
+  letter-spacing: .04em;
+  font-size: 8.5px;
+  color: var(--iv38);
+}
+
+.col h3 .money {
+  color: var(--iv62);
+  letter-spacing: .06em;
+}
+
+.cards {
+  min-height: 70px;
+  padding: 10px;
+}
+
+.card {
+  background: var(--forest);
+  border: 1px solid var(--hair);
+  padding: 14px;
+  margin-bottom: 10px;
+  cursor: grab;
+}
+
+.card.dragging {
+  opacity: .4;
+}
+
+.card .nm {
+  display: block;
+  font-size: 13.5px;
+  margin-bottom: 3px;
+  background: none;
+  border: 0;
+  color: var(--ivory);
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+}
+
+.card .mono {
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--iv38);
+  letter-spacing: .1em;
+  display: block;
+  margin-bottom: 8px;
+  font-size: 9px;
+}
+
+.card .val,
+.card-val {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--sand);
+  letter-spacing: .06em;
+}
+
+.card .slabadge,
+.slabadge {
+  float: right;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8.5px;
+  letter-spacing: .1em;
+  padding: 2px 7px;
+  border: 1px solid var(--ok);
+  color: var(--ok);
+}
+
+.slabadge.warn {
+  border-color: var(--warn);
+  color: var(--warn);
+}
+
+.slabadge.bad {
+  border-color: var(--coral);
+  color: var(--coral-400);
+}
+
+.card .lock {
+  float: right;
+  font-size: 10px;
+  margin-left: 6px;
+  color: var(--iv38);
+}
+
+.card .rmsref,
+.rmsref {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8.5px;
+  letter-spacing: .08em;
+  color: var(--sand);
+  margin-bottom: 6px;
+  line-height: 1.6;
+  display: block;
+}
+
+.rmsref.none {
+  color: var(--iv38);
+}
+
+.card .move {
+  margin-top: 8px;
+  width: 100%;
+}
+
+.taskrow {
+  display: grid;
+  grid-template-columns: 96px 1fr 180px 150px 120px;
+  gap: 14px;
+  align-items: center;
+  padding: 13px 20px;
+  border-bottom: 1px solid var(--hair);
+}
+
+.taskrow:hover {
+  background: rgba(242, 241, 225, .03);
+}
+
+.taskrow .due {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: .12em;
+}
+
+.taskrow .due.bad {
+  color: var(--coral-400);
+}
+
+.taskrow .due.warn {
+  color: var(--warn);
+}
+
+.taskrow .due.ok {
+  color: var(--iv38);
+}
+
+.taskrow .ttl {
+  font-size: 13px;
+}
+
+.taskrow .ctx {
+  font-size: 11px;
+  color: var(--iv38);
+  margin-top: 2px;
+}
+
+.crm-kpi-alert {
+  color: var(--coral-400);
+}
+
+.crm-kpi-warn {
+  color: var(--warn);
+}
+
+.crm-inline {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.crm-inline input,
+.crm-inline select {
+  flex: 1;
+}
+
+.crm-deal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin: 14px 0;
+}
+
+.crm-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--iv62);
+}
+
 table.list td.nw,
 table.list th.nw {
   white-space: nowrap;
 }
+
