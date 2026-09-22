@@ -496,7 +496,7 @@ async function onUndo(reason: string): Promise<void> {
         </div>
         <div class="kv">
           <span>{{ t('crmContacts.npsLabel') }}</span>
-          <span>{{ t('crmContacts.nps') }}</span>
+          <span>{{ profile.nps ?? '—' }}</span>
         </div>
         <div
           v-if="partner"

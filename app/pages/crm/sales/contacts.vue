@@ -428,7 +428,7 @@ watch(
                   :class="row.consent.marketing ? 'ok' : 'new'"
                 >{{ consentPillLabel(row.consent.marketing) }}</span>
               </td>
-              <td>{{ t('crmContacts.nps') }}</td>
+              <td>{{ row.nps ?? '—' }}</td>
             </tr>
           </tbody>
         </table>
