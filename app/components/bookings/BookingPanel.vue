@@ -32,6 +32,7 @@ import BookingPaymentsTab from '../payments/BookingPaymentsTab.vue'
 import BookingGuestsTab from '../guests/BookingGuestsTab.vue'
 import BookingExtrasTab from '../extras/BookingExtrasTab.vue'
 import BookingDocumentsTab from '../documents/BookingDocumentsTab.vue'
+import PostTripSurveyModal from '../guest-experience/PostTripSurveyModal.vue'
 import BookingBillingBlock from './BookingBillingBlock.vue'
 import { chargesRows } from '../extras/extraHelpers'
 
@@ -87,6 +88,8 @@ const canConfirm = computed(() => can('requests.confirm'))
 const canRelease = computed(() => can('requests.release'))
 const canOverdueDecision = computed(() => can('bookings.overdue_decision'))
 const canOverrideCap = computed(() => can('commissions.override_cap'))
+const canRecordSurvey = computed(() => can('guest_experience.manage'))
+const surveyOpen = ref(false)
 const extendDate = ref('')
 const { rules } = useOpenRequests()
 const confirmOpen = ref(false)
@@ -856,6 +859,21 @@ async function onPaymentsUpdated(booking?: Booking): Promise<void> {
             </div>
           </div>
 
+          <div
+            v-if="source.status === 'COMPLETED' && canRecordSurvey"
+            class="sec"
+          >
+            <h4>{{ t('guestExperience.surveyTitle') }}</h4>
+            <div class="transbtns">
+              <UButton
+                variant="outline"
+                @click="surveyOpen = true"
+              >
+                {{ t('guestExperience.recordSurvey') }}
+              </UButton>
+            </div>
+          </div>
+
           <div class="sec">
             <h4>{{ t('bookings.transitions') }}</h4>
             <div class="transbtns">
@@ -1052,6 +1070,12 @@ async function onPaymentsUpdated(booking?: Booking): Promise<void> {
       </p>
     </template>
   </ReasonModal>
+
+  <PostTripSurveyModal
+    v-model:open="surveyOpen"
+    :booking-id="source?.id ?? null"
+    @saved="history = []"
+  />
 
   <MoveBookingModal
     v-model:open="moveOpen"

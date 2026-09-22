@@ -211,6 +211,11 @@ describe('describeHistory', () => {
       after: { reference: 'ANK-2026-0014-D01', bank_reference: 'WIRE-991' }
     }, t)).toBe('Wire received · ANK-2026-0014-D01 · WIRE-991')
     expect(describeHistory({
+      event: 'booking.nps_recorded',
+      before: null,
+      after: { what: 'Post-trip survey recorded — score 6 · alert sent to guest experience' }
+    }, t)).toBe('Post-trip survey recorded — score 6 · alert sent to guest experience')
+    expect(describeHistory({
       event: 'refund.not_due',
       before: null,
       after: { what: 'Nothing was paid, so nothing is owed.' }

@@ -241,6 +241,8 @@ export function describeHistory(
       })
     case 'booking.deleted':
       return stringField(after, 'what') ?? t('history.events.bookingDeleted')
+    case 'booking.nps_recorded':
+      return stringField(after, 'what') ?? entry.event
     case 'booking.released':
       return stringField(after, 'what') ?? t('history.events.bookingReleased')
     case 'booking.overdue_extended':
