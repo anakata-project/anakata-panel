@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import type { Agency, Booking } from '../../types/api'
+import type { Agency, AgencyUserUpdate, BookingStatus, CommissionPayoutInput, CommissionStatus, PortalPreview } from '../../types/api'
 import { firstApiMessage } from '../../utils/apiForm'
-import { agencyStatusPill, countryName } from './agencyHelpers'
+import { agencyStatusPill, agencyUserStatusLabel, commissionStatusClass, countryName } from './agencyHelpers'
 import { statusLabel, statusPillClass } from '../bookings/bookingHelpers'
+import CommissionPayoutModal from './CommissionPayoutModal.vue'
+
+type AgencyBooking = Agency['bookings'][number]
 
 const open = defineModel<boolean>('open', { required: true })
 
@@ -31,12 +34,27 @@ const commission = ref(0)
 const snapshot = ref('')
 const warn = ref('')
 const saving = ref(false)
+const preview = ref<PortalPreview | null>(null)
+const userName = ref('')
+const userEmail = ref('')
+const userBusy = ref(false)
+const payoutOpen = ref(false)
+const payoutTarget = ref<AgencyBooking | null>(null)
+const payoutSubmitting = ref(false)
+const payoutError = ref('')
+let previewToken = 0
+
+const userNameId = useId()
+const userEmailId = useId()
 
 const canManage = computed(() => can('agencies.manage'))
+const canRecordPayout = computed(() => can('commissions.record_payout'))
 
 const dirty = computed(() => {
   return `${name.value}\0${contact.value}\0${network.value}\0${terms.value}\0${String(commission.value)}` !== snapshot.value
 })
+
+const canAddUser = computed(() => userName.value.trim() !== '' && userEmail.value.trim() !== '' && !userBusy.value)
 
 watch(
   () => [open.value, props.agency] as const,
@@ -54,6 +72,37 @@ watch(
     warn.value = ''
   }
 )
+
+watch(
+  () => [open.value, props.agency, canManage.value] as const,
+  ([isOpen, agency, manage]) => {
+    void loadPreview(isOpen, agency, manage)
+  }
+)
+
+async function loadPreview(isOpen: boolean, agency: Agency | null, manage: boolean): Promise<void> {
+  const token = ++previewToken
+
+  if (!isOpen || agency === null || !manage) {
+    preview.value = null
+    return
+  }
+
+  try {
+    const body = await request(`/api/rms/agencies/${String(agency.id)}/portal-preview`) as PortalPreview
+
+    if (token === previewToken) {
+      preview.value = body
+    }
+  } catch (error: unknown) {
+    if (token !== previewToken) {
+      return
+    }
+
+    preview.value = null
+    warn.value = firstApiMessage(error) ?? (error instanceof Error ? error.message : '')
+  }
+}
 
 async function save(): Promise<void> {
   if (props.agency === null) {
@@ -85,12 +134,153 @@ async function save(): Promise<void> {
   }
 }
 
-function userStatus(status: string): string {
-  if (status === 'PENDING' || status === 'INVITED' || status === 'ACTIVE' || status === 'DISABLED') {
-    return t(`agencies.userStatus.${status}`)
+async function addUser(): Promise<void> {
+  if (props.agency === null || !canAddUser.value) {
+    return
   }
 
-  return status
+  userBusy.value = true
+  warn.value = ''
+
+  try {
+    const updated = await request(`/api/rms/agencies/${String(props.agency.id)}/users`, {
+      method: 'POST',
+      body: {
+        name: userName.value.trim(),
+        email: userEmail.value.trim()
+      }
+    }) as Agency
+
+    userName.value = ''
+    userEmail.value = ''
+    toast.add({ title: t('agencies.userAddedToast') })
+    emit('saved', updated)
+  } catch (error: unknown) {
+    warn.value = firstApiMessage(error) ?? (error instanceof Error ? error.message : '')
+  } finally {
+    userBusy.value = false
+  }
+}
+
+async function setUserStatus(userId: number, status: AgencyUserUpdate['status']): Promise<void> {
+  if (props.agency === null || status === undefined || userBusy.value) {
+    return
+  }
+
+  userBusy.value = true
+  warn.value = ''
+
+  try {
+    const updated = await request(`/api/rms/agencies/${String(props.agency.id)}/users/${String(userId)}`, {
+      method: 'PATCH',
+      body: { status }
+    }) as Agency
+
+    toast.add({ title: t('agencies.userUpdatedToast') })
+    emit('saved', updated)
+  } catch (error: unknown) {
+    warn.value = firstApiMessage(error) ?? (error instanceof Error ? error.message : '')
+  } finally {
+    userBusy.value = false
+  }
+}
+
+function knownCommissionStatus(value: string): CommissionStatus | null {
+  if (
+    value === 'BLOCKED'
+    || value === 'EARNED_ON_COMPLETION'
+    || value === 'PAYABLE'
+    || value === 'PAID'
+    || value === 'CANCELLED'
+  ) {
+    return value
+  }
+
+  return null
+}
+
+function commissionPill(value: string): { label: string, className: string } | null {
+  const status = knownCommissionStatus(value)
+
+  if (status === null) {
+    return null
+  }
+
+  return {
+    label: commissionLabel(status),
+    className: commissionStatusClass(status)
+  }
+}
+
+function commissionLabel(status: CommissionStatus): string {
+  if (status === 'BLOCKED') {
+    return t('payments.commissionBlocked')
+  }
+
+  if (status === 'EARNED_ON_COMPLETION') {
+    return t('payments.commissionAccrued')
+  }
+
+  if (status === 'PAYABLE') {
+    return t('payments.commissionPayable')
+  }
+
+  if (status === 'PAID') {
+    return t('payments.commissionPaid')
+  }
+
+  return t('payments.commissionCancelled')
+}
+
+function materialsLine(source: PortalPreview): string {
+  const items = source.sales_materials.items.join(' · ')
+  const note = source.sales_materials.note
+
+  if (items === '') {
+    return note
+  }
+
+  if (note === '') {
+    return items
+  }
+
+  return `${items} — ${note}`
+}
+
+function startPayout(row: AgencyBooking): void {
+  payoutTarget.value = row
+  payoutError.value = ''
+  payoutOpen.value = true
+}
+
+async function onPayout(payload: { paid_on: string, bank_reference: string }): Promise<void> {
+  if (props.agency === null || payoutTarget.value === null) {
+    return
+  }
+
+  payoutSubmitting.value = true
+  payoutError.value = ''
+
+  const body: CommissionPayoutInput = {
+    amount: payoutTarget.value.commission_amount,
+    paid_on: payload.paid_on,
+    bank_reference: payload.bank_reference
+  }
+
+  try {
+    await request(`/api/rms/commissions/${String(payoutTarget.value.id)}/payout`, {
+      method: 'POST',
+      body
+    })
+    const updated = await request(`/api/rms/agencies/${String(props.agency.id)}`) as Agency
+    payoutOpen.value = false
+    toast.add({ title: t('agencies.payoutToast') })
+    emit('saved', updated)
+  } catch (error: unknown) {
+    payoutError.value = firstApiMessage(error) ?? (error instanceof Error ? error.message : '')
+  } finally {
+    payoutSubmitting.value = false
+  }
 }
 
 function decidedLabel(agency: Agency): string {
@@ -177,8 +367,56 @@ function decidedLabel(agency: Agency): string {
             class="kv"
           >
             <span>{{ user.name }} · {{ user.email }}</span>
-            <span>{{ userStatus(user.status) }}</span>
+            <span>
+              {{ agencyUserStatusLabel(user.status) }}
+              <UButton
+                v-if="canManage && user.status === 'ACTIVE'"
+                variant="outline"
+                size="xs"
+                :disabled="userBusy"
+                @click="setUserStatus(user.id, 'DISABLED')"
+              >
+                {{ t('agencies.disableUser') }}
+              </UButton>
+              <UButton
+                v-if="canManage && user.status === 'DISABLED'"
+                variant="outline"
+                size="xs"
+                :disabled="userBusy"
+                @click="setUserStatus(user.id, 'ACTIVE')"
+              >
+                {{ t('agencies.enableUser') }}
+              </UButton>
+            </span>
           </div>
+          <p class="note">
+            {{ t('agencies.invitesLater') }}
+          </p>
+          <template v-if="canManage">
+            <div class="field">
+              <label :for="userNameId">{{ t('agencies.name') }}</label>
+              <input
+                :id="userNameId"
+                v-model="userName"
+              >
+            </div>
+            <div class="field">
+              <label :for="userEmailId">{{ t('agencies.email') }}</label>
+              <input
+                :id="userEmailId"
+                v-model="userEmail"
+                type="email"
+              >
+            </div>
+            <UButton
+              variant="outline"
+              :disabled="!canAddUser"
+              :loading="userBusy"
+              @click="addUser"
+            >
+              {{ t('agencies.addUser') }}
+            </UButton>
+          </template>
         </div>
 
         <div class="sec">
@@ -187,10 +425,11 @@ function decidedLabel(agency: Agency): string {
             <thead>
               <tr>
                 <th>{{ t('payments.colBooking') }}</th>
-                <th>{{ t('payments.colClient') }}</th>
-                <th>{{ t('payments.colDate') }}</th>
-                <th>{{ t('payments.colStatus') }}</th>
+                <th>{{ t('payments.colRate') }}</th>
                 <th>{{ t('payments.colCommission') }}</th>
+                <th>{{ t('payments.colPayable') }}</th>
+                <th>{{ t('payments.colStatus') }}</th>
+                <th />
               </tr>
             </thead>
             <tbody>
@@ -198,28 +437,51 @@ function decidedLabel(agency: Agency): string {
                 v-if="agency.bookings.length === 0"
                 class="dr-empty"
               >
-                <td colspan="5">
+                <td colspan="6">
                   {{ t('agencies.noBookings') }}
                 </td>
               </tr>
               <tr
                 v-for="row in agency.bookings"
                 :key="row.id"
-                class="bk-row"
-                @click="emit('openBooking', row.id)"
               >
-                <td class="bk-ref">
+                <td
+                  class="bk-ref"
+                  @click="emit('openBooking', row.id)"
+                >
                   {{ row.reference }}
                 </td>
-                <td>{{ row.client }}</td>
-                <td>{{ format(row.departure_date, 'short') }}</td>
+                <td>{{ row.commission_pct === null ? '—' : `${String(row.commission_pct)}%` }}</td>
+                <td>{{ money(row.commission_amount) }}</td>
+                <td>{{ format(row.payable_date, 'short') }}</td>
                 <td>
                   <span
+                    v-if="commissionPill(row.accrual_status)"
                     class="pill"
-                    :class="statusPillClass(row.status as Booking['status'])"
-                  >{{ statusLabel(row.status as Booking['status']) }}</span>
+                    :class="commissionPill(row.accrual_status)?.className"
+                  >{{ commissionPill(row.accrual_status)?.label }}</span>
+                  <template v-else>
+                    {{ row.accrual_status }}
+                  </template>
+                  <div
+                    v-if="row.payout"
+                    class="gmeta"
+                  >
+                    {{ t('agencies.payoutLine', {
+                      date: format(row.payout.paid_on, 'short'),
+                      reference: row.payout.bank_reference
+                    }) }}
+                  </div>
                 </td>
-                <td>{{ money(row.commission_amount) }}</td>
+                <td>
+                  <UButton
+                    v-if="canRecordPayout && row.accrual_status === 'PAYABLE'"
+                    size="xs"
+                    @click="startPayout(row)"
+                  >
+                    {{ t('agencies.recordPayout') }}
+                  </UButton>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -277,21 +539,24 @@ function decidedLabel(agency: Agency): string {
           </UButton>
         </div>
 
-        <div class="sec">
+        <div
+          v-if="preview"
+          class="sec"
+        >
           <h4>{{ t('agencies.previewTitle', { name: agency.name }) }}</h4>
           <p class="notice">
             {{ t('agencies.previewNotice') }}
           </p>
           <div class="prevbox">
             <div class="mono prevl">
-              {{ t('agencies.previewRates', { pct: String(agency.portal_preview.commission_pct) }) }}
+              {{ t('agencies.previewRates', { pct: String(preview.commission_pct) }) }}
             </div>
             <table class="list mini-t">
               <thead>
                 <tr>
                   <th>{{ t('agencies.netRate') }}</th>
                   <th
-                    v-for="year in agency.portal_preview.net_rates"
+                    v-for="year in preview.net_rates"
                     :key="year.year"
                   >
                     {{ year.year }}
@@ -302,7 +567,7 @@ function decidedLabel(agency: Agency): string {
                 <tr>
                   <td>{{ t('agencies.suitePp') }}</td>
                   <td
-                    v-for="year in agency.portal_preview.net_rates"
+                    v-for="year in preview.net_rates"
                     :key="`s-${year.year}`"
                   >
                     {{ money(year.suite_pp) }}
@@ -311,7 +576,7 @@ function decidedLabel(agency: Agency): string {
                 <tr>
                   <td>{{ t('agencies.ownerPp') }}</td>
                   <td
-                    v-for="year in agency.portal_preview.net_rates"
+                    v-for="year in preview.net_rates"
                     :key="`o-${year.year}`"
                   >
                     {{ money(year.owner_pp) }}
@@ -320,7 +585,7 @@ function decidedLabel(agency: Agency): string {
                 <tr>
                   <td>{{ t('agencies.charterWeek') }}</td>
                   <td
-                    v-for="year in agency.portal_preview.net_rates"
+                    v-for="year in preview.net_rates"
                     :key="`c-${year.year}`"
                   >
                     {{ money(year.charter_week) }}
@@ -336,29 +601,36 @@ function decidedLabel(agency: Agency): string {
                 <tr>
                   <th>{{ t('payments.colBooking') }}</th>
                   <th>{{ t('payments.colClient') }}</th>
+                  <th>{{ t('payments.colDate') }}</th>
                   <th>{{ t('payments.colStatus') }}</th>
-                  <th>{{ t('payments.colCommission') }}</th>
+                  <th>{{ t('agencies.colNetDue') }}</th>
                 </tr>
               </thead>
               <tbody>
                 <tr
-                  v-if="agency.bookings.length === 0"
+                  v-if="preview.bookings.length === 0"
                   class="dr-empty"
                 >
-                  <td colspan="4">
+                  <td colspan="5">
                     {{ t('agencies.noBookings') }}
                   </td>
                 </tr>
                 <tr
-                  v-for="row in agency.bookings"
-                  :key="`p-${row.id}`"
+                  v-for="row in preview.bookings"
+                  :key="`p-${row.reference ?? row.lead_guest}`"
                 >
                   <td class="bk-ref">
                     {{ row.reference }}
                   </td>
-                  <td>{{ row.client }}</td>
-                  <td>{{ row.status }}</td>
-                  <td>{{ money(row.commission_amount) }}</td>
+                  <td>{{ row.lead_guest }}</td>
+                  <td>{{ format(row.departure_date, 'short') }}</td>
+                  <td>
+                    <span
+                      class="pill"
+                      :class="statusPillClass(row.status as BookingStatus)"
+                    >{{ statusLabel(row.status) }}</span>
+                  </td>
+                  <td>{{ money(row.net_due) }}</td>
                 </tr>
               </tbody>
             </table>
@@ -371,32 +643,34 @@ function decidedLabel(agency: Agency): string {
                   <th>{{ t('payments.colBooking') }}</th>
                   <th>{{ t('payments.colRate') }}</th>
                   <th>{{ t('payments.colCommission') }}</th>
+                  <th>{{ t('payments.colPayable') }}</th>
                   <th>{{ t('payments.colStatus') }}</th>
                 </tr>
               </thead>
               <tbody>
                 <tr
-                  v-if="agency.bookings.length === 0"
+                  v-if="preview.commissions.length === 0"
                   class="dr-empty"
                 >
-                  <td colspan="4">
+                  <td colspan="5">
                     {{ t('agencies.noBookings') }}
                   </td>
                 </tr>
                 <tr
-                  v-for="row in agency.bookings"
-                  :key="`c-${row.id}`"
+                  v-for="row in preview.commissions"
+                  :key="`c-${row.reference ?? row.payable_date}`"
                 >
                   <td class="bk-ref">
                     {{ row.reference }}
                   </td>
-                  <td>{{ row.commission_pct === null ? '—' : `${String(row.commission_pct)}%` }}</td>
+                  <td>{{ row.rate === null ? '—' : `${String(row.rate)}%` }}</td>
                   <td>{{ money(row.commission_amount) }}</td>
+                  <td>{{ format(row.payable_date, 'short') }}</td>
                   <td>
                     <span
                       class="pill"
-                      :class="row.commission_approved ? 'p-wait' : 'p-over'"
-                    >{{ row.commission_approved ? t('payments.commissionAccrued') : t('agencies.blockedAccrued') }}</span>
+                      :class="commissionStatusClass(row.status)"
+                    >{{ commissionLabel(row.status) }}</span>
                   </td>
                 </tr>
               </tbody>
@@ -405,10 +679,18 @@ function decidedLabel(agency: Agency): string {
               {{ t('agencies.previewMaterials') }}
             </div>
             <div class="gmeta">
-              {{ t('agencies.previewMaterialsBody') }}
+              {{ materialsLine(preview) }}
             </div>
           </div>
         </div>
+
+        <CommissionPayoutModal
+          v-model:open="payoutOpen"
+          :amount="payoutTarget?.commission_amount ?? 0"
+          :submitting="payoutSubmitting"
+          :error="payoutError"
+          @submit="onPayout"
+        />
       </template>
     </template>
   </USlideover>

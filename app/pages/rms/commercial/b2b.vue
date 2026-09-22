@@ -240,6 +240,18 @@ watch(
       >
         {{ money(kpis.commission_accrued) }}
       </AnkKpi>
+      <AnkKpi
+        :label="t('agencies.kpiPayable')"
+        :sub="t('agencies.kpiPayableSub')"
+      >
+        {{ money(kpis.commission_payable) }}
+      </AnkKpi>
+      <AnkKpi
+        :label="t('agencies.kpiPaid')"
+        :sub="t('agencies.kpiPaidSub')"
+      >
+        {{ money(kpis.commission_paid) }}
+      </AnkKpi>
     </div>
 
     <div

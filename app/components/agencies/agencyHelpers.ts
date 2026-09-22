@@ -1,4 +1,4 @@
-import type { AgencyStatus } from '../../types/api'
+import type { AgencyStatus, AgencyUserStatus, CommissionStatus } from '../../types/api'
 import type { SlaDisplay } from '../requests/requestHelpers'
 
 export type AgencyCountry = {
@@ -74,6 +74,42 @@ export function countryName(code: string | null): string {
   }
 
   return AGENCY_COUNTRIES.find(item => item.value === code)?.label ?? code
+}
+
+export function commissionStatusClass(status: CommissionStatus): string {
+  if (status === 'BLOCKED') {
+    return 'p-over'
+  }
+
+  if (status === 'EARNED_ON_COMPLETION') {
+    return 'p-wait'
+  }
+
+  if (status === 'PAYABLE') {
+    return 'p-pend'
+  }
+
+  if (status === 'PAID') {
+    return 'p-full'
+  }
+
+  return 'p-canc'
+}
+
+export function agencyUserStatusLabel(status: AgencyUserStatus): string {
+  if (status === 'INVITE_ON_PORTAL_LAUNCH') {
+    return 'Invite on portal launch'
+  }
+
+  if (status === 'INVITE_ON_APPROVAL') {
+    return 'Invite on approval'
+  }
+
+  if (status === 'ACTIVE') {
+    return 'Active'
+  }
+
+  return 'Disabled'
 }
 
 export function agencyStatusPill(status: AgencyStatus): string {
