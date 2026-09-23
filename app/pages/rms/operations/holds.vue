@@ -89,13 +89,19 @@ function departureLabel(row: WaitlistEntry): string {
 }
 
 function notifiedLine(row: WaitlistEntry): string {
-  if (row.notified === null) {
+  if (row.notified === null || row.notified.at === null) {
     return ''
   }
 
+  const date = format(row.notified.at, 'short')
+
+  if (row.auto_notified) {
+    return t('holds.notifiedSystem', { date })
+  }
+
   return t('holds.notifiedLine', {
-    date: format(row.notified.at, 'short'),
-    channel: row.notified.channel,
+    date,
+    channel: row.notified.channel ?? '',
     name: row.notified.by
   })
 }
@@ -316,6 +322,9 @@ onMounted(() => {
           </tbody>
         </table>
       </div>
+      <p class="mono">
+        {{ t('holds.waitlistRule') }}
+      </p>
     </div>
 
     <BookingPanel
