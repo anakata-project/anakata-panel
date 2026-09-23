@@ -1,0 +1,559 @@
+<script setup lang="ts">
+import type {
+  AgencyListItem,
+  BusinessRulesVersion,
+  ChannelOfOriginGroup,
+  ItineraryListItem,
+  ReportDefinition,
+  ReportRun,
+  ReportSubscription,
+  RunReportInput,
+  UpdateSubscriptionInput,
+  Yacht
+} from '../../../types/api'
+import { downloadDocumentFile } from '../../../components/documents/documentFetch'
+import { calendarYear, resolveDateRange } from '../../../components/lists/dateRange'
+import { isScheduledRun, retentionDays } from '../../../components/commercial/reportHelpers'
+import { firstApiMessage } from '../../../utils/apiForm'
+
+const CHANNELS: Array<ChannelOfOriginGroup> = [
+  'Direct',
+  'Marketing',
+  'Trade, corporate & groups',
+  'Distribution, partners & other'
+]
+
+const POLL_MS = 1000
+
+const { can } = useAuth()
+const { t } = useI18n()
+const { useFetch, request } = useApi()
+const { format } = useDates()
+
+const today = computed(() => format(new Date(), 'iso'))
+const yearWindow = resolveDateRange(`y${calendarYear(today.value)}`, today.value)
+
+const definitions = ref<Array<ReportDefinition>>([])
+const runs = ref<Array<ReportRun>>([])
+const subscriptions = ref<Array<ReportSubscription>>([])
+const loadError = ref('')
+const actionError = ref('')
+const openKey = ref<string | null>(null)
+const runFrom = ref(yearWindow.from)
+const runTo = ref(yearWindow.to)
+const yachtId = ref<number | null>(null)
+const itineraryId = ref<number | null>(null)
+const channel = ref<ChannelOfOriginGroup | ''>('')
+const agencyId = ref<number | null>(null)
+const posting = ref(false)
+
+const { data: yachtsPayload } = useFetch<{ data: Array<Yacht> }>('/api/rms/yachts')
+const { data: itinerariesPayload } = useFetch<{ data: Array<ItineraryListItem> }>('/api/rms/itineraries')
+const { data: agenciesPayload } = useFetch<{ data: Array<AgencyListItem> }>('/api/rms/agencies')
+const { data: rulesPayload } = useFetch<BusinessRulesVersion>('/api/rms/business-rules', {
+  immediate: can('rules.view')
+})
+
+const yachts = computed(() => yachtsPayload.value?.data ?? [])
+const itineraries = computed(() => itinerariesPayload.value?.data ?? [])
+const agencies = computed(() => agenciesPayload.value?.data ?? [])
+const fileDays = computed(() => retentionDays(rulesPayload.value?.document))
+
+let pollTimer: ReturnType<typeof setTimeout> | undefined
+
+onMounted(() => {
+  void loadAll()
+})
+
+onUnmounted(() => {
+  clearTimeout(pollTimer)
+})
+
+function idFrom(event: Event): number | null {
+  const value = (event.target as HTMLSelectElement).value
+
+  return value === '' ? null : Number(value)
+}
+
+function onChannel(event: Event): void {
+  const value = (event.target as HTMLSelectElement).value
+  channel.value = value === '' ? '' : value as ChannelOfOriginGroup
+}
+
+function titleFor(key: string): string {
+  return definitions.value.find(definition => definition.key === key)?.title ?? key
+}
+
+function scheduleLine(subscription: ReportSubscription): string {
+  if (subscription.cadence === 'WEEKLY' && subscription.weekday !== null) {
+    return t('reports.scheduleWeekly', {
+      cadence: subscription.cadence,
+      time: subscription.send_at,
+      weekday: subscription.weekday
+    })
+  }
+
+  if (subscription.day_of_month !== null && (subscription.cadence === 'MONTHLY' || subscription.cadence === 'QUARTERLY')) {
+    return t('reports.scheduleMonthly', {
+      cadence: subscription.cadence,
+      time: subscription.send_at,
+      day: subscription.day_of_month
+    })
+  }
+
+  return t('reports.scheduleDaily', {
+    cadence: subscription.cadence,
+    time: subscription.send_at
+  })
+}
+
+function pillClass(status: ReportRun['status']): string {
+  if (status === 'FAILED') {
+    return 'pill p-over'
+  }
+
+  if (status === 'QUEUED') {
+    return 'pill p-pend'
+  }
+
+  return 'pill'
+}
+
+function purgedLine(): string {
+  if (fileDays.value === null) {
+    return t('reports.purgedUnknown')
+  }
+
+  return t('reports.purged', { n: fileDays.value })
+}
+
+async function loadAll(): Promise<void> {
+  try {
+    const [definitionPayload, runPayload, subscriptionPayload] = await Promise.all([
+      request('/api/rms/reports') as Promise<{ data: Array<ReportDefinition> }>,
+      request('/api/rms/reports/runs') as Promise<{ data: Array<ReportRun> }>,
+      request('/api/rms/reports/subscriptions') as Promise<{ data: Array<ReportSubscription> }>
+    ])
+
+    definitions.value = definitionPayload.data
+    runs.value = runPayload.data
+    subscriptions.value = subscriptionPayload.data
+    loadError.value = ''
+    schedulePoll()
+  } catch (error: unknown) {
+    loadError.value = firstApiMessage(error) ?? t('reports.loadError')
+  }
+}
+
+function schedulePoll(): void {
+  clearTimeout(pollTimer)
+
+  if (!runs.value.some(run => run.status === 'QUEUED')) {
+    return
+  }
+
+  pollTimer = setTimeout(() => {
+    void refreshRuns()
+  }, POLL_MS)
+}
+
+async function refreshRuns(): Promise<void> {
+  try {
+    const payload = await request('/api/rms/reports/runs') as { data: Array<ReportRun> }
+    runs.value = payload.data
+    schedulePoll()
+  } catch (error: unknown) {
+    actionError.value = firstApiMessage(error) ?? t('reports.loadError')
+  }
+}
+
+function openRun(definition: ReportDefinition): void {
+  openKey.value = openKey.value === definition.key ? null : definition.key
+  actionError.value = ''
+}
+
+async function submitRun(definition: ReportDefinition): Promise<void> {
+  if (runFrom.value === null || runTo.value === null) {
+    actionError.value = t('reports.windowRequired')
+
+    return
+  }
+
+  const body: RunReportInput = {
+    from: runFrom.value,
+    to: runTo.value
+  }
+
+  if (yachtId.value !== null) {
+    body.yacht = yachtId.value
+  }
+
+  if (itineraryId.value !== null) {
+    body.itinerary = itineraryId.value
+  }
+
+  if (channel.value !== '') {
+    body.channel = channel.value
+  }
+
+  if (agencyId.value !== null) {
+    body.agency = agencyId.value
+  }
+
+  posting.value = true
+  actionError.value = ''
+
+  try {
+    await request(`/api/rms/reports/${definition.key}/runs`, {
+      method: 'POST',
+      body
+    })
+    openKey.value = null
+    await refreshRuns()
+  } catch (error: unknown) {
+    actionError.value = firstApiMessage(error) ?? t('reports.loadError')
+  } finally {
+    posting.value = false
+  }
+}
+
+async function download(run: ReportRun, fileFormat: ReportRun['formats'][number]): Promise<void> {
+  actionError.value = ''
+
+  try {
+    await downloadDocumentFile(
+      `/api/rms/reports/runs/${String(run.id)}/file/${fileFormat}`,
+      `${run.definition_key}.${fileFormat}`
+    )
+  } catch (error: unknown) {
+    actionError.value = error instanceof Error ? error.message : t('reports.loadError')
+  }
+}
+
+async function patchSubscription(subscription: ReportSubscription, changes: UpdateSubscriptionInput): Promise<void> {
+  actionError.value = ''
+
+  try {
+    const updated = await request(`/api/rms/reports/subscriptions/${String(subscription.id)}`, {
+      method: 'PATCH',
+      body: changes
+    }) as { data: ReportSubscription }
+
+    subscriptions.value = subscriptions.value.map(row => row.id === subscription.id ? updated.data : row)
+  } catch (error: unknown) {
+    actionError.value = firstApiMessage(error) ?? t('reports.loadError')
+  }
+}
+
+function onActive(subscription: ReportSubscription, event: Event): void {
+  const active = (event.target as HTMLInputElement).checked
+  void patchSubscription(subscription, { active })
+}
+
+function onSendAt(subscription: ReportSubscription, event: Event): void {
+  const sendAt = (event.target as HTMLInputElement).value
+
+  if (sendAt === '') {
+    return
+  }
+
+  void patchSubscription(subscription, { send_at: sendAt })
+}
+
+async function runNow(subscription: ReportSubscription): Promise<void> {
+  posting.value = true
+  actionError.value = ''
+
+  try {
+    await request(`/api/rms/reports/subscriptions/${String(subscription.id)}/run-now`, {
+      method: 'POST'
+    })
+    await refreshRuns()
+  } catch (error: unknown) {
+    actionError.value = firstApiMessage(error) ?? t('reports.loadError')
+  } finally {
+    posting.value = false
+  }
+}
+</script>
+
+<template>
+  <div>
+    <p
+      v-if="loadError !== ''"
+      class="notice"
+    >
+      {{ loadError }}
+    </p>
+    <p
+      v-if="actionError !== ''"
+      class="notice"
+    >
+      {{ actionError }}
+    </p>
+
+    <div class="panel">
+      <h3>{{ t('reports.definitionsTitle') }}</h3>
+      <div class="bk-table-wrap">
+        <table class="list">
+          <thead>
+            <tr>
+              <th>{{ t('reports.colDefinition') }}</th>
+              <th>{{ t('reports.formats') }}</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            <template
+              v-for="definition in definitions"
+              :key="definition.key"
+            >
+              <tr>
+                <td>
+                  <div>{{ definition.title }}</div>
+                  <p class="mono">
+                    {{ definition.sentence }}
+                  </p>
+                </td>
+                <td class="mono">
+                  {{ definition.formats.join(' ') }}
+                </td>
+                <td>
+                  <UButton
+                    v-if="definition.allowed"
+                    type="button"
+                    @click="openRun(definition)"
+                  >
+                    {{ t('reports.run') }}
+                  </UButton>
+                </td>
+              </tr>
+              <tr v-if="openKey === definition.key && definition.allowed">
+                <td colspan="3">
+                  <div class="drbar">
+                    <label>
+                      {{ t('reports.from') }}
+                      <input
+                        v-model="runFrom"
+                        type="date"
+                      >
+                    </label>
+                    <label>
+                      {{ t('reports.to') }}
+                      <input
+                        v-model="runTo"
+                        type="date"
+                      >
+                    </label>
+                    <select
+                      :aria-label="t('dashboard.allYachts')"
+                      :value="yachtId ?? ''"
+                      @change="yachtId = idFrom($event)"
+                    >
+                      <option value="">
+                        {{ t('dashboard.allYachts') }}
+                      </option>
+                      <option
+                        v-for="yacht in yachts"
+                        :key="yacht.id"
+                        :value="yacht.id"
+                      >
+                        {{ yacht.code }}
+                      </option>
+                    </select>
+                    <select
+                      :aria-label="t('dashboard.allItineraries')"
+                      :value="itineraryId ?? ''"
+                      @change="itineraryId = idFrom($event)"
+                    >
+                      <option value="">
+                        {{ t('dashboard.allItineraries') }}
+                      </option>
+                      <option
+                        v-for="itinerary in itineraries"
+                        :key="itinerary.id"
+                        :value="itinerary.id"
+                      >
+                        {{ itinerary.name }}
+                      </option>
+                    </select>
+                    <select
+                      :aria-label="t('dashboard.allChannels')"
+                      :value="channel"
+                      @change="onChannel"
+                    >
+                      <option value="">
+                        {{ t('dashboard.allChannels') }}
+                      </option>
+                      <option
+                        v-for="group in CHANNELS"
+                        :key="group"
+                        :value="group"
+                      >
+                        {{ group }}
+                      </option>
+                    </select>
+                    <select
+                      :aria-label="t('dashboard.allAgencies')"
+                      :value="agencyId ?? ''"
+                      @change="agencyId = idFrom($event)"
+                    >
+                      <option value="">
+                        {{ t('dashboard.allAgencies') }}
+                      </option>
+                      <option
+                        v-for="agency in agencies"
+                        :key="agency.id"
+                        :value="agency.id"
+                      >
+                        {{ agency.name }}
+                      </option>
+                    </select>
+                    <UButton
+                      type="button"
+                      :disabled="posting"
+                      @click="submitRun(definition)"
+                    >
+                      {{ t('reports.run') }}
+                    </UButton>
+                  </div>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>{{ t('reports.runsTitle') }}</h3>
+      <div class="bk-table-wrap">
+        <table class="list">
+          <thead>
+            <tr>
+              <th>{{ t('reports.colDefinition') }}</th>
+              <th>{{ t('reports.colWindow') }}</th>
+              <th>{{ t('reports.colRequested') }}</th>
+              <th>{{ t('reports.colWhen') }}</th>
+              <th>{{ t('reports.colRows') }}</th>
+              <th>{{ t('reports.colStatus') }}</th>
+              <th>{{ t('reports.colFile') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-if="runs.length === 0"
+              class="dr-empty"
+            >
+              <td colspan="7">
+                {{ t('reports.runsEmpty') }}
+              </td>
+            </tr>
+            <tr
+              v-for="run in runs"
+              :key="run.id"
+            >
+              <td>{{ titleFor(run.definition_key) }}</td>
+              <td class="mono nw">
+                {{ run.window_from }} – {{ run.window_to }}
+              </td>
+              <td>{{ isScheduledRun(run.requested_by) ? t('reports.scheduled') : t('reports.manual') }}</td>
+              <td class="nw">
+                {{ run.generated_at === null ? t('dashboard.dash') : format(run.generated_at, 'short') }}
+              </td>
+              <td>{{ run.rows }}</td>
+              <td>
+                <span :class="pillClass(run.status)">{{ run.status }}</span>
+                <p
+                  v-if="run.status === 'FAILED' && run.error !== null"
+                  class="mono"
+                >
+                  {{ run.error }}
+                </p>
+              </td>
+              <td>
+                <p
+                  v-if="run.purged_at !== null"
+                  class="mono"
+                >
+                  {{ purgedLine() }}
+                </p>
+                <template v-else>
+                  <UButton
+                    v-for="fileFormat in run.formats"
+                    :key="fileFormat"
+                    type="button"
+                    @click="download(run, fileFormat)"
+                  >
+                    {{ t('reports.download', { format: fileFormat }) }}
+                  </UButton>
+                </template>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>{{ t('reports.subscriptionsTitle') }}</h3>
+      <div class="bk-table-wrap">
+        <table class="list">
+          <thead>
+            <tr>
+              <th>{{ t('reports.colDefinition') }}</th>
+              <th>{{ t('reports.colCadence') }}</th>
+              <th>{{ t('reports.colNext') }}</th>
+              <th>{{ t('reports.colActive') }}</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="subscription in subscriptions"
+              :key="subscription.id"
+            >
+              <td>
+                <div>{{ titleFor(subscription.definition_key) }}</div>
+                <p class="mono">
+                  {{ t('reports.recipients', { permission: definitions.find(definition => definition.key === subscription.definition_key)?.permission ?? '' }) }}
+                </p>
+              </td>
+              <td>{{ subscription.cadence }}</td>
+              <td>
+                {{ scheduleLine(subscription) }}
+                <label v-if="can('rules.manage')">
+                  {{ t('reports.sendAt') }}
+                  <input
+                    type="time"
+                    :value="subscription.send_at"
+                    @change="onSendAt(subscription, $event)"
+                  >
+                </label>
+              </td>
+              <td>
+                <input
+                  type="checkbox"
+                  :checked="subscription.active"
+                  :disabled="!can('rules.manage')"
+                  :aria-label="t('reports.colActive')"
+                  @change="onActive(subscription, $event)"
+                >
+              </td>
+              <td>
+                <UButton
+                  v-if="can('rules.manage')"
+                  type="button"
+                  :disabled="posting"
+                  @click="runNow(subscription)"
+                >
+                  {{ t('reports.runNow') }}
+                </UButton>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</template>
