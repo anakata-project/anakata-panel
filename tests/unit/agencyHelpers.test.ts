@@ -6,7 +6,11 @@ import {
   bookingsCell,
   commissionPillClass,
   commissionStatusClass,
-  countryName
+  countryName,
+  materialKindKey,
+  materialSizeLabel,
+  portalActivityKey,
+  portalUserActions
 } from '../../app/components/agencies/agencyHelpers'
 
 describe('agencySlaDisplay', () => {
@@ -41,6 +45,59 @@ describe('agencyUserStatusLabel', () => {
     expect(agencyUserStatusLabel('INVITE_ON_APPROVAL')).toBe('Invite on approval')
     expect(agencyUserStatusLabel('ACTIVE')).toBe('Active')
     expect(agencyUserStatusLabel('DISABLED')).toBe('Disabled')
+  })
+})
+
+describe('portalUserActions', () => {
+  it('reads the payload and does not invent an expiry', () => {
+    expect(portalUserActions({ status: 'ACTIVE', invite_sent_at: null })).toEqual({
+      state: 'active',
+      canInvite: false,
+      canResend: false,
+      canDisable: true,
+      canEnable: false
+    })
+    expect(portalUserActions({ status: 'DISABLED', invite_sent_at: '2026-09-01T00:00:00.000Z' })).toEqual({
+      state: 'disabled',
+      canInvite: false,
+      canResend: false,
+      canDisable: false,
+      canEnable: true
+    })
+    expect(portalUserActions({
+      status: 'INVITE_ON_PORTAL_LAUNCH',
+      invite_sent_at: '2026-09-01T00:00:00.000Z'
+    })).toEqual({
+      state: 'invited',
+      canInvite: false,
+      canResend: true,
+      canDisable: false,
+      canEnable: false
+    })
+    expect(portalUserActions({ status: 'INVITE_ON_APPROVAL', invite_sent_at: null })).toEqual({
+      state: 'pending',
+      canInvite: true,
+      canResend: false,
+      canDisable: false,
+      canEnable: false
+    })
+  })
+})
+
+describe('material size and activity labels', () => {
+  it('formats bytes and maps the four portal events', () => {
+    expect(materialSizeLabel(0)).toBe('0 B')
+    expect(materialSizeLabel(512)).toBe('512 B')
+    expect(materialSizeLabel(1024)).toBe('1 KB')
+    expect(materialSizeLabel(1536)).toBe('2 KB')
+    expect(materialSizeLabel(1024 * 1024)).toBe('1 MB')
+    expect(materialSizeLabel(50 * 1024 * 1024)).toBe('50 MB')
+    expect(materialKindKey('FACT_SHEET')).toBe('agencies.kindFactSheet')
+    expect(portalActivityKey('portal.signed_in')).toBe('agencies.activitySignedIn')
+    expect(portalActivityKey('portal.sign_in_failed')).toBe('agencies.activitySignInFailed')
+    expect(portalActivityKey('portal.request_created')).toBe('agencies.activityRequestCreated')
+    expect(portalActivityKey('portal.material_downloaded')).toBe('agencies.activityDownloaded')
+    expect(portalActivityKey('portal.signed_out')).toBeNull()
   })
 })
 

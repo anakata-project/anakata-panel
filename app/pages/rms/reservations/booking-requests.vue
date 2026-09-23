@@ -245,6 +245,14 @@ onMounted(() => {
                 <div class="bk-sub via">
                   {{ viaChannel(row.contact.preferred_channel) }}
                 </div>
+                <div
+                  v-if="row.source === 'portal'"
+                  class="bk-sub via"
+                >
+                  {{ row.agency_name
+                    ? t('requests.sourcePortal', { agency: row.agency_name })
+                    : t('requests.sourcePortalOnly') }}
+                </div>
               </td>
               <td>{{ row.party }}</td>
               <td>{{ format(row.departure.date, 'short') }} · {{ row.cabin_label }}</td>

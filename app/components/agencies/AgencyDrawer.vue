@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import type { Agency, AgencyUserUpdate, BookingStatus, CommissionPayoutInput, CommissionStatus, PortalPreview } from '../../types/api'
+import type { Agency, AgencyUser, AgencyUserUpdate, BookingStatus, CommissionPayoutInput, CommissionStatus, Paginated, PortalActivity, PortalPreview, SalesMaterial, SalesMaterialKind } from '../../types/api'
 import { firstApiMessage } from '../../utils/apiForm'
-import { agencyStatusPill, agencyUserStatusLabel, commissionStatusClass, countryName } from './agencyHelpers'
+import { downloadDocumentFile } from '../documents/documentFetch'
+import { agencyStatusPill, commissionStatusClass, countryName, materialKindKey, materialSizeLabel, portalActivityKey, portalUserActions, SALES_MATERIAL_KINDS } from './agencyHelpers'
 import { statusLabel, statusPillClass } from '../bookings/bookingHelpers'
+import ReasonModal from '../bookings/ReasonModal.vue'
 import CommissionPayoutModal from './CommissionPayoutModal.vue'
 
 type AgencyBooking = Agency['bookings'][number]
@@ -42,10 +44,27 @@ const payoutOpen = ref(false)
 const payoutTarget = ref<AgencyBooking | null>(null)
 const payoutSubmitting = ref(false)
 const payoutError = ref('')
+const materials = ref<Array<SalesMaterial>>([])
+const materialTitle = ref('')
+const materialKind = ref<SalesMaterialKind>('FACT_SHEET')
+const materialFile = ref<File | null>(null)
+const materialFileInput = ref<HTMLInputElement | null>(null)
+const materialBusy = ref(false)
+const activity = ref<Paginated<PortalActivity> | null>(null)
+const activityPage = ref(1)
+const accessOpen = ref(false)
+const accessMode = ref<'suspend' | 'resume'>('suspend')
+const accessBusy = ref(false)
+const accessError = ref('')
 let previewToken = 0
+let materialsToken = 0
+let activityToken = 0
 
 const userNameId = useId()
 const userEmailId = useId()
+const materialTitleId = useId()
+const materialKindId = useId()
+const materialFileId = useId()
 
 const canManage = computed(() => can('agencies.manage'))
 const canRecordPayout = computed(() => can('commissions.record_payout'))
@@ -55,6 +74,7 @@ const dirty = computed(() => {
 })
 
 const canAddUser = computed(() => userName.value.trim() !== '' && userEmail.value.trim() !== '' && !userBusy.value)
+const canUploadMaterial = computed(() => materialTitle.value.trim() !== '' && materialFile.value !== null && !materialBusy.value)
 
 watch(
   () => [open.value, props.agency] as const,
@@ -80,6 +100,36 @@ watch(
   }
 )
 
+watch(
+  () => [open.value, props.agency?.id, canManage.value] as const,
+  ([isOpen, agencyId, manage]) => {
+    if (!isOpen || agencyId === undefined || !manage) {
+      materials.value = []
+      activity.value = null
+      return
+    }
+
+    void loadMaterials(agencyId)
+
+    if (activityPage.value !== 1) {
+      activityPage.value = 1
+      return
+    }
+
+    void loadActivity(agencyId, 1)
+  }
+)
+
+watch(activityPage, (page) => {
+  const agencyId = props.agency?.id
+
+  if (!open.value || agencyId === undefined || !canManage.value) {
+    return
+  }
+
+  void loadActivity(agencyId, page)
+})
+
 async function loadPreview(isOpen: boolean, agency: Agency | null, manage: boolean): Promise<void> {
   const token = ++previewToken
 
@@ -102,6 +152,205 @@ async function loadPreview(isOpen: boolean, agency: Agency | null, manage: boole
     preview.value = null
     warn.value = firstApiMessage(error) ?? (error instanceof Error ? error.message : '')
   }
+}
+
+async function reloadAgency(): Promise<Agency | null> {
+  if (props.agency === null) {
+    return null
+  }
+
+  return await request(`/api/rms/agencies/${String(props.agency.id)}`) as Agency
+}
+
+async function loadMaterials(agencyId: number): Promise<void> {
+  const token = ++materialsToken
+
+  try {
+    const body = await request(`/api/rms/sales-materials?agency_id=${String(agencyId)}`) as { data: Array<SalesMaterial> }
+
+    if (token === materialsToken) {
+      materials.value = body.data
+    }
+  } catch (error: unknown) {
+    if (token !== materialsToken) {
+      return
+    }
+
+    materials.value = []
+    warn.value = firstApiMessage(error) ?? (error instanceof Error ? error.message : '')
+  }
+}
+
+async function loadActivity(agencyId: number, page: number): Promise<void> {
+  const token = ++activityToken
+
+  try {
+    const body = await request(`/api/rms/agencies/${String(agencyId)}/portal-activity?page=${String(page)}`) as Paginated<PortalActivity>
+
+    if (token === activityToken) {
+      activity.value = body
+    }
+  } catch (error: unknown) {
+    if (token !== activityToken) {
+      return
+    }
+
+    activity.value = null
+    warn.value = firstApiMessage(error) ?? (error instanceof Error ? error.message : '')
+  }
+}
+
+function onMaterialFile(event: Event): void {
+  const target = event.target
+
+  if (!(target instanceof HTMLInputElement)) {
+    return
+  }
+
+  materialFile.value = target.files?.[0] ?? null
+}
+
+async function uploadMaterial(): Promise<void> {
+  if (props.agency === null || !canUploadMaterial.value || materialFile.value === null) {
+    return
+  }
+
+  materialBusy.value = true
+  warn.value = ''
+
+  const body = new FormData()
+  body.append('title', materialTitle.value.trim())
+  body.append('kind', materialKind.value)
+  body.append('agency_id', String(props.agency.id))
+  body.append('file', materialFile.value)
+
+  try {
+    await request('/api/rms/sales-materials', {
+      method: 'POST',
+      body
+    })
+    materialTitle.value = ''
+    materialKind.value = 'FACT_SHEET'
+    materialFile.value = null
+
+    if (materialFileInput.value !== null) {
+      materialFileInput.value.value = ''
+    }
+    toast.add({ title: t('agencies.uploadedToast') })
+    await loadMaterials(props.agency.id)
+  } catch (error: unknown) {
+    warn.value = firstApiMessage(error) ?? (error instanceof Error ? error.message : '')
+  } finally {
+    materialBusy.value = false
+  }
+}
+
+async function toggleMaterial(material: SalesMaterial): Promise<void> {
+  if (props.agency === null || materialBusy.value) {
+    return
+  }
+
+  materialBusy.value = true
+  warn.value = ''
+
+  try {
+    await request(`/api/rms/sales-materials/${String(material.id)}`, {
+      method: 'PATCH'
+    })
+    toast.add({ title: t('agencies.publishedToast') })
+    await loadMaterials(props.agency.id)
+  } catch (error: unknown) {
+    warn.value = firstApiMessage(error) ?? (error instanceof Error ? error.message : '')
+  } finally {
+    materialBusy.value = false
+  }
+}
+
+async function downloadMaterial(material: SalesMaterial): Promise<void> {
+  warn.value = ''
+
+  try {
+    await downloadDocumentFile(`/api/rms/sales-materials/${String(material.id)}/file`, material.title)
+  } catch (error: unknown) {
+    warn.value = firstApiMessage(error) ?? (error instanceof Error ? error.message : '')
+  }
+}
+
+function startAccess(mode: 'suspend' | 'resume'): void {
+  accessMode.value = mode
+  accessError.value = ''
+  accessOpen.value = true
+}
+
+async function onAccess(reason: string): Promise<void> {
+  if (props.agency === null) {
+    return
+  }
+
+  accessBusy.value = true
+  accessError.value = ''
+
+  const path = accessMode.value === 'suspend' ? 'suspend' : 'resume'
+
+  try {
+    await request(`/api/rms/agencies/${String(props.agency.id)}/portal/${path}`, {
+      method: 'POST',
+      body: { reason }
+    })
+    const updated = await reloadAgency()
+    accessOpen.value = false
+    toast.add({
+      title: t(accessMode.value === 'suspend' ? 'agencies.suspendedToast' : 'agencies.resumedToast')
+    })
+
+    if (updated !== null) {
+      emit('saved', updated)
+    }
+  } catch (error: unknown) {
+    accessError.value = firstApiMessage(error) ?? (error instanceof Error ? error.message : '')
+  } finally {
+    accessBusy.value = false
+  }
+}
+
+function activityText(event: string): string {
+  const key = portalActivityKey(event)
+
+  return key === null ? event : t(key)
+}
+
+function bookingIdFor(reference: string): number | null {
+  const row = props.agency?.bookings.find(booking => booking.reference === reference)
+
+  return row === undefined ? null : row.id
+}
+
+function openActivityBooking(reference: string): void {
+  const id = bookingIdFor(reference)
+
+  if (id !== null) {
+    emit('openBooking', id)
+  }
+}
+
+function userActions(user: AgencyUser) {
+  return portalUserActions(user)
+}
+
+function userStateKey(state: ReturnType<typeof portalUserActions>['state']): string {
+  if (state === 'active') {
+    return 'agencies.userActive'
+  }
+
+  if (state === 'disabled') {
+    return 'agencies.userDisabled'
+  }
+
+  if (state === 'invited') {
+    return 'agencies.userInvited'
+  }
+
+  return 'agencies.userPending'
 }
 
 async function save(): Promise<void> {
@@ -162,6 +411,31 @@ async function addUser(): Promise<void> {
   }
 }
 
+async function inviteUser(userId: number): Promise<void> {
+  if (props.agency === null || userBusy.value) {
+    return
+  }
+
+  userBusy.value = true
+  warn.value = ''
+
+  try {
+    await request(`/api/rms/agencies/${String(props.agency.id)}/users/${String(userId)}/invite`, {
+      method: 'POST'
+    })
+    const updated = await reloadAgency()
+    toast.add({ title: t('agencies.invitedToast') })
+
+    if (updated !== null) {
+      emit('saved', updated)
+    }
+  } catch (error: unknown) {
+    warn.value = firstApiMessage(error) ?? (error instanceof Error ? error.message : '')
+  } finally {
+    userBusy.value = false
+  }
+}
+
 async function setUserStatus(userId: number, status: AgencyUserUpdate['status']): Promise<void> {
   if (props.agency === null || status === undefined || userBusy.value) {
     return
@@ -171,13 +445,17 @@ async function setUserStatus(userId: number, status: AgencyUserUpdate['status'])
   warn.value = ''
 
   try {
-    const updated = await request(`/api/rms/agencies/${String(props.agency.id)}/users/${String(userId)}`, {
+    await request(`/api/rms/agencies/${String(props.agency.id)}/users/${String(userId)}`, {
       method: 'PATCH',
       body: { status }
-    }) as Agency
+    })
+    const updated = await reloadAgency()
 
     toast.add({ title: t('agencies.userUpdatedToast') })
-    emit('saved', updated)
+
+    if (updated !== null) {
+      emit('saved', updated)
+    }
   } catch (error: unknown) {
     warn.value = firstApiMessage(error) ?? (error instanceof Error ? error.message : '')
   } finally {
@@ -368,9 +646,36 @@ function decidedLabel(agency: Agency): string {
           >
             <span>{{ user.name }} · {{ user.email }}</span>
             <span>
-              {{ agencyUserStatusLabel(user.status) }}
+              {{ t(userStateKey(userActions(user).state)) }}
+              <template v-if="userActions(user).state === 'active' && user.last_login_at !== null">
+                · {{ t('agencies.lastSignIn', { time: format(user.last_login_at, 'dateTime') }) }}
+              </template>
+              <template v-if="userActions(user).state === 'invited' && user.invite_sent_at !== null">
+                · {{ t('agencies.invitedLine', {
+                  sent: format(user.invite_sent_at, 'dateTime'),
+                  expires: user.invite_expires_at === null ? '—' : format(user.invite_expires_at, 'dateTime')
+                }) }}
+              </template>
               <UButton
-                v-if="canManage && user.status === 'ACTIVE'"
+                v-if="canManage && userActions(user).canInvite"
+                variant="outline"
+                size="xs"
+                :disabled="userBusy"
+                @click="inviteUser(user.id)"
+              >
+                {{ t('agencies.inviteUser') }}
+              </UButton>
+              <UButton
+                v-if="canManage && userActions(user).canResend"
+                variant="outline"
+                size="xs"
+                :disabled="userBusy"
+                @click="inviteUser(user.id)"
+              >
+                {{ t('agencies.resendInvite') }}
+              </UButton>
+              <UButton
+                v-if="canManage && userActions(user).canDisable"
                 variant="outline"
                 size="xs"
                 :disabled="userBusy"
@@ -379,7 +684,7 @@ function decidedLabel(agency: Agency): string {
                 {{ t('agencies.disableUser') }}
               </UButton>
               <UButton
-                v-if="canManage && user.status === 'DISABLED'"
+                v-if="canManage && userActions(user).canEnable"
                 variant="outline"
                 size="xs"
                 :disabled="userBusy"
@@ -417,6 +722,220 @@ function decidedLabel(agency: Agency): string {
               {{ t('agencies.addUser') }}
             </UButton>
           </template>
+        </div>
+
+        <div class="sec">
+          <h4>{{ t('agencies.accessTitle') }}</h4>
+          <p class="note">
+            {{ t('agencies.accessNote') }}
+          </p>
+          <div
+            v-if="agency.portal_suspended"
+            class="kv"
+          >
+            <span>{{ t('agencies.accessSuspended') }}</span>
+            <span>
+              {{ agency.portal_suspended_at === null ? '—' : format(agency.portal_suspended_at, 'dateTime') }}
+              · {{ agency.portal_suspended_by?.name ?? '—' }}
+              · {{ agency.portal_suspend_reason ?? '—' }}
+            </span>
+          </div>
+          <div
+            v-else
+            class="kv"
+          >
+            <span>{{ t('agencies.accessOpen') }}</span>
+            <span />
+          </div>
+          <UButton
+            v-if="canManage && !agency.portal_suspended"
+            variant="outline"
+            :disabled="accessBusy"
+            @click="startAccess('suspend')"
+          >
+            {{ t('agencies.suspend') }}
+          </UButton>
+          <UButton
+            v-if="canManage && agency.portal_suspended"
+            variant="outline"
+            :disabled="accessBusy"
+            @click="startAccess('resume')"
+          >
+            {{ t('agencies.resume') }}
+          </UButton>
+        </div>
+
+        <div
+          v-if="canManage"
+          class="sec"
+        >
+          <h4>{{ t('agencies.materialsTitle') }}</h4>
+          <table class="list mini-t">
+            <tbody>
+              <tr
+                v-if="materials.length === 0"
+                class="dr-empty"
+              >
+                <td colspan="2">
+                  {{ t('agencies.materialsEmpty') }}
+                </td>
+              </tr>
+              <tr
+                v-for="material in materials"
+                :key="material.id"
+              >
+                <td>
+                  {{ material.title }}
+                  · {{ t(materialKindKey(material.kind)) }}
+                  · v{{ material.version }}
+                  · {{ materialSizeLabel(material.bytes) }}
+                  · {{ material.published ? t('agencies.materialsPublished') : t('agencies.materialsUnpublished') }}
+                  <template v-if="material.agency_id === null">
+                    · {{ t('agencies.materialsShared') }}
+                  </template>
+                </td>
+                <td class="list-actions">
+                  <UButton
+                    variant="outline"
+                    size="xs"
+                    :disabled="materialBusy"
+                    @click="toggleMaterial(material)"
+                  >
+                    {{ material.published ? t('agencies.materialUnpublish') : t('agencies.materialPublish') }}
+                  </UButton>
+                  <UButton
+                    variant="outline"
+                    size="xs"
+                    @click="downloadMaterial(material)"
+                  >
+                    {{ t('agencies.materialDownload') }}
+                  </UButton>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="field">
+            <label :for="materialTitleId">{{ t('agencies.materialTitle') }}</label>
+            <input
+              :id="materialTitleId"
+              v-model="materialTitle"
+            >
+          </div>
+          <div class="field">
+            <label :for="materialKindId">{{ t('agencies.materialKind') }}</label>
+            <select
+              :id="materialKindId"
+              v-model="materialKind"
+            >
+              <option
+                v-for="kind in SALES_MATERIAL_KINDS"
+                :key="kind"
+                :value="kind"
+              >
+                {{ t(materialKindKey(kind)) }}
+              </option>
+            </select>
+          </div>
+          <div class="field">
+            <label :for="materialFileId">{{ t('agencies.materialFile') }}</label>
+            <input
+              :id="materialFileId"
+              ref="materialFileInput"
+              type="file"
+              @change="onMaterialFile"
+            >
+          </div>
+          <UButton
+            variant="outline"
+            :disabled="!canUploadMaterial"
+            :loading="materialBusy"
+            @click="uploadMaterial"
+          >
+            {{ t('agencies.materialUpload') }}
+          </UButton>
+        </div>
+
+        <div
+          v-if="canManage"
+          class="sec"
+        >
+          <h4>{{ t('agencies.activityTitle') }}</h4>
+          <table class="list mini-t">
+            <thead>
+              <tr>
+                <th>{{ t('agencies.activityWhen') }}</th>
+                <th>{{ t('agencies.activityUser') }}</th>
+                <th>{{ t('agencies.activityWhat') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-if="(activity?.data.length ?? 0) === 0"
+                class="dr-empty"
+              >
+                <td colspan="3">
+                  {{ t('agencies.activityEmpty') }}
+                </td>
+              </tr>
+              <tr
+                v-for="(row, index) in activity?.data ?? []"
+                :key="`${row.at}-${row.event}-${String(index)}`"
+              >
+                <td>{{ format(row.at, 'dateTime') }}</td>
+                <td>{{ row.agency_user.name }}</td>
+                <td>
+                  {{ activityText(row.event) }}
+                  <template v-if="row.material">
+                    · {{ t('agencies.activityMaterial', {
+                      title: row.material.title,
+                      version: String(row.material.version)
+                    }) }}
+                  </template>
+                  <template
+                    v-for="reference in row.references ?? []"
+                    :key="reference"
+                  >
+                    ·
+                    <button
+                      v-if="bookingIdFor(reference) !== null"
+                      type="button"
+                      class="bk-ref"
+                      @click="openActivityBooking(reference)"
+                    >
+                      {{ reference }}
+                    </button>
+                    <template v-else>
+                      {{ reference }}
+                    </template>
+                  </template>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div
+            v-if="activity && activity.meta.last_page > 1"
+            class="list-pager"
+          >
+            <button
+              type="button"
+              :disabled="activity.meta.current_page <= 1"
+              @click="activityPage -= 1"
+            >
+              {{ t('bookings.previous') }}
+            </button>
+            <span>{{ t('bookings.pager', {
+              from: String(activity.meta.from ?? 0),
+              to: String(activity.meta.to ?? 0),
+              total: String(activity.meta.total)
+            }) }}</span>
+            <button
+              type="button"
+              :disabled="activity.meta.current_page >= activity.meta.last_page"
+              @click="activityPage += 1"
+            >
+              {{ t('bookings.next') }}
+            </button>
+          </div>
         </div>
 
         <div class="sec">
@@ -683,6 +1202,15 @@ function decidedLabel(agency: Agency): string {
             </div>
           </div>
         </div>
+
+        <ReasonModal
+          v-model:open="accessOpen"
+          :title="t(accessMode === 'suspend' ? 'agencies.suspendTitle' : 'agencies.resumeTitle')"
+          hint="required"
+          :submitting="accessBusy"
+          :error="accessError"
+          @submit="onAccess"
+        />
 
         <CommissionPayoutModal
           v-model:open="payoutOpen"
