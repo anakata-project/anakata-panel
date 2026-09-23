@@ -251,6 +251,27 @@ describe('seeded admin nav', () => {
     })
   })
 
+  it('shows Commercial Dashboard first for panel.rms and hides it without', () => {
+    const shown = visibleNav(sections.rms, allow('panel.rms'))
+    const hidden = visibleNav(sections.rms, allow('bookings.create'))
+    const commercial = shown.find(group => group.id === 'commercial')
+
+    expect(commercial?.items[0]?.id).toBe('dashboard')
+    expect(commercial?.items[1]?.id).toBe('reports')
+    expect(commercial?.items.map(item => item.id)).toContain('dashboard')
+    expect(commercial?.items.map(item => item.id)).toContain('reports')
+    expect(hidden.find(group => group.id === 'commercial')?.items.map(item => item.id)).not.toContain('dashboard')
+    expect(hidden.find(group => group.id === 'commercial')?.items.map(item => item.id)).not.toContain('reports')
+    expect(pageDecision('/rms/commercial/reports', allow('bookings.create'))).toEqual({
+      to: RMS_HOME,
+      toast: true
+    })
+    expect(pageDecision('/rms/commercial/dashboard', allow('bookings.create'))).toEqual({
+      to: RMS_HOME,
+      toast: true
+    })
+  })
+
   it('shows Contacts In with panel.rms and hides it without', () => {
     const shown = visibleNav(sections.rms, allow('panel.rms'))
     const hidden = visibleNav(sections.rms, allow('bookings.create'))

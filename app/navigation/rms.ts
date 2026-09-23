@@ -42,6 +42,22 @@ export const rmsNav: Array<NavGroup> = [
     labelKey: 'nav.rms.commercial',
     items: [
       {
+        id: 'dashboard',
+        labelKey: 'nav.rms.dashboard',
+        glyph: '▣',
+        to: '/rms/commercial/dashboard',
+        sprint: 12,
+        permission: 'panel.rms'
+      },
+      {
+        id: 'reports',
+        labelKey: 'nav.rms.reports',
+        glyph: '▤',
+        to: '/rms/commercial/reports',
+        sprint: 12,
+        permission: 'panel.rms'
+      },
+      {
         id: 'payments',
         labelKey: 'nav.rms.payments',
         glyph: '◈',

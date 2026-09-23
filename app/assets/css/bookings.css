@@ -207,6 +207,25 @@ html.light .kv {
   color: var(--coral-400);
 }
 
+.dash-def {
+  margin: 0 0 16px;
+  max-width: 720px;
+  color: var(--iv62);
+  font-size: 11px;
+  line-height: 1.45;
+  letter-spacing: .04em;
+}
+
+.dash-occ {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dash-occ .cmp {
+  width: 72px;
+}
+
 button.lnk {
   background: none;
   border: none;

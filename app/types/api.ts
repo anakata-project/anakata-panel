@@ -160,6 +160,15 @@ export type {
   OfferType,
   CharterEnquiry,
   CharterEnquiryStatus,
+  CommercialMetrics,
+  MetricDefinition,
+  ReportCadence,
+  ReportDefinition,
+  ReportRun,
+  ReportRunStatus,
+  ReportSubscription,
+  RunReportInput,
+  UpdateSubscriptionInput,
   CompleteLink,
   ContactBooking,
   ContactDuplicate,
@@ -233,6 +242,7 @@ export type {
   DeliveryRow
 } from '#anakata-ui/app/types'
 
+export type ChannelOfOriginGroup = components['schemas']['ChannelOfOriginGroup']
 export type Permission = components['schemas']['Permission']
 export type UserStatus = components['schemas']['UserStatus']
 export type InviteUserRequest = components['schemas']['InviteUserRequest']
