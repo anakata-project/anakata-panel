@@ -207,7 +207,7 @@ export type {
   TaskKpis,
   TaskKind,
   Lifecycle,
-  Segment,
+  ContactSegment,
   TimelineItem,
   ActivityEvent,
   ActivityKpis,

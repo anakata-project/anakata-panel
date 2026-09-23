@@ -1,7 +1,7 @@
 import type { AttributionTouch } from '#anakata-ui/app/types'
-import type { ContactMerge, Segment } from '../../types/api'
+import type { ContactMerge, ContactSegment } from '../../types/api'
 
-export function segmentPillClass(segment: Segment): string {
+export function segmentPillClass(segment: ContactSegment): string {
   if (segment === 'HIGH') {
     return 'hi'
   }
