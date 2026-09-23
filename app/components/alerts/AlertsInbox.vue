@@ -35,6 +35,7 @@ const STATES = [
 const SEVERITIES: Array<AlertSeverity> = ['CRITICAL', 'WARN', 'INFO']
 
 const { t } = useI18n()
+const route = useRoute()
 const { request } = useApi()
 const { format } = useDates()
 const { refresh: refreshBell } = useAlertCounts()
@@ -66,9 +67,23 @@ watch(page, () => {
 })
 
 onMounted(() => {
-  void loadKinds()
-  void load()
+  void boot()
 })
+
+function queryKind(): string | null {
+  const raw = route.query.kind
+  const key = Array.isArray(raw) ? raw[0] : raw
+
+  return typeof key === 'string' ? key : null
+}
+
+async function boot(): Promise<void> {
+  await loadKinds()
+
+  if (kind.value === '') {
+    await load()
+  }
+}
 
 function raisedLabel(value: string | null): string {
   return value === null ? '—' : format(value, 'dateTime')
@@ -88,6 +103,12 @@ async function loadKinds(): Promise<void> {
     kinds.value = payload.data
   } catch {
     kinds.value = []
+  }
+
+  const requested = queryKind()
+
+  if (requested !== null && sectionKinds.value.some(row => row.kind === requested)) {
+    kind.value = requested
   }
 }
 

@@ -298,17 +298,23 @@ describe('seeded admin nav', () => {
     })
   })
 
-  it('shows Journeys under Marketing at sprint 14', () => {
+  it('shows Journeys, Segments and Automations at sprint 14', () => {
     const shown = visibleNav(sections.crm, allow('panel.crm'))
     const marketing = shown.find(group => group.id === 'marketing')
     const journeys = marketing?.items.find(item => item.id === 'journeys')
+    const segments = marketing?.items.find(item => item.id === 'segments')
     const engine = shown.find(group => group.id === 'engine')
+    const automations = engine?.items.find(item => item.id === 'automations')
 
     expect(journeys?.sprint).toBe(14)
     expect(journeys?.to).toBe('/crm/marketing/journeys')
-    expect(marketing?.items.find(item => item.id === 'segments')?.sprint).toBe('later')
-    expect(engine?.items.find(item => item.id === 'automations')?.sprint).toBe('later')
+    expect(segments?.sprint).toBe(14)
+    expect(segments?.to).toBe('/crm/marketing/segments')
+    expect(automations?.sprint).toBe(14)
+    expect(automations?.to).toBe('/crm/engine/automations')
     expect(pageDecision('/crm/marketing/journeys', allow('panel.crm'))).toBeNull()
+    expect(pageDecision('/crm/marketing/segments', allow('panel.crm'))).toBeNull()
+    expect(pageDecision('/crm/engine/automations', allow('panel.crm'))).toBeNull()
   })
 
   it('gates the real RMS Permissions and Business Rules items', () => {

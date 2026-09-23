@@ -65,7 +65,7 @@ export const crmNav: Array<NavGroup> = [
         labelKey: 'nav.crm.segments',
         glyph: '◫',
         to: '/crm/marketing/segments',
-        sprint: 'later'
+        sprint: 14
       },
       {
         id: 'campaigns',
@@ -92,7 +92,7 @@ export const crmNav: Array<NavGroup> = [
         labelKey: 'nav.crm.automations',
         glyph: '↻',
         to: '/crm/engine/automations',
-        sprint: 'later'
+        sprint: 14
       },
       {
         id: 'alerts',

@@ -245,6 +245,7 @@ export type {
   DeliveryRow,
   AutomationKind,
   AutomationRow,
+  AutomationSwitchInput,
   Journey,
   JourneyEnrolment,
   JourneyEnrolmentStatus,
@@ -254,6 +255,13 @@ export type {
   MessageTemplate,
   MessageTemplateVersion,
   PublishTemplateInput,
+  Segment,
+  SegmentCondition,
+  SegmentDimension,
+  SegmentInput,
+  SegmentKind,
+  SegmentUpdate,
+  SegmentVocabulary,
   TemplateDraftInput,
   TemplatePreviewInput
 } from '#anakata-ui/app/types'
