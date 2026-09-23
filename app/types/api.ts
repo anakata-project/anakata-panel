@@ -242,7 +242,20 @@ export type {
   CampaignOffer,
   CampaignUpdate,
   DeliveryKpis,
-  DeliveryRow
+  DeliveryRow,
+  AutomationKind,
+  AutomationRow,
+  Journey,
+  JourneyEnrolment,
+  JourneyEnrolmentStatus,
+  JourneyStep,
+  JourneyStepAction,
+  JourneyUpdate,
+  MessageTemplate,
+  MessageTemplateVersion,
+  PublishTemplateInput,
+  TemplateDraftInput,
+  TemplatePreviewInput
 } from '#anakata-ui/app/types'
 
 export type ChannelOfOriginGroup = components['schemas']['ChannelOfOriginGroup']

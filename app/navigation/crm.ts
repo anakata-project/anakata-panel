@@ -58,7 +58,7 @@ export const crmNav: Array<NavGroup> = [
         labelKey: 'nav.crm.journeys',
         glyph: '➤',
         to: '/crm/marketing/journeys',
-        sprint: 'later'
+        sprint: 14
       },
       {
         id: 'segments',

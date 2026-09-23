@@ -1,6 +1,10 @@
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 
+function isUiLayer(cwd: string): boolean {
+  return existsSync(resolve(cwd, 'app/types/engine.ts'))
+}
+
 const localUi = resolve(import.meta.dirname, '../anakata-ui')
 const uiLayer = existsSync(localUi)
   ? '../anakata-ui'
@@ -11,7 +15,9 @@ export default defineNuxtConfig({
 
   modules: [
     (_options, nuxt) => {
-      const layer = nuxt.options._layers.find(item => item.cwd.includes('anakata-ui'))
+      const layer = nuxt.options._layers.find(item =>
+        item.cwd !== nuxt.options.rootDir && isUiLayer(item.cwd)
+      )
       if (layer) {
         nuxt.options.alias['#anakata-ui'] = layer.cwd
       }

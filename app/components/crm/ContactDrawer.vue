@@ -9,6 +9,7 @@ import type {
   ContactType,
   ContactUnmergeResult,
   CrmTask,
+  JourneyEnrolment,
   Paginated,
   PreferredChannel,
   RecordConsentInput,
@@ -97,6 +98,8 @@ const recordError = ref('')
 const recordSaving = ref(false)
 const canMerge = computed(() => can('contacts.merge'))
 const canRms = computed(() => can('panel.rms'))
+const contactJourneys = ref<Array<JourneyEnrolment>>([])
+const journeysError = ref('')
 
 const items = computed(() => timeline.value?.data ?? [])
 const timelineMeta = computed(() => timeline.value?.meta)
@@ -186,10 +189,23 @@ watch(
       loadContactTasks(profile.id),
       loadMerges(),
       loadPartner(profile),
-      loadConsents(profile.id)
+      loadConsents(profile.id),
+      loadJourneys(profile.id)
     ])
   }
 )
+
+async function loadJourneys(id: number): Promise<void> {
+  journeysError.value = ''
+
+  try {
+    const result = await request(`/api/crm/contacts/${String(id)}/journeys`) as { data: Array<JourneyEnrolment> }
+    contactJourneys.value = result.data
+  } catch (error: unknown) {
+    contactJourneys.value = []
+    journeysError.value = firstApiMessage(error) ?? t('crmJourneys.failed')
+  }
+}
 
 async function loadConsents(contactId: number): Promise<void> {
   const payload = await request(`/api/crm/contacts/${String(contactId)}/consents`) as {
@@ -691,6 +707,50 @@ async function onUndo(reason: string): Promise<void> {
           >
             {{ t('crmContacts.bookingsEmpty') }}
           </p>
+        </div>
+
+        <div class="sec">
+          <h4>{{ t('crmJourneys.journeysTitle') }}</h4>
+          <p
+            v-if="journeysError"
+            class="warnbox"
+          >
+            {{ journeysError }}
+          </p>
+          <p
+            v-else-if="contactJourneys.length === 0"
+            class="crm-held"
+          >
+            {{ t('crmJourneys.journeysEmpty') }}
+          </p>
+          <div
+            v-for="row in contactJourneys"
+            :key="row.id"
+            class="taskrow"
+          >
+            <div>
+              <b>{{ row.journey_key }}</b>
+              <span class="pill">{{ row.status }}</span>
+            </div>
+            <p v-if="row.step">
+              {{ row.step.name }}
+            </p>
+            <p class="mono">
+              {{ format(row.next_due_at, 'dateTime') }}
+            </p>
+            <p v-if="row.exit_reason">
+              {{ row.exit_reason }}
+            </p>
+            <p
+              v-for="(send, index) in row.sends"
+              :key="`${row.id}-${String(index)}`"
+            >
+              {{ t('crmJourneys.sent', { when: format(send.sent_at, 'dateTime') }) }}
+              <NuxtLink :to="`/crm/marketing/journeys?template=${encodeURIComponent(send.template_key)}`">
+                {{ send.template_key }}
+              </NuxtLink>
+            </p>
+          </div>
         </div>
 
         <div class="sec">
