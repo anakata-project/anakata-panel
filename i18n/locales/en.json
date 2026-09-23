@@ -2378,5 +2378,27 @@
     "sent": "Reply sent",
     "noMessages": "No messages.",
     "linked": "Contact linked"
+  },
+  "crmB2b": {
+    "title": "B2B Partners",
+    "failed": "B2B partners could not be loaded.",
+    "empty": "No partners.",
+    "colPartner": "Partner",
+    "reference": "Reference",
+    "colStatus": "Status",
+    "colContact": "Contact",
+    "colRate": "Rate",
+    "colRevenue": "Revenue",
+    "colCommission": "Commission accrued",
+    "colDeals": "Open deals",
+    "colJourney": "Journey",
+    "openRms": "Open in RMS",
+    "notEnrolled": "CRM contact matched. b2b_partner_activation is not enrolled.",
+    "dealsTitle": "Deals",
+    "noDeals": "No deals.",
+    "colDeal": "Deal",
+    "colStage": "Stage",
+    "colValue": "Value",
+    "colBooking": "Booking"
   }
 }

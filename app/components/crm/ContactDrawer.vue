@@ -20,6 +20,7 @@ import type { FormFieldErrors } from '../../utils/apiForm'
 import { applyApiFormError, firstApiMessage } from '../../utils/apiForm'
 import { statusLabel } from '../bookings/bookingHelpers'
 import ReasonModal from '../bookings/ReasonModal.vue'
+import JourneyEnrolmentDetail from './JourneyEnrolmentDetail.vue'
 import LogActivityModal from './LogActivityModal.vue'
 import { consentStateLabel } from './privacyHelpers'
 import { relativeDue, taskPriorityClass } from './salesHelpers'
@@ -723,34 +724,11 @@ async function onUndo(reason: string): Promise<void> {
           >
             {{ t('crmJourneys.journeysEmpty') }}
           </p>
-          <div
+          <JourneyEnrolmentDetail
             v-for="row in contactJourneys"
             :key="row.id"
-            class="taskrow"
-          >
-            <div>
-              <b>{{ row.journey_key }}</b>
-              <span class="pill">{{ row.status }}</span>
-            </div>
-            <p v-if="row.step">
-              {{ row.step.name }}
-            </p>
-            <p class="mono">
-              {{ format(row.next_due_at, 'dateTime') }}
-            </p>
-            <p v-if="row.exit_reason">
-              {{ row.exit_reason }}
-            </p>
-            <p
-              v-for="(send, index) in row.sends"
-              :key="`${row.id}-${String(index)}`"
-            >
-              {{ t('crmJourneys.sent', { when: format(send.sent_at, 'dateTime') }) }}
-              <NuxtLink :to="`/crm/marketing/journeys?template=${encodeURIComponent(send.template_key)}`">
-                {{ send.template_key }}
-              </NuxtLink>
-            </p>
-          </div>
+            :enrolment="row"
+          />
         </div>
 
         <div class="sec">

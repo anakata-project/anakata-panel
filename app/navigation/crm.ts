@@ -38,7 +38,7 @@ export const crmNav: Array<NavGroup> = [
         labelKey: 'nav.crm.b2bPartners',
         glyph: '⬡',
         to: '/crm/sales/b2b-partners',
-        sprint: 'later'
+        sprint: 15
       },
       {
         id: 'documents',

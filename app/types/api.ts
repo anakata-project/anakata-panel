@@ -252,6 +252,7 @@ export type {
   JourneyStep,
   JourneyStepAction,
   JourneyUpdate,
+  B2bPartnerRow,
   Conversation,
   ConversationLinkInput,
   ConversationMessage,
