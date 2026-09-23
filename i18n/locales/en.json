@@ -2354,5 +2354,29 @@
     "updated": "Automation updated",
     "disabledBy": "{name} · {when}",
     "openJourney": "Journey"
+  },
+  "crmInbox": {
+    "title": "Inbox",
+    "failed": "The inbox could not be loaded.",
+    "empty": "No conversations.",
+    "statusAll": "All statuses",
+    "statusOpen": "Open",
+    "statusClosed": "Closed",
+    "unreadAll": "All",
+    "unreadOnly": "Unread",
+    "colContact": "Contact",
+    "colSubject": "Subject",
+    "colPreview": "Preview",
+    "colMessages": "Messages",
+    "colStatus": "Status",
+    "colWhen": "Last message",
+    "link": "Link to contact",
+    "searchContacts": "Search contacts",
+    "noContacts": "No contacts.",
+    "reply": "Send reply",
+    "replyPlaceholder": "Write a reply",
+    "sent": "Reply sent",
+    "noMessages": "No messages.",
+    "linked": "Contact linked"
   }
 }

@@ -317,6 +317,18 @@ describe('seeded admin nav', () => {
     expect(pageDecision('/crm/engine/automations', allow('panel.crm'))).toBeNull()
   })
 
+  it('shows Inbox at sprint 15', () => {
+    const shown = visibleNav(sections.crm, allow('panel.crm'))
+    const sales = shown.find(group => group.id === 'sales')
+    const inbox = sales?.items.find(item => item.id === 'inbox')
+    const partners = sales?.items.find(item => item.id === 'b2b-partners')
+
+    expect(inbox?.sprint).toBe(15)
+    expect(inbox?.to).toBe('/crm/sales/inbox')
+    expect(partners?.sprint).toBe('later')
+    expect(pageDecision('/crm/sales/inbox', allow('panel.crm'))).toBeNull()
+  })
+
   it('gates the real RMS Permissions and Business Rules items', () => {
     const admin = visibleNav(sections.rms, allow(
       'users.manage',

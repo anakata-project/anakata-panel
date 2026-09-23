@@ -24,7 +24,7 @@ export const crmNav: Array<NavGroup> = [
         labelKey: 'nav.crm.inbox',
         glyph: '✉',
         to: '/crm/sales/inbox',
-        sprint: 'later'
+        sprint: 15
       },
       {
         id: 'contacts',
