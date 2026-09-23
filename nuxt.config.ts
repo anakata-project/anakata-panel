@@ -4,7 +4,7 @@ import { resolve } from 'node:path'
 const localUi = resolve(import.meta.dirname, '../anakata-ui')
 const uiLayer = existsSync(localUi)
   ? '../anakata-ui'
-  : 'github:anakata-project/anakata-ui#v0.12.1'
+  : 'github:anakata-project/anakata-ui#v0.13.0'
 
 export default defineNuxtConfig({
   extends: [uiLayer],
