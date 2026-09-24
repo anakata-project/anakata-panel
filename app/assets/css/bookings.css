@@ -301,7 +301,17 @@ button.lnk {
   display: grid;
   grid-template-columns: 1.4fr .7fr .7fr 34px;
   gap: 10px;
-  align-items: end;
+  align-items: start;
+}
+
+.nbx .field {
+  margin-bottom: 0;
+}
+
+.nbx .xbtn {
+  margin-top: 20px;
+  height: 45px;
+  box-sizing: border-box;
 }
 
 .nb-addrow {

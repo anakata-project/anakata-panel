@@ -245,7 +245,7 @@ const departureItems = computed(() => [
 ])
 
 const cabinItems = computed(() => [
-  { label: t('bookings.pickCabin'), value: '' },
+  { label: t('bookings.pickCabin'), value: null as string | null },
   ...cabins.value.map(item => ({
     label: `${item.cabin.label}${cabinEnabled(item) ? '' : ` · ${t('bookings.cabinTaken')}`}`,
     value: item.cabin.code,
@@ -254,7 +254,7 @@ const cabinItems = computed(() => [
 ])
 
 const extraCabinItems = computed(() => [
-  { label: t('bookings.pickCabin'), value: '' },
+  { label: t('bookings.pickCabin'), value: null as string | null },
   ...cabins.value.map(item => ({
     label: item.cabin.label,
     value: item.cabin.code,
@@ -1017,10 +1017,11 @@ onUnmounted(() => {
             <label for="nb-cabin">{{ t('bookings.cabin') }}</label>
             <USelect
               id="nb-cabin"
-              :model-value="cabinCode"
+              :model-value="cabinCode === '' ? undefined : cabinCode"
               class="w-full"
               :items="cabinItems"
               :disabled="selectedDeparture === null"
+              :placeholder="t('bookings.pickCabin')"
               @update:model-value="onCabinUpdate"
             />
           </div>
@@ -1056,9 +1057,10 @@ onUnmounted(() => {
               <label :for="`nb-extra-cabin-${row.key}`">{{ t('bookings.extraCabin', { n: String(index + 2) }) }}</label>
               <USelect
                 :id="`nb-extra-cabin-${row.key}`"
-                :model-value="row.cabinCode"
+                :model-value="row.cabinCode === '' ? undefined : row.cabinCode"
                 class="w-full"
                 :items="extraCabinItems"
+                :placeholder="t('bookings.pickCabin')"
                 @update:model-value="onExtraCabinUpdate(row.key, $event)"
               />
             </div>

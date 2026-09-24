@@ -40,14 +40,14 @@ Open `http://localhost:3001`. `/` redirects to the RMS calendar. `/crm` and `/cr
 
 ```
 app/
-  layouts/default.vue     aside + header (section switch, role placeholder, theme, API status)
+  layouts/default.vue     aside + header (section switch, account menu, theme)
   pages/rms/…             RMS routes under /rms
   pages/crm/…             CRM routes under /crm
   navigation/rms.ts       RMS sidebar tree
   navigation/crm.ts       CRM sidebar tree
   sections.ts             section registry (homes, brand subtitles)
   composables/useSystem.ts  current section = route prefix; last path in localStorage
-  components/shell/       SectionSwitch, ApiStatus, PlaceholderPage
+  components/shell/       SectionSwitch, PlaceholderPage
 i18n/locales/en.json      panel chrome + nav labels (merged with the layer’s theme.* keys)
 ```
 

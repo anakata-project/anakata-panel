@@ -154,14 +154,6 @@ onMounted(() => {
           >
             {{ t('shell.newReservation') }}
           </UButton>
-          <span
-            v-if="sectionId === 'crm'"
-            class="sysbadge sys-rms"
-            :title="t('shell.syncBadge')"
-          >
-            {{ t('shell.syncBadge') }}
-          </span>
-          <ShellApiStatus />
         </div>
       </div>
       <slot />

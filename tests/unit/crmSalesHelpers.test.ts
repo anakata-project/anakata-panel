@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { canDropOn, relativeDue, slaBadge, taskPriorityClass } from '../../app/components/crm/salesHelpers'
+import { canDropOn, relativeDue, SELECT_ALL, slaBadge, taskPriorityClass, withSelectAll } from '../../app/components/crm/salesHelpers'
 
 describe('slaBadge', () => {
   it('maps API states to the prototype badges', () => {
@@ -36,6 +36,16 @@ describe('canDropOn', () => {
     expect(canDropOn('DEPOSIT_PENDING', { may_move: true })).toBe(false)
     expect(canDropOn('BOOKING_CONFIRMED', { may_move: true })).toBe(false)
     expect(canDropOn('WON_COMPLETED', { may_move: true })).toBe(false)
+  })
+})
+
+describe('withSelectAll', () => {
+  it('prefixes All with a non-empty value (Reka SelectItem forbids "")', () => {
+    const items = withSelectAll('All owners', [{ label: 'Me', value: 'me' }])
+
+    expect(SELECT_ALL).not.toBe('')
+    expect(items.map(item => item.value)).toEqual([SELECT_ALL, 'me'])
+    expect(items.every(item => item.value !== '')).toBe(true)
   })
 })
 

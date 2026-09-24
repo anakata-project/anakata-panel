@@ -10,6 +10,7 @@ import {
   deckCabinName,
   deckCabinOrder,
   departureDateOptions,
+  departureSelectItems,
   mapCabinCell,
   retainSelectedDate,
   type CellPresentation
@@ -50,16 +51,10 @@ function optionLabel(date: string, festive: boolean): string {
   return festive ? `${formatted} · ${t('yachtLayout.festive')}` : formatted
 }
 
-const departureItems = computed(() => {
-  if (options.value.length === 0) {
-    return [{ label: t('yachtLayout.empty'), value: '' }]
-  }
-
-  return options.value.map(option => ({
-    label: optionLabel(option.date, option.festive),
-    value: option.date
-  }))
-})
+const departureItems = computed(() => departureSelectItems(
+  options.value,
+  option => optionLabel(option.date, option.festive)
+))
 
 function onSelectedDate(value: string | number | null | undefined): void {
   selectedDate.value = value === '' || value === null || value === undefined ? null : String(value)
@@ -170,9 +165,10 @@ function onCabinClick(
           <label for="ylsel">{{ t('yachtLayout.departure') }}</label>
           <USelect
             id="ylsel"
-            :model-value="selectedDate ?? ''"
+            :model-value="selectedDate ?? undefined"
             :items="departureItems"
             :disabled="options.length === 0"
+            :placeholder="t('yachtLayout.empty')"
             class="w-full"
             @update:model-value="onSelectedDate"
           />

@@ -7,6 +7,7 @@ import {
   deckCabinName,
   deckCabinOrder,
   departureDateOptions,
+  departureSelectItems,
   freeCellPrompt,
   groupColumnsByDate,
   mapCabinCell,
@@ -564,6 +565,19 @@ describe('date columns', () => {
     expect(retainSelectedDate('2027-11-14', options.map(option => option.date))).toBe('2027-11-14')
     expect(retainSelectedDate('2027-12-26', options.map(option => option.date))).toBe('2027-11-07')
     expect(retainSelectedDate(null, [])).toBeNull()
+  })
+
+  it('never gives the departure select an empty value', () => {
+    expect(departureSelectItems([], () => 'unused')).toEqual([])
+    expect(departureSelectItems(
+      [
+        { date: '2027-11-07', festive: false },
+        { date: '', festive: true }
+      ],
+      option => option.festive ? 'festive' : option.date
+    )).toEqual([
+      { label: '2027-11-07', value: '2027-11-07' }
+    ])
   })
 })
 

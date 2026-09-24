@@ -52,21 +52,15 @@ const canLog = computed(() => can('contacts.manage'))
 const unbound = computed(() => deal.value !== null && deal.value.booking === null)
 const badge = computed(() => slaBadge(deal.value?.sla.state ?? null))
 
-const moveItems = computed(() => [
-  { label: t('crmPipeline.moveTo'), value: '' },
-  ...MOVES.map(stage => ({
-    label: t(`crmPipeline.stages.${stage}`),
-    value: stage
-  }))
-])
+const moveItems = computed(() => MOVES.map(stage => ({
+  label: t(`crmPipeline.stages.${stage}`),
+  value: stage
+})))
 
-const bindItems = computed(() => [
-  { label: t('crmPipeline.pickBooking'), value: '' },
-  ...bookings.value.map(booking => ({
-    label: booking.display_reference ?? String(booking.id),
-    value: String(booking.id)
-  }))
-])
+const bindItems = computed(() => bookings.value.map(booking => ({
+  label: booking.display_reference ?? String(booking.id),
+  value: String(booking.id)
+})))
 
 watch(
   () => [open.value, props.dealId, props.revision] as const,
@@ -310,6 +304,7 @@ async function submitLost(reason: string): Promise<void> {
             id="drawer-move"
             :model-value="''"
             class="w-full"
+            :placeholder="t('crmPipeline.moveTo')"
             :items="moveItems"
             @update:model-value="onMoveChange"
           />
@@ -361,6 +356,7 @@ async function submitLost(reason: string): Promise<void> {
               id="drawer-bind"
               v-model="bindId"
               class="w-full"
+              :placeholder="t('crmPipeline.pickBooking')"
               :items="bindItems"
             />
             <UButton

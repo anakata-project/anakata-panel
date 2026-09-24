@@ -222,23 +222,6 @@ main {
   color: var(--sand);
 }
 
-.api-status {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 8px;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--iv38);
-  white-space: nowrap;
-}
-
-.api-status--ok {
-  color: var(--ok);
-}
-
-.api-status--down {
-  color: var(--coral);
-}
-
 .placeholder-copy {
   padding: 20px;
   color: var(--iv62);

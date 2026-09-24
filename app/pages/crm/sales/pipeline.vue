@@ -13,7 +13,7 @@ import type {
 import ReasonModal from '../../../components/bookings/ReasonModal.vue'
 import DealDrawer from '../../../components/crm/DealDrawer.vue'
 import NewDealModal from '../../../components/crm/NewDealModal.vue'
-import { canDropOn, slaBadge } from '../../../components/crm/salesHelpers'
+import { canDropOn, SELECT_ALL, slaBadge, withSelectAll } from '../../../components/crm/salesHelpers'
 import { firstApiMessage } from '../../../utils/apiForm'
 
 type PipelinePayload = {
@@ -42,8 +42,8 @@ const { format } = useMoney()
 const { can } = useAuth()
 const toast = useToast()
 
-const owner = ref('')
-const type = ref('')
+const owner = ref(SELECT_ALL)
+const type = ref(SELECT_ALL)
 const q = ref('')
 const columns = ref<Array<PipelineColumn>>([])
 const kpis = ref<PipelineKpis | null>(null)
@@ -63,31 +63,27 @@ const pendingMove = ref<{ id: number, stage: MoveDealInput['stage'] } | null>(nu
 const shown = computed(() => kpis.value ?? emptyKpis)
 const canMove = computed(() => can('pipeline.move_stage'))
 
-const ownerItems = computed(() => [
-  { label: t('crmPipeline.ownerAll'), value: '' },
+const ownerItems = computed(() => withSelectAll(t('crmPipeline.ownerAll'), [
   { label: t('crmPipeline.ownerMe'), value: 'me' },
   { label: t('crmPipeline.unassigned'), value: 'unassigned' },
   ...users.value.map(user => ({
     label: user.name,
     value: String(user.id)
   }))
-])
+]))
 
-const typeItems = computed(() => [
-  { label: t('crmPipeline.typeAll'), value: '' },
-  ...TYPES.map(item => ({
+const typeItems = computed(() => withSelectAll(
+  t('crmPipeline.typeAll'),
+  TYPES.map(item => ({
     label: t(`crmPipeline.types.${item}`),
     value: item
   }))
-])
+))
 
-const moveItems = computed(() => [
-  { label: t('crmPipeline.moveTo'), value: '' },
-  ...MOVES.map(stage => ({
-    label: t(`crmPipeline.stages.${stage}`),
-    value: stage
-  }))
-])
+const moveItems = computed(() => MOVES.map(stage => ({
+  label: t(`crmPipeline.stages.${stage}`),
+  value: stage
+})))
 
 onMounted(() => {
   void load()
@@ -106,11 +102,11 @@ watch([owner, type], () => {
 async function load(): Promise<void> {
   const params = new URLSearchParams()
 
-  if (owner.value !== '') {
+  if (owner.value !== SELECT_ALL) {
     params.set('owner', owner.value)
   }
 
-  if (type.value !== '') {
+  if (type.value !== SELECT_ALL) {
     params.set('type', type.value)
   }
 
@@ -384,6 +380,7 @@ function onKeyboardMove(deal: PipelineDeal, stage: string | number | boolean | n
                 :model-value="''"
                 class="move"
                 size="sm"
+                :placeholder="t('crmPipeline.moveTo')"
                 :items="moveItems"
                 @update:model-value="onKeyboardMove(deal, $event)"
                 @click.stop

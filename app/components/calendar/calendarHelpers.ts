@@ -426,6 +426,19 @@ export function departureDateOptions(departures: Array<CalendarDeparture>): Arra
   }))
 }
 
+export function departureSelectItems(
+  options: Array<DepartureDateOption>,
+  labelFor: (option: DepartureDateOption) => string
+): Array<{ label: string, value: string }> {
+  return options.flatMap((option) => {
+    if (option.date === '') {
+      return []
+    }
+
+    return [{ label: labelFor(option), value: option.date }]
+  })
+}
+
 export function retainSelectedDate(selected: string | null, dates: Array<string>): string | null {
   if (selected !== null && dates.includes(selected)) {
     return selected

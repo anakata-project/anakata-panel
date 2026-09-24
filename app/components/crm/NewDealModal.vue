@@ -25,13 +25,10 @@ const estimate = ref('')
 const saving = ref(false)
 const error = ref('')
 
-const contactItems = computed(() => [
-  { label: t('crmPipeline.pickContact'), value: '' },
-  ...matches.value.map(contact => ({
-    label: contact.name,
-    value: String(contact.id)
-  }))
-])
+const contactItems = computed(() => matches.value.map(contact => ({
+  label: contact.name,
+  value: String(contact.id)
+})))
 
 const typeItems = computed(() => TYPES.map(item => ({
   label: t(`crmPipeline.types.${item}`),
@@ -139,6 +136,7 @@ async function submit(): Promise<void> {
           <USelect
             v-model="contactId"
             class="w-full"
+            :placeholder="t('crmPipeline.pickContact')"
             :items="contactItems"
           />
         </div>
