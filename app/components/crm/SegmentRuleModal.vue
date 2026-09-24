@@ -42,6 +42,31 @@ const fields = computed(() => props.vocabulary?.data.fields ?? [])
 const combinators = computed(() => props.vocabulary?.data.combinators ?? [])
 const editing = computed(() => props.segment !== null)
 
+const kindItems = computed(() => KINDS.map(item => ({
+  label: item,
+  value: item
+})))
+
+const matchItems = computed(() => combinators.value.map(item => ({
+  label: item,
+  value: item
+})))
+
+const fieldItems = computed(() => fields.value.map(field => ({
+  label: field.label,
+  value: field.field
+})))
+
+const flagItems = [
+  { label: 'true', value: true },
+  { label: 'false', value: false }
+]
+
+const axisItems = computed(() => AXES.map(axis => ({
+  label: axis,
+  value: axis
+})))
+
 const ready = computed(() => {
   if (name.value.trim() === '' || sentence.value.trim() === '' || feeds.value.trim() === '') {
     return false
@@ -52,6 +77,37 @@ const ready = computed(() => {
 
 function specFor(field: string): VocabularyField | null {
   return fields.value.find(item => item.field === field) ?? null
+}
+
+function operatorItems(field: string): Array<{ label: string, value: string }> {
+  return (specFor(field)?.operators ?? []).map(operator => ({
+    label: operator,
+    value: operator
+  }))
+}
+
+function valueItems(field: string): Array<{ label: string, value: string }> {
+  return (specFor(field)?.values ?? []).map(option => ({
+    label: option,
+    value: option
+  }))
+}
+
+function enumItems(field: string): Array<{ label: string, value: string }> {
+  return [
+    { label: t('crmSegments.choose'), value: '' },
+    ...valueItems(field)
+  ]
+}
+
+function eventItems(values: Array<string> | undefined): Array<{ label: string, value: string }> {
+  return [
+    { label: t('crmSegments.choose'), value: '' },
+    ...(values ?? []).map(option => ({
+      label: option,
+      value: option
+    }))
+  ]
 }
 
 function reset(): void {
@@ -105,14 +161,12 @@ watch(open, (isOpen) => {
   }
 })
 
-function onField(index: number, event: Event): void {
-  const target = event.target
-
-  if (!(target instanceof HTMLSelectElement)) {
+function onField(index: number, value: string | number | boolean | null | undefined): void {
+  if (typeof value !== 'string') {
     return
   }
 
-  const spec = specFor(target.value)
+  const spec = specFor(value)
   const current = drafts.value[index]
 
   if (!spec || !current) {
@@ -247,18 +301,12 @@ async function save(): Promise<void> {
         </div>
         <div class="field">
           <label for="segment-kind">{{ t('crmSegments.kind') }}</label>
-          <select
+          <USelect
             id="segment-kind"
             v-model="kind"
-          >
-            <option
-              v-for="item in KINDS"
-              :key="item"
-              :value="item"
-            >
-              {{ item }}
-            </option>
-          </select>
+            class="w-full"
+            :items="kindItems"
+          />
         </div>
         <label class="crm-check">
           <input
@@ -269,18 +317,12 @@ async function save(): Promise<void> {
         </label>
         <div class="field">
           <label for="segment-match">{{ t('crmSegments.match') }}</label>
-          <select
+          <USelect
             id="segment-match"
             v-model="match"
-          >
-            <option
-              v-for="item in combinators"
-              :key="item"
-              :value="item"
-            >
-              {{ item }}
-            </option>
-          </select>
+            class="w-full"
+            :items="matchItems"
+          />
         </div>
 
         <div
@@ -290,51 +332,34 @@ async function save(): Promise<void> {
         >
           <div class="field">
             <label :for="`segment-field-${String(index)}`">{{ t('crmSegments.field') }}</label>
-            <select
+            <USelect
               :id="`segment-field-${String(index)}`"
-              :value="draft.field"
-              @change="onField(index, $event)"
-            >
-              <option
-                v-for="field in fields"
-                :key="field.field"
-                :value="field.field"
-              >
-                {{ field.label }}
-              </option>
-            </select>
+              class="w-full"
+              :model-value="draft.field"
+              :items="fieldItems"
+              @update:model-value="onField(index, $event)"
+            />
           </div>
           <div class="field">
             <label :for="`segment-operator-${String(index)}`">{{ t('crmSegments.operator') }}</label>
-            <select
+            <USelect
               :id="`segment-operator-${String(index)}`"
               v-model="draft.operator"
-            >
-              <option
-                v-for="operator in (specFor(draft.field)?.operators ?? [])"
-                :key="operator"
-                :value="operator"
-              >
-                {{ operator }}
-              </option>
-            </select>
+              class="w-full"
+              :items="operatorItems(draft.field)"
+            />
           </div>
           <div
             v-if="specFor(draft.field)?.value === 'boolean'"
             class="field"
           >
             <label :for="`segment-flag-${String(index)}`">{{ t('crmSegments.value') }}</label>
-            <select
+            <USelect
               :id="`segment-flag-${String(index)}`"
               v-model="draft.flag"
-            >
-              <option :value="true">
-                true
-              </option>
-              <option :value="false">
-                false
-              </option>
-            </select>
+              class="w-full"
+              :items="flagItems"
+            />
           </div>
           <div
             v-else-if="specFor(draft.field)?.value === 'age_range'"
@@ -364,19 +389,13 @@ async function save(): Promise<void> {
             class="field"
           >
             <label :for="`segment-many-${String(index)}`">{{ t('crmSegments.value') }}</label>
-            <select
+            <USelect
               :id="`segment-many-${String(index)}`"
               v-model="draft.selected"
+              class="w-full"
               multiple
-            >
-              <option
-                v-for="option in specFor(draft.field)?.values ?? []"
-                :key="option"
-                :value="option"
-              >
-                {{ option }}
-              </option>
-            </select>
+              :items="valueItems(draft.field)"
+            />
           </div>
           <div
             v-else-if="draft.operator === 'in'"
@@ -397,21 +416,12 @@ async function save(): Promise<void> {
             class="field"
           >
             <label :for="`segment-enum-${String(index)}`">{{ t('crmSegments.value') }}</label>
-            <select
+            <USelect
               :id="`segment-enum-${String(index)}`"
               v-model="draft.single"
-            >
-              <option value="">
-                {{ t('crmSegments.choose') }}
-              </option>
-              <option
-                v-for="option in specFor(draft.field)?.values ?? []"
-                :key="option"
-                :value="option"
-              >
-                {{ option }}
-              </option>
-            </select>
+              class="w-full"
+              :items="enumItems(draft.field)"
+            />
           </div>
           <div
             v-else
@@ -433,21 +443,12 @@ async function save(): Promise<void> {
               class="field"
             >
               <label :for="`segment-event-${String(index)}`">{{ param.name }}</label>
-              <select
+              <USelect
                 :id="`segment-event-${String(index)}`"
                 v-model="draft.event"
-              >
-                <option value="">
-                  {{ t('crmSegments.choose') }}
-                </option>
-                <option
-                  v-for="option in param.values ?? []"
-                  :key="option"
-                  :value="option"
-                >
-                  {{ option }}
-                </option>
-              </select>
+                class="w-full"
+                :items="eventItems(param.values)"
+              />
             </div>
             <div
               v-else-if="param.name === 'within_days'"
@@ -489,18 +490,12 @@ async function save(): Promise<void> {
         >
           <div class="field">
             <label :for="`segment-axis-${String(index)}`">{{ t('crmSegments.axis') }}</label>
-            <select
+            <USelect
               :id="`segment-axis-${String(index)}`"
               v-model="row.axis"
-            >
-              <option
-                v-for="axis in AXES"
-                :key="axis"
-                :value="axis"
-              >
-                {{ axis }}
-              </option>
-            </select>
+              class="w-full"
+              :items="axisItems"
+            />
           </div>
           <div class="field">
             <label :for="`segment-dim-label-${String(index)}`">{{ t('crmSegments.tag') }}</label>

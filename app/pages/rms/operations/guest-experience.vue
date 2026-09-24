@@ -45,6 +45,15 @@ const briefPdf = computed(() => (
   briefHtml.value === null ? null : `${briefHtml.value}?format=pdf`
 ))
 
+const departureItems = computed(() => departures.value.map(row => ({
+  label: departureLabel(row),
+  value: row.departure_id
+})))
+
+function onDepartureUpdate(value: number | string | null | undefined): void {
+  selectedId.value = typeof value === 'number' ? value : null
+}
+
 watch(selectedId, (id) => {
   if (id !== null) {
     void loadExperience(id)
@@ -166,18 +175,13 @@ function questionnaireSub(view: DepartureGuestExperience): string {
       class="field gx-departure"
     >
       <label for="gx-departure">{{ t('guestExperience.departure') }}</label>
-      <select
+      <USelect
         id="gx-departure"
-        v-model.number="selectedId"
-      >
-        <option
-          v-for="row in departures"
-          :key="row.departure_id"
-          :value="row.departure_id"
-        >
-          {{ departureLabel(row) }}
-        </option>
-      </select>
+        :model-value="selectedId ?? undefined"
+        class="w-full"
+        :items="departureItems"
+        @update:model-value="onDepartureUpdate"
+      />
     </div>
 
     <p

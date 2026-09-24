@@ -19,6 +19,17 @@ const selectedId = ref<number | null>(null)
 
 const selectedRow = computed(() => rows.value.find(row => row.id === selectedId.value) ?? null)
 
+const statusItems = computed(() => [
+  { label: t('crmInbox.statusAll'), value: '' as const },
+  { label: t('crmInbox.statusOpen'), value: 'OPEN' as const },
+  { label: t('crmInbox.statusClosed'), value: 'CLOSED' as const }
+])
+
+const unreadItems = computed(() => [
+  { label: t('crmInbox.unreadAll'), value: '' as const },
+  { label: t('crmInbox.unreadOnly'), value: '1' as const }
+])
+
 function contactHref(id: number): string {
   return `/crm/sales/contacts?open=${String(id)}`
 }
@@ -103,25 +114,16 @@ function applyConversation(previousId: number, next: Conversation): void {
     <div class="panel">
       <h3>{{ t('crmInbox.title') }}</h3>
       <div class="crm-filters">
-        <select v-model="statusFilter">
-          <option value="">
-            {{ t('crmInbox.statusAll') }}
-          </option>
-          <option value="OPEN">
-            {{ t('crmInbox.statusOpen') }}
-          </option>
-          <option value="CLOSED">
-            {{ t('crmInbox.statusClosed') }}
-          </option>
-        </select>
-        <select v-model="unreadFilter">
-          <option value="">
-            {{ t('crmInbox.unreadAll') }}
-          </option>
-          <option value="1">
-            {{ t('crmInbox.unreadOnly') }}
-          </option>
-        </select>
+        <USelect
+          v-model="statusFilter"
+          size="sm"
+          :items="statusItems"
+        />
+        <USelect
+          v-model="unreadFilter"
+          size="sm"
+          :items="unreadItems"
+        />
       </div>
       <div class="bk-table-wrap">
         <table class="list">

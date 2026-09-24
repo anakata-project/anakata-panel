@@ -203,6 +203,78 @@ const childrenLabel = computed(() => {
   })
 })
 
+const typeItems = computed(() => [
+  { label: t('bookings.typeCabin'), value: 'CABIN' },
+  { label: t('bookings.typeCharter'), value: 'CHARTER' }
+])
+
+const mainChannelItems = computed(() => (options.value?.main ?? []).map(item => ({
+  label: item.label,
+  value: item.value
+})))
+
+const originItems = computed(() => [
+  ...(options.value?.origin ?? []).map(group => [
+    { type: 'label' as const, label: group.group },
+    ...group.options.map(option => ({ label: option.label, value: option.value }))
+  ])
+])
+
+const agencyItems = computed(() => [
+  { label: t('bookings.pickAgency'), value: null as number | null },
+  ...(options.value?.agencies ?? []).map(agency => ({
+    label: agencyOptionLabel(agency, capPct.value),
+    value: agency.id
+  }))
+])
+
+const preferredItems = computed(() => (options.value?.preferred ?? []).map(item => ({
+  label: item.label,
+  value: item.value
+})))
+
+const departureItems = computed(() => [
+  {
+    label: loading.value ? t('bookings.loadingDepartures') : t('bookings.pickDeparture'),
+    value: null as number | null
+  },
+  ...departures.value.map(item => ({
+    label: departureOptionLabel(item.date, item.yacht.name, item.itinerary.name, item.festive, shortDate),
+    value: item.id
+  }))
+])
+
+const cabinItems = computed(() => [
+  { label: t('bookings.pickCabin'), value: '' },
+  ...cabins.value.map(item => ({
+    label: `${item.cabin.label}${cabinEnabled(item) ? '' : ` · ${t('bookings.cabinTaken')}`}`,
+    value: item.cabin.code,
+    disabled: !cabinEnabled(item)
+  }))
+])
+
+const extraCabinItems = computed(() => [
+  { label: t('bookings.pickCabin'), value: '' },
+  ...cabins.value.map(item => ({
+    label: item.cabin.label,
+    value: item.cabin.code,
+    disabled: !cabinEnabled(item)
+  }))
+])
+
+const depositMethodItems = computed(() => methodOptions.value.map(item => ({
+  label: item.label,
+  value: item.value
+})))
+
+const groupItems = computed(() => [
+  { label: t('bookings.newReservationOption'), value: null as number | null },
+  ...groups.value.map(group => ({
+    label: t('bookings.addToGroup', { reference: group.reference, name: group.name }),
+    value: group.id
+  }))
+])
+
 const charterTerms = computed(() => quote.value?.terms.charter ?? null)
 
 const depositLine = computed(() => {
@@ -402,11 +474,60 @@ function scheduleQuote(): void {
   queue.schedule(payload)
 }
 
-function onAgencyChange(value: string): void {
-  const id = Number(value) || null
-  agencyId.value = id
-  const agency = options.value?.agencies.find(item => item.id === id)
+function onAgencyChange(value: number | null): void {
+  agencyId.value = value
+  const agency = options.value?.agencies.find(item => item.id === value)
   commissionPct.value = agency?.commission_pct ?? defaultPct.value
+}
+
+function onTypeUpdate(value: string | number | null | undefined): void {
+  if (typeof value === 'string') {
+    type.value = value as BookingType
+  }
+}
+
+function onMainChannelUpdate(value: string | number | null | undefined): void {
+  if (typeof value === 'string') {
+    mainChannel.value = value as MainChannel
+  }
+}
+
+function onOriginUpdate(value: string | number | null | undefined): void {
+  if (typeof value === 'string') {
+    origin.value = value as ChannelOfOrigin
+  }
+}
+
+function onPreferredUpdate(value: string | number | null | undefined): void {
+  if (typeof value === 'string') {
+    preferred.value = value as PreferredChannel
+  }
+}
+
+function onDepartureUpdate(value: number | string | null | undefined): void {
+  departureId.value = typeof value === 'number' ? value : null
+}
+
+function onCabinUpdate(value: string | number | null | undefined): void {
+  cabinCode.value = typeof value === 'string' ? value : ''
+}
+
+function onDepositMethodUpdate(value: string | number | null | undefined): void {
+  if (value === 'card' || value === 'wire') {
+    depositMethod.value = value
+  }
+}
+
+function onExtraCabinUpdate(key: number, value: string | number | null | undefined): void {
+  updateExtra(key, { cabinCode: typeof value === 'string' ? value : '' })
+}
+
+function onGroupUpdate(value: number | string | null | undefined): void {
+  existingGroupId.value = typeof value === 'number' ? value : null
+}
+
+function onAgencyUpdate(value: number | string | null | undefined): void {
+  onAgencyChange(typeof value === 'number' ? value : null)
 }
 
 async function copyCreatedLink(url: string): Promise<void> {
@@ -691,34 +812,23 @@ onUnmounted(() => {
         <div class="cols2">
           <div class="field">
             <label for="nb-booking-type">{{ t('bookings.bookingType') }}</label>
-            <select
+            <USelect
               id="nb-booking-type"
-              :value="type"
-              @change="type = ($event.target as HTMLSelectElement).value as BookingType"
-            >
-              <option value="CABIN">
-                {{ t('bookings.typeCabin') }}
-              </option>
-              <option value="CHARTER">
-                {{ t('bookings.typeCharter') }}
-              </option>
-            </select>
+              :model-value="type"
+              class="w-full"
+              :items="typeItems"
+              @update:model-value="onTypeUpdate"
+            />
           </div>
           <div class="field">
             <label for="nb-main-channel">{{ t('bookings.mainChannel') }}</label>
-            <select
+            <USelect
               id="nb-main-channel"
-              :value="mainChannel"
-              @change="mainChannel = ($event.target as HTMLSelectElement).value as MainChannel"
-            >
-              <option
-                v-for="item in options?.main ?? []"
-                :key="item.value"
-                :value="item.value"
-              >
-                {{ item.label }}
-              </option>
-            </select>
+              :model-value="mainChannel"
+              class="w-full"
+              :items="mainChannelItems"
+              @update:model-value="onMainChannelUpdate"
+            />
             <p
               v-if="fieldErrors.main_channel"
               class="field-hint"
@@ -730,47 +840,26 @@ onUnmounted(() => {
 
         <div class="field">
           <label for="nb-origin-channel">{{ t('bookings.originChannel') }}</label>
-          <select
+          <USelect
             id="nb-origin-channel"
-            :value="origin"
-            @change="origin = ($event.target as HTMLSelectElement).value as ChannelOfOrigin"
-          >
-            <optgroup
-              v-for="group in options?.origin ?? []"
-              :key="group.group"
-              :label="group.group"
-            >
-              <option
-                v-for="item in group.options"
-                :key="item.value"
-                :value="item.value"
-              >
-                {{ item.label }}
-              </option>
-            </optgroup>
-          </select>
+            :model-value="origin"
+            class="w-full"
+            :items="originItems"
+            @update:model-value="onOriginUpdate"
+          />
         </div>
 
         <template v-if="isTrade">
           <div class="cols2">
             <div class="field">
               <label for="nb-agent">{{ t('bookings.agency') }}</label>
-              <select
+              <USelect
                 id="nb-agent"
-                :value="agencyId ?? ''"
-                @change="onAgencyChange(($event.target as HTMLSelectElement).value)"
-              >
-                <option value="">
-                  {{ t('bookings.pickAgency') }}
-                </option>
-                <option
-                  v-for="agency in options?.agencies ?? []"
-                  :key="agency.id"
-                  :value="agency.id"
-                >
-                  {{ agencyOptionLabel(agency, capPct) }}
-                </option>
-              </select>
+                :model-value="agencyId"
+                class="w-full"
+                :items="agencyItems"
+                @update:model-value="onAgencyUpdate"
+              />
               <p
                 v-if="fieldErrors.agency_id"
                 class="field-hint"
@@ -865,41 +954,26 @@ onUnmounted(() => {
           </div>
           <div class="field">
             <label for="nb-preferred-channel">{{ t('bookings.preferredChannel') }}</label>
-            <select
+            <USelect
               id="nb-preferred-channel"
-              :value="preferred"
-              @change="preferred = ($event.target as HTMLSelectElement).value as PreferredChannel"
-            >
-              <option
-                v-for="item in options?.preferred ?? []"
-                :key="item.value"
-                :value="item.value"
-              >
-                {{ item.label }}
-              </option>
-            </select>
+              :model-value="preferred"
+              class="w-full"
+              :items="preferredItems"
+              @update:model-value="onPreferredUpdate"
+            />
           </div>
         </div>
 
         <div class="field">
           <label for="nb-departure">{{ t('bookings.departure') }}</label>
-          <select
+          <USelect
             id="nb-departure"
-            :value="departureId ?? ''"
+            :model-value="departureId"
+            class="w-full"
+            :items="departureItems"
             :disabled="loading"
-            @change="departureId = Number(($event.target as HTMLSelectElement).value) || null"
-          >
-            <option value="">
-              {{ loading ? t('bookings.loadingDepartures') : t('bookings.pickDeparture') }}
-            </option>
-            <option
-              v-for="item in departures"
-              :key="item.id"
-              :value="item.id"
-            >
-              {{ departureOptionLabel(item.date, item.yacht.name, item.itinerary.name, item.festive, shortDate) }}
-            </option>
-          </select>
+            @update:model-value="onDepartureUpdate"
+          />
         </div>
 
         <div class="cols2">
@@ -941,40 +1015,24 @@ onUnmounted(() => {
             class="field"
           >
             <label for="nb-cabin">{{ t('bookings.cabin') }}</label>
-            <select
+            <USelect
               id="nb-cabin"
-              :value="cabinCode"
+              :model-value="cabinCode"
+              class="w-full"
+              :items="cabinItems"
               :disabled="selectedDeparture === null"
-              @change="cabinCode = ($event.target as HTMLSelectElement).value"
-            >
-              <option value="">
-                {{ t('bookings.pickCabin') }}
-              </option>
-              <option
-                v-for="item in cabins"
-                :key="item.cabin.code"
-                :value="item.cabin.code"
-                :disabled="!cabinEnabled(item)"
-              >
-                {{ item.cabin.label }}{{ cabinEnabled(item) ? '' : ` · ${t('bookings.cabinTaken')}` }}
-              </option>
-            </select>
+              @update:model-value="onCabinUpdate"
+            />
           </div>
           <div class="field">
             <label for="nb-deposit-method">{{ t('bookings.depositMethod') }}</label>
-            <select
+            <USelect
               id="nb-deposit-method"
-              :value="depositMethod"
-              @change="depositMethod = ($event.target as HTMLSelectElement).value as 'card' | 'wire'"
-            >
-              <option
-                v-for="item in methodOptions"
-                :key="item.value"
-                :value="item.value"
-              >
-                {{ item.label }}
-              </option>
-            </select>
+              :model-value="depositMethod"
+              class="w-full"
+              :items="depositMethodItems"
+              @update:model-value="onDepositMethodUpdate"
+            />
           </div>
         </div>
 
@@ -996,23 +1054,13 @@ onUnmounted(() => {
           >
             <div class="field">
               <label :for="`nb-extra-cabin-${row.key}`">{{ t('bookings.extraCabin', { n: String(index + 2) }) }}</label>
-              <select
+              <USelect
                 :id="`nb-extra-cabin-${row.key}`"
-                :value="row.cabinCode"
-                @change="updateExtra(row.key, { cabinCode: ($event.target as HTMLSelectElement).value })"
-              >
-                <option value="">
-                  {{ t('bookings.pickCabin') }}
-                </option>
-                <option
-                  v-for="item in cabins"
-                  :key="item.cabin.code"
-                  :value="item.cabin.code"
-                  :disabled="!cabinEnabled(item)"
-                >
-                  {{ item.cabin.label }}
-                </option>
-              </select>
+                :model-value="row.cabinCode"
+                class="w-full"
+                :items="extraCabinItems"
+                @update:model-value="onExtraCabinUpdate(row.key, $event)"
+              />
             </div>
             <div class="field">
               <label :for="`nb-extra-adults-${row.key}`">{{ t('bookings.adults') }}</label>
@@ -1057,22 +1105,12 @@ onUnmounted(() => {
           >
             {{ t('bookings.addCabin') }}
           </UButton>
-          <select
+          <USelect
             class="tsel"
-            :value="existingGroupId ?? ''"
-            @change="existingGroupId = Number(($event.target as HTMLSelectElement).value) || null"
-          >
-            <option value="">
-              {{ t('bookings.newReservationOption') }}
-            </option>
-            <option
-              v-for="group in groups"
-              :key="group.id"
-              :value="group.id"
-            >
-              {{ t('bookings.addToGroup', { reference: group.reference, name: group.name }) }}
-            </option>
-          </select>
+            :model-value="existingGroupId"
+            :items="groupItems"
+            @update:model-value="onGroupUpdate"
+          />
         </div>
 
         <template v-if="groupVisible">

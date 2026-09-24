@@ -90,7 +90,7 @@ const canOverdueDecision = computed(() => can('bookings.overdue_decision'))
 const canOverrideCap = computed(() => can('commissions.override_cap'))
 const canRecordSurvey = computed(() => can('guest_experience.manage'))
 const surveyOpen = ref(false)
-const extendDate = ref('')
+const extendDate = ref<string | null>(null)
 const { rules } = useOpenRequests()
 const confirmOpen = ref(false)
 const confirmSubmitting = ref(false)
@@ -190,7 +190,18 @@ const cancelRefundHint = computed(() => {
 
 const extendMin = computed(() => galapagosTomorrowIso(new Date(), (value, style, options) => format(value, style, options)))
 const extendMax = computed(() => source.value?.departure.date ?? '')
-const extendValid = computed(() => extendDate.value !== '')
+const extendValid = computed(() => extendDate.value !== null && extendDate.value !== '')
+
+const ownerItems = computed(() => owners.value.map(item => ({
+  label: item.name,
+  value: item.id
+})))
+
+function onOwnerUpdate(value: number | string | null | undefined): void {
+  if (typeof value === 'number') {
+    ownerId.value = value
+  }
+}
 
 useUnsavedGuard(dirty, () => t('bookings.leaveUnsaved'))
 
@@ -418,7 +429,7 @@ async function onReason(reason: string): Promise<void> {
         body: {
           decision: reasonKind.value === 'overdue-extend' ? 'EXTEND' : 'CANCEL',
           reason,
-          new_due_date: reasonKind.value === 'overdue-extend' ? extendDate.value : undefined
+          new_due_date: reasonKind.value === 'overdue-extend' ? (extendDate.value ?? undefined) : undefined
         }
       }) as Booking
 
@@ -497,7 +508,7 @@ function startOverdue(kind: 'overdue-extend' | 'overdue-cancel'): void {
   reasonTo.value = null
   reasonRequired.value = true
   reasonError.value = ''
-  extendDate.value = ''
+  extendDate.value = null
   reasonOpen.value = true
 }
 
@@ -941,18 +952,12 @@ async function onPaymentsUpdated(booking?: Booking): Promise<void> {
           >
             <h4>{{ t('bookings.ownerTitle') }}</h4>
             <div class="field">
-              <select
-                :value="ownerId ?? ''"
-                @change="ownerId = Number(($event.target as HTMLSelectElement).value)"
-              >
-                <option
-                  v-for="item in owners"
-                  :key="item.id"
-                  :value="item.id"
-                >
-                  {{ item.name }}
-                </option>
-              </select>
+              <USelect
+                :model-value="ownerId ?? undefined"
+                class="w-full"
+                :items="ownerItems"
+                @update:model-value="onOwnerUpdate"
+              />
             </div>
           </div>
 
@@ -1052,13 +1057,12 @@ async function onPaymentsUpdated(booking?: Booking): Promise<void> {
           {{ t('bookings.overdueNewDue') }}
           <span class="cnt">{{ t('bookings.reasonRequired') }}</span>
         </label>
-        <input
+        <AnkDateInput
           id="overdue-due"
           v-model="extendDate"
-          type="date"
           :min="extendMin"
           :max="extendMax"
-        >
+        />
       </div>
     </template>
     <template

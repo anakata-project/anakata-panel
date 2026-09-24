@@ -30,6 +30,11 @@ const country = ref('US')
 const network = ref('')
 const commission = ref(10)
 
+const countryItems = computed(() => AGENCY_COUNTRIES.map(item => ({
+  label: item.label,
+  value: item.value
+})))
+
 const overCap = computed(() => commission.value > props.capPct)
 
 watch(open, (isOpen) => {
@@ -108,18 +113,12 @@ function submit(): void {
           </div>
           <div class="field">
             <label for="ar-co">{{ t('agencies.country') }}</label>
-            <select
+            <USelect
               id="ar-co"
               v-model="country"
-            >
-              <option
-                v-for="item in AGENCY_COUNTRIES"
-                :key="item.value"
-                :value="item.value"
-              >
-                {{ item.label }}
-              </option>
-            </select>
+              :items="countryItems"
+              class="w-full"
+            />
           </div>
         </div>
         <div class="cols2">

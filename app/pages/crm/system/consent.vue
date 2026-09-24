@@ -32,6 +32,22 @@ const drawerId = ref<number | null>(null)
 
 const canManagePrivacy = computed(() => can('privacy.manage'))
 
+const typeItems = computed(() => [
+  { label: t('crmPrivacy.typeAll'), value: '' as const },
+  ...TYPES.filter((value): value is SubjectRequestType => value !== '').map(item => ({
+    label: t(`crmPrivacy.types.${item}`),
+    value: item
+  }))
+])
+
+const statusItems = computed(() => [
+  { label: t('crmPrivacy.statusAll'), value: '' as const },
+  ...STATUSES.filter((value): value is SubjectRequestStatus => value !== '').map(item => ({
+    label: item,
+    value: item
+  }))
+])
+
 onMounted(() => {
   void loadRegister()
   if (canManagePrivacy.value) {
@@ -224,30 +240,16 @@ function inCrmLabel(value: string): string {
 
       <template v-else>
         <div class="ebtool dep-toolbar">
-          <select v-model="typeFilter">
-            <option value="">
-              {{ t('crmPrivacy.typeAll') }}
-            </option>
-            <option
-              v-for="item in TYPES.filter(value => value !== '')"
-              :key="item"
-              :value="item"
-            >
-              {{ t(`crmPrivacy.types.${item}`) }}
-            </option>
-          </select>
-          <select v-model="statusFilter">
-            <option value="">
-              {{ t('crmPrivacy.statusAll') }}
-            </option>
-            <option
-              v-for="item in STATUSES.filter(value => value !== '')"
-              :key="item"
-              :value="item"
-            >
-              {{ item }}
-            </option>
-          </select>
+          <USelect
+            v-model="typeFilter"
+            size="sm"
+            :items="typeItems"
+          />
+          <USelect
+            v-model="statusFilter"
+            size="sm"
+            :items="statusItems"
+          />
           <label class="crm-check">
             <input
               v-model="overdueOnly"

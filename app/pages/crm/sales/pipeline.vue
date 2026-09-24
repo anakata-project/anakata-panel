@@ -63,6 +63,32 @@ const pendingMove = ref<{ id: number, stage: MoveDealInput['stage'] } | null>(nu
 const shown = computed(() => kpis.value ?? emptyKpis)
 const canMove = computed(() => can('pipeline.move_stage'))
 
+const ownerItems = computed(() => [
+  { label: t('crmPipeline.ownerAll'), value: '' },
+  { label: t('crmPipeline.ownerMe'), value: 'me' },
+  { label: t('crmPipeline.unassigned'), value: 'unassigned' },
+  ...users.value.map(user => ({
+    label: user.name,
+    value: String(user.id)
+  }))
+])
+
+const typeItems = computed(() => [
+  { label: t('crmPipeline.typeAll'), value: '' },
+  ...TYPES.map(item => ({
+    label: t(`crmPipeline.types.${item}`),
+    value: item
+  }))
+])
+
+const moveItems = computed(() => [
+  { label: t('crmPipeline.moveTo'), value: '' },
+  ...MOVES.map(stage => ({
+    label: t(`crmPipeline.stages.${stage}`),
+    value: stage
+  }))
+])
+
 onMounted(() => {
   void load()
   void loadMap()
@@ -203,8 +229,10 @@ async function submitLost(reason: string): Promise<void> {
   }
 }
 
-function onKeyboardMove(deal: PipelineDeal, stage: string, select: HTMLSelectElement): void {
-  select.value = ''
+function onKeyboardMove(deal: PipelineDeal, stage: string | number | boolean | null | undefined): void {
+  if (typeof stage !== 'string' || stage === '') {
+    return
+  }
 
   if (!deal.may_move || !MOVES.includes(stage as MoveDealInput['stage'])) {
     return
@@ -286,36 +314,16 @@ function onKeyboardMove(deal: PipelineDeal, stage: string, select: HTMLSelectEle
         </UButton>
       </div>
       <div class="ebtool dep-toolbar">
-        <select v-model="owner">
-          <option value="">
-            {{ t('crmPipeline.ownerAll') }}
-          </option>
-          <option value="me">
-            {{ t('crmPipeline.ownerMe') }}
-          </option>
-          <option value="unassigned">
-            {{ t('crmPipeline.unassigned') }}
-          </option>
-          <option
-            v-for="user in users"
-            :key="user.id"
-            :value="String(user.id)"
-          >
-            {{ user.name }}
-          </option>
-        </select>
-        <select v-model="type">
-          <option value="">
-            {{ t('crmPipeline.typeAll') }}
-          </option>
-          <option
-            v-for="item in TYPES"
-            :key="item"
-            :value="item"
-          >
-            {{ t(`crmPipeline.types.${item}`) }}
-          </option>
-        </select>
+        <USelect
+          v-model="owner"
+          size="sm"
+          :items="ownerItems"
+        />
+        <USelect
+          v-model="type"
+          size="sm"
+          :items="typeItems"
+        />
         <input
           v-model="q"
           type="search"
@@ -371,23 +379,15 @@ function onKeyboardMove(deal: PipelineDeal, stage: string, select: HTMLSelectEle
               >{{ deal.booking?.reference ?? t('crmPipeline.noRmsYet') }}</span>
               <span class="val">{{ format(deal.value) }} {{ deal.value_label }}</span>
               <span class="mono">{{ deal.contact.name }}</span>
-              <select
+              <USelect
                 v-if="deal.may_move"
+                :model-value="''"
                 class="move"
-                @change="onKeyboardMove(deal, ($event.target as HTMLSelectElement).value, $event.target as HTMLSelectElement)"
+                size="sm"
+                :items="moveItems"
+                @update:model-value="onKeyboardMove(deal, $event)"
                 @click.stop
-              >
-                <option value="">
-                  {{ t('crmPipeline.moveTo') }}
-                </option>
-                <option
-                  v-for="stage in MOVES"
-                  :key="stage"
-                  :value="stage"
-                >
-                  {{ t(`crmPipeline.stages.${stage}`) }}
-                </option>
-              </select>
+              />
             </article>
           </div>
         </section>

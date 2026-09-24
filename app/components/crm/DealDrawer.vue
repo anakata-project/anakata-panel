@@ -52,6 +52,22 @@ const canLog = computed(() => can('contacts.manage'))
 const unbound = computed(() => deal.value !== null && deal.value.booking === null)
 const badge = computed(() => slaBadge(deal.value?.sla.state ?? null))
 
+const moveItems = computed(() => [
+  { label: t('crmPipeline.moveTo'), value: '' },
+  ...MOVES.map(stage => ({
+    label: t(`crmPipeline.stages.${stage}`),
+    value: stage
+  }))
+])
+
+const bindItems = computed(() => [
+  { label: t('crmPipeline.pickBooking'), value: '' },
+  ...bookings.value.map(booking => ({
+    label: booking.display_reference ?? String(booking.id),
+    value: String(booking.id)
+  }))
+])
+
 watch(
   () => [open.value, props.dealId, props.revision] as const,
   async ([isOpen, id]) => {
@@ -133,15 +149,11 @@ async function bind(): Promise<void> {
   }
 }
 
-function onMoveChange(event: Event): void {
-  const select = event.target
-
-  if (!(select instanceof HTMLSelectElement)) {
+function onMoveChange(stage: string | number | boolean | null | undefined): void {
+  if (typeof stage !== 'string' || stage === '') {
     return
   }
 
-  const stage = select.value
-  select.value = ''
   askMove(stage)
 }
 
@@ -294,21 +306,13 @@ async function submitLost(reason: string): Promise<void> {
           class="field"
         >
           <label for="drawer-move">{{ t('crmPipeline.moveTo') }}</label>
-          <select
+          <USelect
             id="drawer-move"
-            @change="onMoveChange"
-          >
-            <option value="">
-              {{ t('crmPipeline.moveTo') }}
-            </option>
-            <option
-              v-for="stage in MOVES"
-              :key="stage"
-              :value="stage"
-            >
-              {{ t(`crmPipeline.stages.${stage}`) }}
-            </option>
-          </select>
+            :model-value="''"
+            class="w-full"
+            :items="moveItems"
+            @update:model-value="onMoveChange"
+          />
         </div>
 
         <div class="crm-deal-actions">
@@ -353,21 +357,12 @@ async function submitLost(reason: string): Promise<void> {
         >
           <label for="drawer-bind">{{ t('crmPipeline.bind') }}</label>
           <div class="crm-inline">
-            <select
+            <USelect
               id="drawer-bind"
               v-model="bindId"
-            >
-              <option value="">
-                {{ t('crmPipeline.pickBooking') }}
-              </option>
-              <option
-                v-for="booking in bookings"
-                :key="booking.id"
-                :value="String(booking.id)"
-              >
-                {{ booking.display_reference ?? String(booking.id) }}
-              </option>
-            </select>
+              class="w-full"
+              :items="bindItems"
+            />
             <UButton
               variant="outline"
               :disabled="bindId === ''"

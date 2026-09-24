@@ -105,6 +105,26 @@ const journeysError = ref('')
 const items = computed(() => timeline.value?.data ?? [])
 const timelineMeta = computed(() => timeline.value?.meta)
 
+const purposeItems = computed(() => CONSENT_PURPOSES.map(purpose => ({
+  label: purpose,
+  value: purpose
+})))
+
+const grantedItems = computed(() => [
+  { label: t('crmContacts.consentOptedIn'), value: '1' as const },
+  { label: t('crmContacts.consentWithdrawn'), value: '0' as const }
+])
+
+const channelItems = computed(() => CHANNELS.map(channel => ({
+  label: channelLabel(channel),
+  value: channel
+})))
+
+const contactTypeItems = computed(() => props.typeOptions.map(option => ({
+  label: option.label,
+  value: option.value
+})))
+
 function channelLabel(value: string): string {
   if (value === 'EMAIL') {
     return t('crmContacts.channelEmail')
@@ -615,32 +635,21 @@ async function onUndo(reason: string): Promise<void> {
             </p>
             <div class="field">
               <label for="consent-purpose">{{ t('crmContacts.consentPurpose') }}</label>
-              <select
+              <USelect
                 id="consent-purpose"
                 v-model="recordPurpose"
-              >
-                <option
-                  v-for="purpose in CONSENT_PURPOSES"
-                  :key="purpose"
-                  :value="purpose"
-                >
-                  {{ purpose }}
-                </option>
-              </select>
+                class="w-full"
+                :items="purposeItems"
+              />
             </div>
             <div class="field">
               <label for="consent-granted">{{ t('crmContacts.consentGranted') }}</label>
-              <select
+              <USelect
                 id="consent-granted"
                 v-model="recordGranted"
-              >
-                <option value="1">
-                  {{ t('crmContacts.consentOptedIn') }}
-                </option>
-                <option value="0">
-                  {{ t('crmContacts.consentWithdrawn') }}
-                </option>
-              </select>
+                class="w-full"
+                :items="grantedItems"
+              />
             </div>
             <div class="field">
               <label for="consent-how">{{ t('crmContacts.consentHow') }}</label>
@@ -948,33 +957,21 @@ async function onUndo(reason: string): Promise<void> {
           </div>
           <div class="field">
             <label for="crm-channel">{{ t('crmContacts.preferredChannel') }}</label>
-            <select
+            <USelect
               id="crm-channel"
               v-model="preferredChannel"
-            >
-              <option
-                v-for="channel in CHANNELS"
-                :key="channel"
-                :value="channel"
-              >
-                {{ channelLabel(channel) }}
-              </option>
-            </select>
+              class="w-full"
+              :items="channelItems"
+            />
           </div>
           <div class="field">
             <label for="crm-type">{{ t('crmContacts.type') }}</label>
-            <select
+            <USelect
               id="crm-type"
               v-model="type"
-            >
-              <option
-                v-for="option in typeOptions"
-                :key="option.value"
-                :value="option.value"
-              >
-                {{ option.label }}
-              </option>
-            </select>
+              class="w-full"
+              :items="contactTypeItems"
+            />
           </div>
           <UButton
             :loading="saving"

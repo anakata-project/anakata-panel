@@ -57,6 +57,13 @@ function restrictedField(key: string): 'accessibility' | 'emergency_contact' | n
   return RESTRICTED_FIELD[key] ?? null
 }
 
+function choiceItems(question: PreferenceQuestion): Array<{ label: string, value: string }> {
+  return [
+    { label: '—', value: '' },
+    ...question.options.map(option => ({ label: option, value: option }))
+  ]
+}
+
 function fillDraft(): void {
   const current = preferences.value?.current
   const next: Record<string, string> = {}
@@ -187,23 +194,14 @@ async function save(): Promise<void> {
           >
             {{ t('guestExperience.restricted') }}
           </div>
-          <select
+          <USelect
             v-else-if="question.type === 'choice'"
             :id="`pref-${question.key}`"
             v-model="draft[question.key]"
+            class="w-full"
+            :items="choiceItems(question)"
             :disabled="!canManage"
-          >
-            <option value="">
-              —
-            </option>
-            <option
-              v-for="option in question.options"
-              :key="option"
-              :value="option"
-            >
-              {{ option }}
-            </option>
-          </select>
+          />
           <input
             v-else
             :id="`pref-${question.key}`"

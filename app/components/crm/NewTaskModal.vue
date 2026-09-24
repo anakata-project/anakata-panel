@@ -26,6 +26,22 @@ const error = ref('')
 
 const canAssign = computed(() => can('records.act_on_any'))
 
+const contactItems = computed(() => [
+  { label: t('crmPipeline.pickContact'), value: '' },
+  ...matches.value.map(contact => ({
+    label: contact.name,
+    value: String(contact.id)
+  }))
+])
+
+const ownerItems = computed(() => [
+  { label: t('crmTasks.ownerSelf'), value: '' },
+  ...users.value.map(user => ({
+    label: user.name,
+    value: String(user.id)
+  }))
+])
+
 watch(open, (isOpen) => {
   if (!isOpen) {
     return
@@ -149,18 +165,11 @@ async function submit(): Promise<void> {
               {{ t('crmContacts.search') }}
             </UButton>
           </div>
-          <select v-model="contactId">
-            <option value="">
-              {{ t('crmPipeline.pickContact') }}
-            </option>
-            <option
-              v-for="contact in matches"
-              :key="contact.id"
-              :value="String(contact.id)"
-            >
-              {{ contact.name }}
-            </option>
-          </select>
+          <USelect
+            v-model="contactId"
+            class="w-full"
+            :items="contactItems"
+          />
         </div>
         <div class="field">
           <label for="task-deal">{{ t('crmTasks.dealOptional') }}</label>
@@ -177,21 +186,12 @@ async function submit(): Promise<void> {
           class="field"
         >
           <label for="task-owner">{{ t('crmPipeline.owner') }}</label>
-          <select
+          <USelect
             id="task-owner"
             v-model="ownerId"
-          >
-            <option value="">
-              {{ t('crmTasks.ownerSelf') }}
-            </option>
-            <option
-              v-for="user in users"
-              :key="user.id"
-              :value="String(user.id)"
-            >
-              {{ user.name }}
-            </option>
-          </select>
+            class="w-full"
+            :items="ownerItems"
+          />
         </div>
         <div class="modal-actions">
           <UButton

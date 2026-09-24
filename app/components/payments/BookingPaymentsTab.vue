@@ -42,7 +42,7 @@ const optionsStatus = ref<'loading' | 'ready' | 'failed'>('loading')
 const kind = ref('')
 const method = ref('')
 const amount = ref(0)
-const paidAt = ref('')
+const paidAt = ref<string | null>(null)
 const note = ref('')
 const warnings = ref<Array<string>>([])
 const fieldErrors = ref<FormFieldErrors>({})
@@ -78,6 +78,14 @@ const guestLinkError = ref('')
 
 const kindOptions = computed(() => recordableOptions(options.value?.kinds ?? []))
 const methodOptions = computed(() => recordableOptions(options.value?.methods ?? []))
+const kindItems = computed(() => kindOptions.value.map(item => ({
+  label: item.label,
+  value: item.value
+})))
+const methodItems = computed(() => methodOptions.value.map(item => ({
+  label: item.label,
+  value: item.value
+})))
 const formReady = computed(() => optionsStatus.value === 'ready' && options.value !== null)
 const stripeTestMode = computed(() => props.booking.payment_links.some(link => link.mode === 'test'))
 
@@ -93,7 +101,7 @@ function resetForm(): void {
     ?? ''
   method.value = methods[0]?.value ?? ''
   amount.value = defaultPaymentAmount(props.booking)
-  paidAt.value = ''
+  paidAt.value = null
   note.value = ''
   fieldErrors.value = {}
   formError.value = ''
@@ -226,7 +234,7 @@ async function submitRecord(): Promise<void> {
         kind: kind.value,
         method: method.value,
         amount: amount.value,
-        paid_at: paidAt.value === '' ? null : paidAt.value,
+        paid_at: paidAt.value === null || paidAt.value === '' ? null : paidAt.value,
         note: note.value === '' ? null : note.value
       }
     }) as RecordedPayment
@@ -524,18 +532,12 @@ async function submitWireSend(): Promise<void> {
           <div class="cols2">
             <div class="field">
               <label for="pay-kind">{{ t('payments.kind') }}</label>
-              <select
+              <USelect
                 id="pay-kind"
                 v-model="kind"
-              >
-                <option
-                  v-for="item in kindOptions"
-                  :key="item.value"
-                  :value="item.value"
-                >
-                  {{ item.label }}
-                </option>
-              </select>
+                class="w-full"
+                :items="kindItems"
+              />
               <p
                 v-if="fieldErrors.kind"
                 class="pline-err"
@@ -545,18 +547,12 @@ async function submitWireSend(): Promise<void> {
             </div>
             <div class="field">
               <label for="pay-method">{{ t('payments.method') }}</label>
-              <select
+              <USelect
                 id="pay-method"
                 v-model="method"
-              >
-                <option
-                  v-for="item in methodOptions"
-                  :key="item.value"
-                  :value="item.value"
-                >
-                  {{ item.label }}
-                </option>
-              </select>
+                class="w-full"
+                :items="methodItems"
+              />
               <p
                 v-if="fieldErrors.method"
                 class="pline-err"
@@ -584,11 +580,10 @@ async function submitWireSend(): Promise<void> {
             </div>
             <div class="field">
               <label for="pay-date">{{ t('payments.paidAt') }}</label>
-              <input
+              <AnkDateInput
                 id="pay-date"
                 v-model="paidAt"
-                type="date"
-              >
+              />
               <p
                 v-if="fieldErrors.paid_at"
                 class="pline-err"

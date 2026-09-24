@@ -29,6 +29,11 @@ let searchTimer: ReturnType<typeof setTimeout> | undefined
 
 const kindChoices = computed(() => recordableOptions(props.kinds))
 
+const kindItems = computed(() => kindChoices.value.map(option => ({
+  label: option.label,
+  value: option.value
+})))
+
 watch(open, (isOpen) => {
   if (!isOpen) {
     return
@@ -134,18 +139,12 @@ onUnmounted(() => {
         </div>
         <div class="field">
           <label for="apply-kind">{{ t('payments.kind') }}</label>
-          <select
+          <USelect
             id="apply-kind"
             v-model="kind"
-          >
-            <option
-              v-for="option in kindChoices"
-              :key="option.value"
-              :value="option.value"
-            >
-              {{ option.label }}
-            </option>
-          </select>
+            class="w-full"
+            :items="kindItems"
+          />
         </div>
         <div class="modal-actions">
           <UButton

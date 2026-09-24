@@ -64,6 +64,16 @@ const itineraries = computed(() => sortedItineraries(props.itineraries))
 
 const festiveAmount = computed(() => money(props.festiveSupplementPp))
 
+const yachtItems = computed(() => props.yachts.map(yacht => ({
+  label: yacht.name,
+  value: yacht.id
+})))
+
+const statusItems = computed(() => DEPARTURE_STATUSES.map(status => ({
+  label: t(statusLabelKey(status)),
+  value: status
+})))
+
 const title = computed(() => {
   if (draft.value === null || isNew.value) {
     return t('departures.newTitle')
@@ -163,6 +173,19 @@ function itineraryLabel(itinerary: Itinerary): string {
   }
 
   return t('departures.itineraryDraft', { name: itinerary.name })
+}
+
+const itineraryItems = computed(() => itineraries.value.map(itinerary => ({
+  label: itineraryLabel(itinerary),
+  value: itinerary.id
+})))
+
+function onEmbarkDate(value: string | null): void {
+  if (draft.value === null) {
+    return
+  }
+
+  draft.value.date = value ?? ''
 }
 
 async function save(): Promise<void> {
@@ -291,28 +314,22 @@ useUnsavedGuard(dirty, () => t('config.leaveUnsaved'))
           <div class="cols2">
             <div class="field">
               <label for="dep-embark-date">{{ t('departures.embarkDate') }}</label>
-              <input
+              <AnkDateInput
                 id="dep-embark-date"
-                v-model="draft.date"
-                type="date"
-                :disabled="dateLocked"
-              >
+                :model-value="draft.date === '' ? null : draft.date"
+                :disabled="!canManage || dateLocked"
+                @update:model-value="onEmbarkDate"
+              />
             </div>
             <div class="field">
               <label for="dep-yacht">{{ t('departures.yacht') }}</label>
-              <select
+              <USelect
                 id="dep-yacht"
-                v-model.number="draft.yacht_id"
-                :disabled="dateLocked"
-              >
-                <option
-                  v-for="yacht in yachts"
-                  :key="yacht.id"
-                  :value="yacht.id"
-                >
-                  {{ yacht.name }}
-                </option>
-              </select>
+                v-model="draft.yacht_id"
+                :items="yachtItems"
+                :disabled="!canManage || dateLocked"
+                class="w-full"
+              />
             </div>
           </div>
           <p
@@ -324,33 +341,23 @@ useUnsavedGuard(dirty, () => t('config.leaveUnsaved'))
           <div class="cols2">
             <div class="field">
               <label for="dep-itinerary">{{ t('departures.itinerary') }}</label>
-              <select
+              <USelect
                 id="dep-itinerary"
-                v-model.number="draft.itinerary_id"
-              >
-                <option
-                  v-for="itinerary in itineraries"
-                  :key="itinerary.id"
-                  :value="itinerary.id"
-                >
-                  {{ itineraryLabel(itinerary) }}
-                </option>
-              </select>
+                v-model="draft.itinerary_id"
+                :items="itineraryItems"
+                :disabled="!canManage"
+                class="w-full"
+              />
             </div>
             <div class="field">
               <label for="dep-status">{{ t('departures.statusOnEngine') }}</label>
-              <select
+              <USelect
                 id="dep-status"
                 v-model="draft.status"
-              >
-                <option
-                  v-for="status in DEPARTURE_STATUSES"
-                  :key="status"
-                  :value="status"
-                >
-                  {{ t(statusLabelKey(status)) }}
-                </option>
-              </select>
+                :items="statusItems"
+                :disabled="!canManage"
+                class="w-full"
+              />
             </div>
           </div>
           <label class="chkline">

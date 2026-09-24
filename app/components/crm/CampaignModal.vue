@@ -37,6 +37,14 @@ const offerChoices = computed(() => {
   return rows
 })
 
+const offerItems = computed(() => [
+  { label: t('crmCampaigns.noOffer'), value: '' },
+  ...offerChoices.value.map(offer => ({
+    label: `${offer.code} · ${offer.name}`,
+    value: String(offer.id)
+  }))
+])
+
 watch(open, (isOpen) => {
   if (!isOpen) {
     return
@@ -126,21 +134,12 @@ async function submit(): Promise<void> {
         </div>
         <div class="field">
           <label for="camp-offer">{{ t('crmCampaigns.offer') }}</label>
-          <select
+          <USelect
             id="camp-offer"
             v-model="offerId"
-          >
-            <option value="">
-              {{ t('crmCampaigns.noOffer') }}
-            </option>
-            <option
-              v-for="offer in offerChoices"
-              :key="offer.id"
-              :value="String(offer.id)"
-            >
-              {{ offer.code }} · {{ offer.name }}
-            </option>
-          </select>
+            class="w-full"
+            :items="offerItems"
+          />
         </div>
         <div class="field">
           <label for="camp-utm">{{ t('crmCampaigns.utm') }}</label>

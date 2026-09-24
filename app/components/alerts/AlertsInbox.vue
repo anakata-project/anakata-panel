@@ -53,6 +53,22 @@ const acknowledgingId = ref<number | null>(null)
 
 const sectionKinds = computed(() => kinds.value.filter(row => row.section === props.section))
 
+const severityItems = computed(() => [
+  { label: t('alerts.severityAll'), value: '' },
+  ...SEVERITIES.map(option => ({
+    label: option,
+    value: option
+  }))
+])
+
+const kindItems = computed(() => [
+  { label: t('alerts.kindAll'), value: '' },
+  ...sectionKinds.value.map(option => ({
+    label: option.label,
+    value: option.kind
+  }))
+])
+
 watch([state, severity, kind], () => {
   if (page.value !== 1) {
     page.value = 1
@@ -173,38 +189,18 @@ async function acknowledge(row: Alert): Promise<void> {
         </button>
       </div>
       <div class="list-filters">
-        <select
+        <USelect
           v-model="severity"
-          class="tsel"
+          size="sm"
+          :items="severityItems"
           :aria-label="t('alerts.severityAll')"
-        >
-          <option value="">
-            {{ t('alerts.severityAll') }}
-          </option>
-          <option
-            v-for="option in SEVERITIES"
-            :key="option"
-            :value="option"
-          >
-            {{ option }}
-          </option>
-        </select>
-        <select
+        />
+        <USelect
           v-model="kind"
-          class="tsel"
+          size="sm"
+          :items="kindItems"
           :aria-label="t('alerts.kindAll')"
-        >
-          <option value="">
-            {{ t('alerts.kindAll') }}
-          </option>
-          <option
-            v-for="option in sectionKinds"
-            :key="option.kind"
-            :value="option.kind"
-          >
-            {{ option.label }}
-          </option>
-        </select>
+        />
       </div>
     </div>
 

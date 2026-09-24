@@ -45,9 +45,22 @@ const engagement = ref('')
 const loadError = ref('')
 const status = ref('')
 const kind = ref('')
-const from = ref('')
-const to = ref('')
+const from = ref<string | null>(null)
+const to = ref<string | null>(null)
 const booking = ref('')
+
+const statusItems = computed(() => [
+  { label: t('crmDelivery.statusAll'), value: '' },
+  ...STATUSES.map(item => ({ label: item, value: item }))
+])
+
+const kindItems = computed(() => [
+  { label: t('crmDelivery.kindAll'), value: '' },
+  ...KINDS.map(item => ({
+    label: t(`crmDelivery.kinds.${item}`),
+    value: item
+  }))
+])
 
 onMounted(() => {
   void load()
@@ -68,11 +81,11 @@ async function load(): Promise<void> {
     params.set('kind', kind.value)
   }
 
-  if (from.value !== '') {
+  if (from.value !== null && from.value !== '') {
     params.set('from', from.value)
   }
 
-  if (to.value !== '') {
+  if (to.value !== null && to.value !== '') {
     params.set('to', to.value)
   }
 
@@ -140,40 +153,26 @@ async function load(): Promise<void> {
 
     <div class="panel">
       <div class="ebtool dep-toolbar">
-        <select v-model="status">
-          <option value="">
-            {{ t('crmDelivery.statusAll') }}
-          </option>
-          <option
-            v-for="item in STATUSES"
-            :key="item"
-            :value="item"
-          >
-            {{ item }}
-          </option>
-        </select>
-        <select v-model="kind">
-          <option value="">
-            {{ t('crmDelivery.kindAll') }}
-          </option>
-          <option
-            v-for="item in KINDS"
-            :key="item"
-            :value="item"
-          >
-            {{ t(`crmDelivery.kinds.${item}`) }}
-          </option>
-        </select>
-        <input
+        <USelect
+          v-model="status"
+          size="sm"
+          :items="statusItems"
+        />
+        <USelect
+          v-model="kind"
+          size="sm"
+          :items="kindItems"
+        />
+        <AnkDateInput
           v-model="from"
-          type="date"
+          size="sm"
           :aria-label="t('crmDelivery.from')"
-        >
-        <input
+        />
+        <AnkDateInput
           v-model="to"
-          type="date"
+          size="sm"
           :aria-label="t('crmDelivery.to')"
-        >
+        />
         <input
           v-model="booking"
           type="search"

@@ -39,8 +39,8 @@ const subscriptions = ref<Array<ReportSubscription>>([])
 const loadError = ref('')
 const actionError = ref('')
 const openKey = ref<string | null>(null)
-const runFrom = ref(yearWindow.from)
-const runTo = ref(yearWindow.to)
+const runFrom = ref<string | null>(yearWindow.from)
+const runTo = ref<string | null>(yearWindow.to)
 const yachtId = ref<number | null>(null)
 const itineraryId = ref<number | null>(null)
 const channel = ref<ChannelOfOriginGroup | ''>('')
@@ -59,6 +59,38 @@ const itineraries = computed(() => itinerariesPayload.value?.data ?? [])
 const agencies = computed(() => agenciesPayload.value?.data ?? [])
 const fileDays = computed(() => retentionDays(rulesPayload.value?.document))
 
+const yachtItems = computed(() => [
+  { label: t('dashboard.allYachts'), value: null as number | null },
+  ...yachts.value.map(yacht => ({
+    label: yacht.code,
+    value: yacht.id
+  }))
+])
+
+const itineraryItems = computed(() => [
+  { label: t('dashboard.allItineraries'), value: null as number | null },
+  ...itineraries.value.map(itinerary => ({
+    label: itinerary.name,
+    value: itinerary.id
+  }))
+])
+
+const channelItems = computed(() => [
+  { label: t('dashboard.allChannels'), value: '' as ChannelOfOriginGroup | '' },
+  ...CHANNELS.map(group => ({
+    label: group,
+    value: group
+  }))
+])
+
+const agencyItems = computed(() => [
+  { label: t('dashboard.allAgencies'), value: null as number | null },
+  ...agencies.value.map(agency => ({
+    label: agency.name,
+    value: agency.id
+  }))
+])
+
 let pollTimer: ReturnType<typeof setTimeout> | undefined
 
 onMounted(() => {
@@ -68,17 +100,6 @@ onMounted(() => {
 onUnmounted(() => {
   clearTimeout(pollTimer)
 })
-
-function idFrom(event: Event): number | null {
-  const value = (event.target as HTMLSelectElement).value
-
-  return value === '' ? null : Number(value)
-}
-
-function onChannel(event: Event): void {
-  const value = (event.target as HTMLSelectElement).value
-  channel.value = value === '' ? '' : value as ChannelOfOriginGroup
-}
 
 function titleFor(key: string): string {
   return definitions.value.find(definition => definition.key === key)?.title ?? key
@@ -333,82 +354,42 @@ async function runNow(subscription: ReportSubscription): Promise<void> {
                   <div class="drbar">
                     <label>
                       {{ t('reports.from') }}
-                      <input
+                      <AnkDateInput
                         v-model="runFrom"
-                        type="date"
-                      >
+                        size="sm"
+                      />
                     </label>
                     <label>
                       {{ t('reports.to') }}
-                      <input
+                      <AnkDateInput
                         v-model="runTo"
-                        type="date"
-                      >
+                        size="sm"
+                      />
                     </label>
-                    <select
+                    <USelect
+                      v-model="yachtId"
+                      size="sm"
+                      :items="yachtItems"
                       :aria-label="t('dashboard.allYachts')"
-                      :value="yachtId ?? ''"
-                      @change="yachtId = idFrom($event)"
-                    >
-                      <option value="">
-                        {{ t('dashboard.allYachts') }}
-                      </option>
-                      <option
-                        v-for="yacht in yachts"
-                        :key="yacht.id"
-                        :value="yacht.id"
-                      >
-                        {{ yacht.code }}
-                      </option>
-                    </select>
-                    <select
+                    />
+                    <USelect
+                      v-model="itineraryId"
+                      size="sm"
+                      :items="itineraryItems"
                       :aria-label="t('dashboard.allItineraries')"
-                      :value="itineraryId ?? ''"
-                      @change="itineraryId = idFrom($event)"
-                    >
-                      <option value="">
-                        {{ t('dashboard.allItineraries') }}
-                      </option>
-                      <option
-                        v-for="itinerary in itineraries"
-                        :key="itinerary.id"
-                        :value="itinerary.id"
-                      >
-                        {{ itinerary.name }}
-                      </option>
-                    </select>
-                    <select
+                    />
+                    <USelect
+                      v-model="channel"
+                      size="sm"
+                      :items="channelItems"
                       :aria-label="t('dashboard.allChannels')"
-                      :value="channel"
-                      @change="onChannel"
-                    >
-                      <option value="">
-                        {{ t('dashboard.allChannels') }}
-                      </option>
-                      <option
-                        v-for="group in CHANNELS"
-                        :key="group"
-                        :value="group"
-                      >
-                        {{ group }}
-                      </option>
-                    </select>
-                    <select
+                    />
+                    <USelect
+                      v-model="agencyId"
+                      size="sm"
+                      :items="agencyItems"
                       :aria-label="t('dashboard.allAgencies')"
-                      :value="agencyId ?? ''"
-                      @change="agencyId = idFrom($event)"
-                    >
-                      <option value="">
-                        {{ t('dashboard.allAgencies') }}
-                      </option>
-                      <option
-                        v-for="agency in agencies"
-                        :key="agency.id"
-                        :value="agency.id"
-                      >
-                        {{ agency.name }}
-                      </option>
-                    </select>
+                    />
                     <UButton
                       type="button"
                       :disabled="posting"

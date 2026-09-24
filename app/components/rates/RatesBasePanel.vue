@@ -195,17 +195,10 @@ function yoyFor(category: RateCategoryKey, index: number): string | null {
       >
       <span>%</span>
       <span class="mono rates-round-label">{{ t('rates.roundTo') }}</span>
-      <select
-        v-model.number="roundTo"
-      >
-        <option
-          v-for="item in roundItems"
-          :key="item.value"
-          :value="item.value"
-        >
-          {{ item.label }}
-        </option>
-      </select>
+      <USelect
+        v-model="roundTo"
+        :items="roundItems"
+      />
       <UButton
         variant="outline"
         class="rates-add"

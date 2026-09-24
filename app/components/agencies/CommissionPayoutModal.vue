@@ -17,7 +17,7 @@ const { format: money } = useMoney()
 
 const dateId = useId()
 const referenceId = useId()
-const paidOn = ref('')
+const paidOn = ref<string | null>(null)
 const bankReference = ref('')
 
 watch(open, (isOpen) => {
@@ -29,10 +29,10 @@ watch(open, (isOpen) => {
   bankReference.value = ''
 })
 
-const canSubmit = computed(() => paidOn.value !== '' && bankReference.value.trim() !== '' && !props.submitting)
+const canSubmit = computed(() => paidOn.value !== null && paidOn.value !== '' && bankReference.value.trim() !== '' && !props.submitting)
 
 function submit(): void {
-  if (!canSubmit.value) {
+  if (!canSubmit.value || paidOn.value === null) {
     return
   }
 
@@ -70,12 +70,10 @@ function submit(): void {
         </div>
         <div class="field">
           <label :for="dateId">{{ t('agencies.payoutDate') }}</label>
-          <input
+          <AnkDateInput
             :id="dateId"
             v-model="paidOn"
-            type="date"
-            required
-          >
+          />
         </div>
         <div class="field">
           <label :for="referenceId">{{ t('agencies.payoutReference') }}</label>

@@ -82,10 +82,13 @@ function openRow(row: CharterEnquiry): void {
   drawerOpen.value = true
 }
 
-function onStatus(event: Event): void {
-  const value = (event.target as HTMLSelectElement).value
-  statusFilter.value = value === '' ? '' : value as CharterEnquiryStatus
-}
+const statusItems = computed(() => [
+  { label: t('charterEnquiries.allStatuses'), value: '' },
+  ...STATUSES.map(status => ({
+    label: t(`charterEnquiries.status.${status}`),
+    value: status
+  }))
+])
 
 async function patchStatus(status: 'CONTACTED' | 'DECLINED' | 'CLOSED', reason?: string): Promise<void> {
   if (selected.value === null) {
@@ -204,22 +207,12 @@ async function openBooking(id: number): Promise<void> {
   <div class="panel">
     <div class="bk-toolbar">
       <h3>{{ t('charterEnquiries.title') }}</h3>
-      <select
+      <USelect
+        v-model="statusFilter"
+        size="sm"
+        :items="statusItems"
         :aria-label="t('charterEnquiries.allStatuses')"
-        :value="statusFilter"
-        @change="onStatus"
-      >
-        <option value="">
-          {{ t('charterEnquiries.allStatuses') }}
-        </option>
-        <option
-          v-for="status in STATUSES"
-          :key="status"
-          :value="status"
-        >
-          {{ t(`charterEnquiries.status.${status}`) }}
-        </option>
-      </select>
+      />
     </div>
     <div class="bk-table-wrap">
       <table class="list">

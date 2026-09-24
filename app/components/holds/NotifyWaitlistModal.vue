@@ -17,6 +17,11 @@ const { t } = useI18n()
 
 const channel = ref<PreferredChannel>('EMAIL')
 
+const channelItems = computed(() => (props.options?.preferred ?? []).map(item => ({
+  label: item.label,
+  value: item.value as PreferredChannel
+})))
+
 watch(open, (isOpen) => {
   if (isOpen) {
     channel.value = props.options?.preferred[0]?.value as PreferredChannel ?? 'EMAIL'
@@ -43,18 +48,11 @@ watch(open, (isOpen) => {
         </div>
         <div class="field">
           <label>{{ t('bookings.preferredChannel') }}</label>
-          <select
-            :value="channel"
-            @change="channel = ($event.target as HTMLSelectElement).value as PreferredChannel"
-          >
-            <option
-              v-for="item in options?.preferred ?? []"
-              :key="item.value"
-              :value="item.value"
-            >
-              {{ item.label }}
-            </option>
-          </select>
+          <USelect
+            v-model="channel"
+            :items="channelItems"
+            class="w-full"
+          />
         </div>
         <div class="modal-actions">
           <UButton

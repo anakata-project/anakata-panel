@@ -63,6 +63,16 @@ const orderedDepartures = computed(() => {
   })
 })
 
+const cabinItems = computed(() => [
+  { label: t('holds.suite'), value: 'SUITE' as CabinCategory },
+  { label: t('holds.ownerSuite'), value: 'OWNER' as CabinCategory }
+])
+
+const preferredItems = computed(() => (options.value?.preferred ?? []).map(item => ({
+  label: item.label,
+  value: item.value as PreferredChannel
+})))
+
 function reset(): void {
   departureId.value = null
   cabinCategory.value = 'SUITE'
@@ -146,6 +156,17 @@ function departureLabel(row: Departure): string {
     iso => format(iso, 'short')
   )}${full}`
 }
+
+const departureItems = computed(() => [
+  {
+    label: loading.value ? t('bookings.loadingDepartures') : t('bookings.pickDeparture'),
+    value: null as number | null
+  },
+  ...orderedDepartures.value.map(row => ({
+    label: departureLabel(row),
+    value: row.id
+  }))
+])
 
 async function onSubmit(): Promise<void> {
   if (departureId.value === null || guestName.value.trim() === '') {
@@ -234,36 +255,20 @@ onUnmounted(() => {
         </div>
         <div class="field">
           <label>{{ t('bookings.departure') }}</label>
-          <select
-            :value="departureId ?? ''"
+          <USelect
+            v-model="departureId"
+            :items="departureItems"
             :disabled="loading"
-            @change="departureId = Number(($event.target as HTMLSelectElement).value) || null"
-          >
-            <option value="">
-              {{ loading ? t('bookings.loadingDepartures') : t('bookings.pickDeparture') }}
-            </option>
-            <option
-              v-for="row in orderedDepartures"
-              :key="row.id"
-              :value="row.id"
-            >
-              {{ departureLabel(row) }}
-            </option>
-          </select>
+            class="w-full"
+          />
         </div>
         <div class="field">
           <label>{{ t('holds.cabinType') }}</label>
-          <select
-            :value="cabinCategory"
-            @change="cabinCategory = ($event.target as HTMLSelectElement).value as CabinCategory"
-          >
-            <option value="SUITE">
-              {{ t('holds.suite') }}
-            </option>
-            <option value="OWNER">
-              {{ t('holds.ownerSuite') }}
-            </option>
-          </select>
+          <USelect
+            v-model="cabinCategory"
+            :items="cabinItems"
+            class="w-full"
+          />
         </div>
         <div class="cols2">
           <div class="field">
@@ -320,18 +325,11 @@ onUnmounted(() => {
           </div>
           <div class="field">
             <label>{{ t('bookings.preferredChannel') }}</label>
-            <select
-              :value="preferred"
-              @change="preferred = ($event.target as HTMLSelectElement).value as PreferredChannel"
-            >
-              <option
-                v-for="item in options?.preferred ?? []"
-                :key="item.value"
-                :value="item.value"
-              >
-                {{ item.label }}
-              </option>
-            </select>
+            <USelect
+              v-model="preferred"
+              :items="preferredItems"
+              class="w-full"
+            />
           </div>
         </div>
         <div class="cols2">

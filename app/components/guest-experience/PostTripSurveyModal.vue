@@ -32,6 +32,17 @@ const submitting = ref(false)
 
 const openGuests = computed(() => guests.value.filter(guest => !guest.responded))
 
+const guestItems = computed(() => guests.value.map(guest => ({
+  label: `${guest.name} · ${guest.cabin}${guest.responded ? ` · ${t('guestExperience.surveyAnswered')}` : ''}`,
+  value: guest.guest_id,
+  disabled: guest.responded
+})))
+
+function onGuestUpdate(value: number | string | null | undefined): void {
+  guestId.value = typeof value === 'number' ? value : null
+  result.value = ''
+}
+
 watch(open, (isOpen) => {
   if (isOpen) {
     void load()
@@ -160,20 +171,13 @@ async function save(): Promise<void> {
         <template v-else>
           <div class="field">
             <label for="survey-guest">{{ t('guestExperience.surveyGuest') }}</label>
-            <select
+            <USelect
               id="survey-guest"
-              v-model.number="guestId"
-              @change="result = ''"
-            >
-              <option
-                v-for="guest in guests"
-                :key="guest.guest_id"
-                :value="guest.guest_id"
-                :disabled="guest.responded"
-              >
-                {{ guest.name }} · {{ guest.cabin }}{{ guest.responded ? ` · ${t('guestExperience.surveyAnswered')}` : '' }}
-              </option>
-            </select>
+              :model-value="guestId ?? undefined"
+              class="w-full"
+              :items="guestItems"
+              @update:model-value="onGuestUpdate"
+            />
           </div>
           <div class="field">
             <label for="survey-call">{{ t('guestExperience.callNotes') }}</label>

@@ -24,6 +24,11 @@ const body = ref('')
 const saving = ref(false)
 const error = ref('')
 
+const kindItems = computed(() => KINDS.map(item => ({
+  label: t(`crmPipeline.kinds.${item}`),
+  value: item
+})))
+
 watch(open, (isOpen) => {
   if (isOpen) {
     kind.value = 'NOTE'
@@ -82,18 +87,12 @@ async function submit(): Promise<void> {
         </div>
         <div class="field">
           <label for="activity-kind">{{ t('crmPipeline.activityKind') }}</label>
-          <select
+          <USelect
             id="activity-kind"
             v-model="kind"
-          >
-            <option
-              v-for="item in KINDS"
-              :key="item"
-              :value="item"
-            >
-              {{ t(`crmPipeline.kinds.${item}`) }}
-            </option>
-          </select>
+            class="w-full"
+            :items="kindItems"
+          />
         </div>
         <div class="field">
           <label for="activity-body">{{ t('crmPipeline.activityText') }}</label>

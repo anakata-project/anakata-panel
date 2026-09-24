@@ -25,6 +25,24 @@ const estimate = ref('')
 const saving = ref(false)
 const error = ref('')
 
+const contactItems = computed(() => [
+  { label: t('crmPipeline.pickContact'), value: '' },
+  ...matches.value.map(contact => ({
+    label: contact.name,
+    value: String(contact.id)
+  }))
+])
+
+const typeItems = computed(() => TYPES.map(item => ({
+  label: t(`crmPipeline.types.${item}`),
+  value: item
+})))
+
+const stageItems = computed(() => STAGES.map(item => ({
+  label: t(`crmPipeline.stages.${item}`),
+  value: item
+})))
+
 watch(open, (isOpen) => {
   if (!isOpen) {
     return
@@ -118,20 +136,11 @@ async function submit(): Promise<void> {
               {{ t('crmContacts.search') }}
             </UButton>
           </div>
-          <select
+          <USelect
             v-model="contactId"
-          >
-            <option value="">
-              {{ t('crmPipeline.pickContact') }}
-            </option>
-            <option
-              v-for="contact in matches"
-              :key="contact.id"
-              :value="String(contact.id)"
-            >
-              {{ contact.name }}
-            </option>
-          </select>
+            class="w-full"
+            :items="contactItems"
+          />
         </div>
         <div class="field">
           <label for="deal-title">{{ t('crmPipeline.dealTitle') }}</label>
@@ -143,18 +152,12 @@ async function submit(): Promise<void> {
         </div>
         <div class="field">
           <label for="deal-type">{{ t('crmPipeline.type') }}</label>
-          <select
+          <USelect
             id="deal-type"
             v-model="type"
-          >
-            <option
-              v-for="item in TYPES"
-              :key="item"
-              :value="item"
-            >
-              {{ t(`crmPipeline.types.${item}`) }}
-            </option>
-          </select>
+            class="w-full"
+            :items="typeItems"
+          />
         </div>
         <div class="field">
           <label for="deal-estimate">{{ t('crmPipeline.estimate') }}</label>
@@ -168,18 +171,12 @@ async function submit(): Promise<void> {
         </div>
         <div class="field">
           <label for="deal-stage">{{ t('crmPipeline.stage') }}</label>
-          <select
+          <USelect
             id="deal-stage"
             v-model="stage"
-          >
-            <option
-              v-for="item in STAGES"
-              :key="item"
-              :value="item"
-            >
-              {{ t(`crmPipeline.stages.${item}`) }}
-            </option>
-          </select>
+            class="w-full"
+            :items="stageItems"
+          />
         </div>
         <div class="modal-actions">
           <UButton

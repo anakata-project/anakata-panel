@@ -114,6 +114,35 @@ const typeOptions = computed(() => filters.value?.type ?? [])
 const lifecycleOptions = computed(() => filters.value?.lifecycle ?? [])
 const originGroups = computed(() => formOptions.value?.origin ?? [])
 
+const typeItems = computed(() => [
+  { label: t('crmContacts.filterType'), value: '' },
+  ...typeOptions.value.map(option => ({ label: option.label, value: option.value }))
+])
+
+const lifecycleItems = computed(() => [
+  { label: t('crmContacts.filterLifecycle'), value: '' },
+  ...lifecycleOptions.value.map(option => ({ label: option.label, value: option.value }))
+])
+
+const mainItems = computed(() => [
+  { label: t('crmContacts.filterMain'), value: '' },
+  ...(formOptions.value?.main ?? []).map(option => ({ label: option.label, value: option.value }))
+])
+
+const originItems = computed(() => [
+  [{ label: t('crmContacts.filterOrigin'), value: '' }],
+  ...originGroups.value.map(group => [
+    { type: 'label' as const, label: group.group },
+    ...group.options.map(option => ({ label: option.label, value: option.value }))
+  ])
+])
+
+const consentItems = computed(() => [
+  { label: t('crmContacts.filterConsent'), value: '' },
+  { label: t('crmContacts.consentMarketing'), value: 'marketing' },
+  { label: t('crmContacts.consentTransactional'), value: 'transactional_only' }
+])
+
 async function loadDuplicates(): Promise<void> {
   try {
     const result = await request('/api/crm/contacts/duplicates') as { data: Array<ContactDuplicate> }
@@ -284,77 +313,33 @@ watch(
     <div class="panel">
       <h3>{{ t('crmContacts.title') }}</h3>
       <div class="crm-filters">
-        <select v-model="typeFilter">
-          <option value="">
-            {{ t('crmContacts.filterType') }}
-          </option>
-          <option
-            v-for="option in typeOptions"
-            :key="option.value"
-            :value="option.value"
-          >
-            {{ option.label }}
-          </option>
-        </select>
-        <select v-model="lifecycleFilter">
-          <option value="">
-            {{ t('crmContacts.filterLifecycle') }}
-          </option>
-          <option
-            v-for="option in lifecycleOptions"
-            :key="option.value"
-            :value="option.value"
-          >
-            {{ option.label }}
-          </option>
-        </select>
-        <select
+        <USelect
+          v-model="typeFilter"
+          size="sm"
+          :items="typeItems"
+        />
+        <USelect
+          v-model="lifecycleFilter"
+          size="sm"
+          :items="lifecycleItems"
+        />
+        <USelect
           v-model="mainFilter"
+          size="sm"
+          :items="mainItems"
           :disabled="formOptions === null"
-        >
-          <option value="">
-            {{ t('crmContacts.filterMain') }}
-          </option>
-          <option
-            v-for="option in formOptions?.main ?? []"
-            :key="option.value"
-            :value="option.value"
-          >
-            {{ option.label }}
-          </option>
-        </select>
-        <select
+        />
+        <USelect
           v-model="originFilter"
+          size="sm"
+          :items="originItems"
           :disabled="formOptions === null"
-        >
-          <option value="">
-            {{ t('crmContacts.filterOrigin') }}
-          </option>
-          <optgroup
-            v-for="group in originGroups"
-            :key="group.group"
-            :label="group.group"
-          >
-            <option
-              v-for="option in group.options"
-              :key="option.value"
-              :value="option.value"
-            >
-              {{ option.label }}
-            </option>
-          </optgroup>
-        </select>
-        <select v-model="consentFilter">
-          <option value="">
-            {{ t('crmContacts.filterConsent') }}
-          </option>
-          <option value="marketing">
-            {{ t('crmContacts.consentMarketing') }}
-          </option>
-          <option value="transactional_only">
-            {{ t('crmContacts.consentTransactional') }}
-          </option>
-        </select>
+        />
+        <USelect
+          v-model="consentFilter"
+          size="sm"
+          :items="consentItems"
+        />
         <input
           v-model="searchInput"
           :placeholder="t('crmContacts.searchPlaceholder')"

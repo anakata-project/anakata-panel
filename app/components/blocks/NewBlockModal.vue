@@ -58,6 +58,11 @@ const fullYacht = computed({
 
 const atDepartureCap = computed(() => selectedDepartureIds.value.length >= MAX_DEPARTURES)
 
+const reasonItems = computed(() => BLOCK_REASONS.map(item => ({
+  label: t(reasonLabelKey(item)),
+  value: item
+})))
+
 function reset(): void {
   yachtId.value = props.yachts[0]?.id ?? null
   selectedDepartureIds.value = []
@@ -315,18 +320,12 @@ async function submit(): Promise<void> {
 
         <div class="field">
           <label>{{ t('blocks.reason') }}</label>
-          <select
+          <USelect
             v-model="reason"
+            :items="reasonItems"
             :class="{ bad: fieldErrors.reason }"
-          >
-            <option
-              v-for="item in BLOCK_REASONS"
-              :key="item"
-              :value="item"
-            >
-              {{ t(reasonLabelKey(item)) }}
-            </option>
-          </select>
+            class="w-full"
+          />
         </div>
 
         <div class="field">

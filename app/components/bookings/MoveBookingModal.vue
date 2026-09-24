@@ -56,6 +56,41 @@ function cabinEnabled(cabin: CabinAvailability): boolean {
   return cabin.state === 'FREE' || cabin.cabin.code === props.booking?.cabin?.code
 }
 
+function shortDate(iso: string): string {
+  return format(iso, 'short')
+}
+
+const departureItems = computed(() => [
+  {
+    label: loadingDepartures.value ? t('bookings.previewing') : t('bookings.movePickDeparture'),
+    value: null as number | null
+  },
+  ...departures.value.map(item => ({
+    label: departureOptionLabel(item.date, item.yacht.name, item.itinerary.name, item.festive, shortDate),
+    value: item.id
+  }))
+])
+
+const cabinItems = computed(() => [
+  {
+    label: t('bookings.movePickCabin'),
+    value: null as string | null
+  },
+  ...cabins.value.map(item => ({
+    label: `${item.cabin.label}${cabinEnabled(item) ? '' : ` · ${t('bookings.moveUnavailable')}`}`,
+    value: item.cabin.code,
+    disabled: !cabinEnabled(item)
+  }))
+])
+
+function onDepartureUpdate(value: number | string | null | undefined): void {
+  departureId.value = typeof value === 'number' ? value : null
+}
+
+function onCabinUpdate(value: string | number | null | undefined): void {
+  cabinCode.value = typeof value === 'string' && value !== '' ? value : null
+}
+
 async function loadDepartures(): Promise<void> {
   loadingDepartures.value = true
   warn.value = ''
@@ -160,10 +195,6 @@ async function confirm(): Promise<void> {
     submitting.value = false
   }
 }
-
-function shortDate(iso: string): string {
-  return format(iso, 'short')
-}
 </script>
 
 <template>
@@ -186,22 +217,13 @@ function shortDate(iso: string): string {
 
         <div class="field">
           <label>{{ t('bookings.moveDeparture') }}</label>
-          <select
-            :value="departureId ?? ''"
+          <USelect
+            :model-value="departureId"
+            class="w-full"
+            :items="departureItems"
             :disabled="loadingDepartures"
-            @change="departureId = Number(($event.target as HTMLSelectElement).value) || null"
-          >
-            <option value="">
-              {{ loadingDepartures ? t('bookings.previewing') : t('bookings.movePickDeparture') }}
-            </option>
-            <option
-              v-for="item in departures"
-              :key="item.id"
-              :value="item.id"
-            >
-              {{ departureOptionLabel(item.date, item.yacht.name, item.itinerary.name, item.festive, shortDate) }}
-            </option>
-          </select>
+            @update:model-value="onDepartureUpdate"
+          />
           <p
             v-if="!loadingDepartures && departures.length === 0"
             class="field-hint"
@@ -215,23 +237,13 @@ function shortDate(iso: string): string {
           class="field"
         >
           <label>{{ t('bookings.moveCabin') }}</label>
-          <select
-            :value="cabinCode ?? ''"
+          <USelect
+            :model-value="cabinCode"
+            class="w-full"
+            :items="cabinItems"
             :disabled="selectedDeparture === null"
-            @change="cabinCode = ($event.target as HTMLSelectElement).value || null"
-          >
-            <option value="">
-              {{ t('bookings.movePickCabin') }}
-            </option>
-            <option
-              v-for="item in cabins"
-              :key="item.cabin.code"
-              :value="item.cabin.code"
-              :disabled="!cabinEnabled(item)"
-            >
-              {{ item.cabin.label }}{{ cabinEnabled(item) ? '' : ` · ${t('bookings.moveUnavailable')}` }}
-            </option>
-          </select>
+            @update:model-value="onCabinUpdate"
+          />
         </div>
 
         <p

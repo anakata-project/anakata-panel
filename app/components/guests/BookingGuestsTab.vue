@@ -30,11 +30,11 @@ const emit = defineEmits<{
 type GuestForm = {
   first_name: string
   last_name: string
-  dob: string
+  dob: string | null
   nationality: string
   ecuador_resident: boolean
   passport_no: string
-  passport_expiry: string
+  passport_expiry: string | null
   email: string
   insurance_declared: boolean
   medical_note: string
@@ -82,7 +82,14 @@ const todayIso = computed(() => {
 })
 
 const dirty = computed(() => JSON.stringify(form.value) !== snapshot.value)
-const guardianPreview = computed(() => showGuardianBlock(form.value.dob, todayIso.value))
+const guardianPreview = computed(() => showGuardianBlock(form.value.dob ?? '', todayIso.value))
+const nationalityItems = computed(() => [
+  { label: t('bookings.nationalityNone'), value: '' },
+  ...countries.value.map(item => ({
+    label: item.name,
+    value: item.code
+  }))
+])
 const pngSub = computed(() => {
   const pending = summary.value.png_pending_count
 
@@ -111,11 +118,11 @@ function blankForm(): GuestForm {
   return {
     first_name: '',
     last_name: '',
-    dob: '',
+    dob: null,
     nationality: '',
     ecuador_resident: false,
     passport_no: '',
-    passport_expiry: '',
+    passport_expiry: null,
     email: '',
     insurance_declared: false,
     medical_note: '',
@@ -227,11 +234,11 @@ function startEdit(guest: Guest): void {
   form.value = {
     first_name: guest.first_name,
     last_name: guest.last_name,
-    dob: guest.dob ?? '',
+    dob: guest.dob ?? null,
     nationality: guest.nationality ?? '',
     ecuador_resident: guest.ecuador_resident,
     passport_no: canViewSensitive.value ? (guest.passport_no ?? '') : '',
-    passport_expiry: guest.passport_expiry ?? '',
+    passport_expiry: guest.passport_expiry ?? null,
     email: guest.email ?? '',
     insurance_declared: guest.insurance_declared,
     medical_note: guest.medical_note.value ?? '',
@@ -259,11 +266,11 @@ function payload(): Record<string, unknown> {
   const body: Record<string, unknown> = {
     first_name: form.value.first_name,
     last_name: form.value.last_name,
-    dob: form.value.dob === '' ? null : form.value.dob,
+    dob: form.value.dob === null || form.value.dob === '' ? null : form.value.dob,
     nationality: form.value.nationality === '' ? null : form.value.nationality,
     ecuador_resident: form.value.ecuador_resident,
     passport_no: form.value.passport_no,
-    passport_expiry: form.value.passport_expiry === '' ? null : form.value.passport_expiry,
+    passport_expiry: form.value.passport_expiry === null || form.value.passport_expiry === '' ? null : form.value.passport_expiry,
     email: form.value.email === '' ? null : form.value.email,
     insurance_declared: form.value.insurance_declared
   }
@@ -491,11 +498,10 @@ async function submitConsent(how: string): Promise<void> {
         <div class="cols2">
           <div class="field">
             <label for="gf-dob">{{ t('bookings.dateOfBirth') }}</label>
-            <input
+            <AnkDateInput
               id="gf-dob"
               v-model="form.dob"
-              type="date"
-            >
+            />
             <p
               v-if="fieldErrors.dob"
               class="pline-err"
@@ -505,21 +511,12 @@ async function submitConsent(how: string): Promise<void> {
           </div>
           <div class="field">
             <label for="gf-nat">{{ t('bookings.nationality') }}</label>
-            <select
+            <USelect
               id="gf-nat"
               v-model="form.nationality"
-            >
-              <option value="">
-                {{ t('bookings.nationalityNone') }}
-              </option>
-              <option
-                v-for="item in countries"
-                :key="item.code"
-                :value="item.code"
-              >
-                {{ item.name }}
-              </option>
-            </select>
+              class="w-full"
+              :items="nationalityItems"
+            />
             <p
               v-if="fieldErrors.nationality"
               class="pline-err"
@@ -559,11 +556,10 @@ async function submitConsent(how: string): Promise<void> {
           </div>
           <div class="field">
             <label for="gf-exp">{{ t('bookings.passportExpiryLabel') }}</label>
-            <input
+            <AnkDateInput
               id="gf-exp"
               v-model="form.passport_expiry"
-              type="date"
-            >
+            />
             <p
               v-if="fieldErrors.passport_expiry"
               class="pline-err"

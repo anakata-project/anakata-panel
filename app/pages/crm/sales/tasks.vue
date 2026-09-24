@@ -58,6 +58,21 @@ const shown = computed(() => kpis.value ?? emptyKpis)
 const canSeeAll = computed(() => can('records.act_on_any'))
 const canCreate = computed(() => can('contacts.manage'))
 
+const kindItems = computed(() => [
+  { label: t('crmTasks.kindAll'), value: '' },
+  ...KINDS.map(item => ({
+    label: t(`crmTasks.kinds.${item}`),
+    value: item
+  }))
+])
+
+const dueItems = computed(() => [
+  { label: t('crmTasks.dueAll'), value: '' },
+  { label: t('crmTasks.dueOverdue'), value: 'overdue' },
+  { label: t('crmTasks.dueToday'), value: 'today' },
+  { label: t('crmTasks.dueWeek'), value: 'week' }
+])
+
 watch([scope, closed, kind, due], () => {
   void load()
 })
@@ -219,32 +234,16 @@ function openDeal(id: number): void {
           >
           {{ t('crmTasks.closed') }}
         </label>
-        <select v-model="kind">
-          <option value="">
-            {{ t('crmTasks.kindAll') }}
-          </option>
-          <option
-            v-for="item in KINDS"
-            :key="item"
-            :value="item"
-          >
-            {{ t(`crmTasks.kinds.${item}`) }}
-          </option>
-        </select>
-        <select v-model="due">
-          <option value="">
-            {{ t('crmTasks.dueAll') }}
-          </option>
-          <option value="overdue">
-            {{ t('crmTasks.dueOverdue') }}
-          </option>
-          <option value="today">
-            {{ t('crmTasks.dueToday') }}
-          </option>
-          <option value="week">
-            {{ t('crmTasks.dueWeek') }}
-          </option>
-        </select>
+        <USelect
+          v-model="kind"
+          size="sm"
+          :items="kindItems"
+        />
+        <USelect
+          v-model="due"
+          size="sm"
+          :items="dueItems"
+        />
       </div>
 
       <div

@@ -19,14 +19,25 @@ const { t } = useI18n()
 const { request } = useApi()
 const toast = useToast()
 
-const from = ref('')
-const to = ref('')
+const from = ref<string | null>(null)
+const to = ref<string | null>(null)
 const yachtIds = ref<Array<number>>([])
 const pattern = ref<SeasonPattern>('ALT')
 const festiveWindow = ref(true)
 const status = ref<SeasonCreateStatus>('CLOSED')
 const warn = ref('')
 const saving = ref(false)
+
+const patternItems = computed(() => [
+  { label: t('departures.patternAlt'), value: 'ALT' as SeasonPattern },
+  { label: t('departures.patternWest'), value: 'WEST' as SeasonPattern },
+  { label: t('departures.patternNorth'), value: 'NORTH' as SeasonPattern }
+])
+
+const statusItems = computed(() => [
+  { label: t('departures.seasonClosed'), value: 'CLOSED' as SeasonCreateStatus },
+  { label: t('departures.seasonOnSale'), value: 'ON_SALE' as SeasonCreateStatus }
+])
 
 watch(isOpen, (open) => {
   if (!open) {
@@ -63,7 +74,7 @@ function toggleYacht(id: number, event: Event): void {
 }
 
 async function generate(): Promise<void> {
-  if (from.value === '' || to.value === '' || from.value > to.value) {
+  if (from.value === null || from.value === '' || to.value === null || to.value === '' || from.value > to.value) {
     warn.value = t('departures.seasonNeedRange')
     return
   }
@@ -126,17 +137,11 @@ async function generate(): Promise<void> {
         <div class="cols2">
           <div class="field">
             <label>{{ t('departures.seasonFrom') }}</label>
-            <input
-              v-model="from"
-              type="date"
-            >
+            <AnkDateInput v-model="from" />
           </div>
           <div class="field">
             <label>{{ t('departures.seasonTo') }}</label>
-            <input
-              v-model="to"
-              type="date"
-            >
+            <AnkDateInput v-model="to" />
           </div>
         </div>
         <div class="field">
@@ -158,17 +163,11 @@ async function generate(): Promise<void> {
         </div>
         <div class="field">
           <label>{{ t('departures.seasonPattern') }}</label>
-          <select v-model="pattern">
-            <option value="ALT">
-              {{ t('departures.patternAlt') }}
-            </option>
-            <option value="WEST">
-              {{ t('departures.patternWest') }}
-            </option>
-            <option value="NORTH">
-              {{ t('departures.patternNorth') }}
-            </option>
-          </select>
+          <USelect
+            v-model="pattern"
+            :items="patternItems"
+            class="w-full"
+          />
         </div>
         <label class="chkline">
           <input
@@ -179,14 +178,11 @@ async function generate(): Promise<void> {
         </label>
         <div class="field dep-create-as">
           <label>{{ t('departures.seasonCreateAs') }}</label>
-          <select v-model="status">
-            <option value="CLOSED">
-              {{ t('departures.seasonClosed') }}
-            </option>
-            <option value="ON_SALE">
-              {{ t('departures.seasonOnSale') }}
-            </option>
-          </select>
+          <USelect
+            v-model="status"
+            :items="statusItems"
+            class="w-full"
+          />
         </div>
       </fieldset>
 

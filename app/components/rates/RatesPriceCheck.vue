@@ -2,7 +2,7 @@
 import type { NoRate, PriceCheckRow, Quote } from '../../types/api'
 import { isNoRate } from './isNoRate'
 
-defineProps<{
+const props = defineProps<{
   years: Array<number>
   year: number | null
   rows: Array<PriceCheckRow>
@@ -16,14 +16,17 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const { format } = useMoney()
 
-function onYearChange(event: Event): void {
-  const target = event.target
+const yearItems = computed(() => props.years.map(item => ({
+  label: String(item),
+  value: item
+})))
 
-  if (!(target instanceof HTMLSelectElement)) {
+function onYearChange(value: string | number | null | undefined): void {
+  if (typeof value !== 'number') {
     return
   }
 
-  emit('update:year', Number(target.value))
+  emit('update:year', value)
 }
 
 function publishedText(value: Quote | NoRate): string {
@@ -65,18 +68,11 @@ function differenceClass(difference: number | null): string {
   <AnkPanel :title="t('rates.priceCheckTitle')">
     <div class="rhelp rates-year-help">
       <span class="mono">{{ t('rates.sailingYear') }}</span>
-      <select
-        :value="year ?? undefined"
-        @change="onYearChange"
-      >
-        <option
-          v-for="item in years"
-          :key="item"
-          :value="item"
-        >
-          {{ item }}
-        </option>
-      </select>
+      <USelect
+        :model-value="year ?? undefined"
+        :items="yearItems"
+        @update:model-value="onYearChange"
+      />
     </div>
 
     <p

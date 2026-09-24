@@ -31,6 +31,11 @@ const historyOpen = ref(false)
 
 const canEdit = computed(() => props.canManage && props.source !== null && props.source.released_at === null)
 
+const reasonItems = computed(() => BLOCK_REASONS.map(item => ({
+  label: t(reasonLabelKey(item)),
+  value: item
+})))
+
 const dirty = computed(() => {
   if (!canEdit.value) {
     return false
@@ -167,15 +172,11 @@ async function save(): Promise<void> {
               {{ t('blocks.scopeChange') }}
             </p>
             <div class="field">
-              <select v-model="reason">
-                <option
-                  v-for="item in BLOCK_REASONS"
-                  :key="item"
-                  :value="item"
-                >
-                  {{ t(reasonLabelKey(item)) }}
-                </option>
-              </select>
+              <USelect
+                v-model="reason"
+                :items="reasonItems"
+                class="w-full"
+              />
             </div>
             <div class="field">
               <label>

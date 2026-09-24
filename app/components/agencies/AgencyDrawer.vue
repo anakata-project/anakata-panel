@@ -76,6 +76,11 @@ const dirty = computed(() => {
 const canAddUser = computed(() => userName.value.trim() !== '' && userEmail.value.trim() !== '' && !userBusy.value)
 const canUploadMaterial = computed(() => materialTitle.value.trim() !== '' && materialFile.value !== null && !materialBusy.value)
 
+const materialKindItems = computed(() => SALES_MATERIAL_KINDS.map(kind => ({
+  label: t(materialKindKey(kind)),
+  value: kind
+})))
+
 watch(
   () => [open.value, props.agency] as const,
   ([isOpen, agency]) => {
@@ -823,18 +828,12 @@ function decidedLabel(agency: Agency): string {
           </div>
           <div class="field">
             <label :for="materialKindId">{{ t('agencies.materialKind') }}</label>
-            <select
+            <USelect
               :id="materialKindId"
               v-model="materialKind"
-            >
-              <option
-                v-for="kind in SALES_MATERIAL_KINDS"
-                :key="kind"
-                :value="kind"
-              >
-                {{ t(materialKindKey(kind)) }}
-              </option>
-            </select>
+              :items="materialKindItems"
+              class="w-full"
+            />
           </div>
           <div class="field">
             <label :for="materialFileId">{{ t('agencies.materialFile') }}</label>

@@ -58,6 +58,38 @@ const lowOccupancyPct = computed(() => rulesPayload.value?.document.alerts.low_o
 const departureCount = computed(() => metrics.value?.metrics.occupancy.departures.length ?? 0)
 const hasWindow = computed(() => from.value !== null && to.value !== null)
 
+const yachtItems = computed(() => [
+  { label: t('dashboard.allYachts'), value: null as number | null },
+  ...yachts.value.map(yacht => ({
+    label: yacht.code,
+    value: yacht.id
+  }))
+])
+
+const itineraryItems = computed(() => [
+  { label: t('dashboard.allItineraries'), value: null as number | null },
+  ...itineraries.value.map(itinerary => ({
+    label: itinerary.name,
+    value: itinerary.id
+  }))
+])
+
+const channelItems = computed(() => [
+  { label: t('dashboard.allChannels'), value: '' as ChannelOfOriginGroup | '' },
+  ...CHANNELS.map(group => ({
+    label: group,
+    value: group
+  }))
+])
+
+const agencyItems = computed(() => [
+  { label: t('dashboard.allAgencies'), value: null as number | null },
+  ...agencies.value.map(agency => ({
+    label: agency.name,
+    value: agency.id
+  }))
+])
+
 let filterTimer: ReturnType<typeof setTimeout> | undefined
 
 watch([from, to, yachtId, itineraryId, channel, agencyId], () => {
@@ -71,29 +103,6 @@ watch([from, to, yachtId, itineraryId, channel, agencyId], () => {
 onUnmounted(() => {
   clearTimeout(filterTimer)
 })
-
-function idFrom(event: Event): number | null {
-  const value = (event.target as HTMLSelectElement).value
-
-  return value === '' ? null : Number(value)
-}
-
-function onYacht(event: Event): void {
-  yachtId.value = idFrom(event)
-}
-
-function onItinerary(event: Event): void {
-  itineraryId.value = idFrom(event)
-}
-
-function onAgency(event: Event): void {
-  agencyId.value = idFrom(event)
-}
-
-function onChannel(event: Event): void {
-  const value = (event.target as HTMLSelectElement).value
-  channel.value = value === '' ? '' : value as ChannelOfOriginGroup
-}
 
 function definitionLine(definition: MetricDefinition): string {
   return t('dashboard.definition', {
@@ -188,70 +197,30 @@ async function loadMetrics(): Promise<void> {
       <div class="drl">
         <span class="mono">{{ t('dashboard.filtersLabel') }}</span>
       </div>
-      <select
+      <USelect
+        v-model="yachtId"
+        size="sm"
+        :items="yachtItems"
         :aria-label="t('dashboard.allYachts')"
-        :value="yachtId ?? ''"
-        @change="onYacht"
-      >
-        <option value="">
-          {{ t('dashboard.allYachts') }}
-        </option>
-        <option
-          v-for="yacht in yachts"
-          :key="yacht.id"
-          :value="yacht.id"
-        >
-          {{ yacht.code }}
-        </option>
-      </select>
-      <select
+      />
+      <USelect
+        v-model="itineraryId"
+        size="sm"
+        :items="itineraryItems"
         :aria-label="t('dashboard.allItineraries')"
-        :value="itineraryId ?? ''"
-        @change="onItinerary"
-      >
-        <option value="">
-          {{ t('dashboard.allItineraries') }}
-        </option>
-        <option
-          v-for="itinerary in itineraries"
-          :key="itinerary.id"
-          :value="itinerary.id"
-        >
-          {{ itinerary.name }}
-        </option>
-      </select>
-      <select
+      />
+      <USelect
+        v-model="channel"
+        size="sm"
+        :items="channelItems"
         :aria-label="t('dashboard.allChannels')"
-        :value="channel"
-        @change="onChannel"
-      >
-        <option value="">
-          {{ t('dashboard.allChannels') }}
-        </option>
-        <option
-          v-for="group in CHANNELS"
-          :key="group"
-          :value="group"
-        >
-          {{ group }}
-        </option>
-      </select>
-      <select
+      />
+      <USelect
+        v-model="agencyId"
+        size="sm"
+        :items="agencyItems"
         :aria-label="t('dashboard.allAgencies')"
-        :value="agencyId ?? ''"
-        @change="onAgency"
-      >
-        <option value="">
-          {{ t('dashboard.allAgencies') }}
-        </option>
-        <option
-          v-for="agency in agencies"
-          :key="agency.id"
-          :value="agency.id"
-        >
-          {{ agency.name }}
-        </option>
-      </select>
+      />
     </div>
 
     <p

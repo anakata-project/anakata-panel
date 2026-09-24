@@ -52,6 +52,11 @@ const canWrite = computed(() => extrasWritable(props.booking.status, props.booki
 
 const activeItems = computed(() => catalogue.value.filter(item => item.active))
 
+const codeItems = computed(() => activeItems.value.map(item => ({
+  label: item.name,
+  value: item.code
+})))
+
 const selectedItem = computed(() => {
   return activeItems.value.find(item => item.code === addCode.value) ?? null
 })
@@ -89,6 +94,11 @@ function onPick(): void {
   if (selectedItem.value !== null) {
     applyDefaults(selectedItem.value)
   }
+}
+
+function onCodeUpdate(value: string | number | null | undefined): void {
+  addCode.value = typeof value === 'string' ? value : ''
+  onPick()
 }
 
 async function loadExtras(): Promise<void> {
@@ -360,19 +370,13 @@ async function onFee(field: 'png_collected' | 'tct_collected', value: boolean): 
       <div class="cols2">
         <div class="field">
           <label for="an-code">{{ t('bookings.extraService') }}</label>
-          <select
+          <USelect
             id="an-code"
-            v-model="addCode"
-            @change="onPick"
-          >
-            <option
-              v-for="item in activeItems"
-              :key="item.code"
-              :value="item.code"
-            >
-              {{ item.name }}
-            </option>
-          </select>
+            :model-value="addCode"
+            class="w-full"
+            :items="codeItems"
+            @update:model-value="onCodeUpdate"
+          />
           <p
             v-if="fieldErrors.code"
             class="pline-err"

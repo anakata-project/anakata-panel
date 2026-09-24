@@ -38,7 +38,7 @@ const ctaOn = ref(false)
 const ctaLabel = ref('')
 const ctaLink = ref('')
 const approval = ref('')
-const selectedVersion = ref<number | null>(null)
+const selectedVersion = ref<number | undefined>(undefined)
 const error = ref('')
 const saving = ref(false)
 
@@ -66,6 +66,19 @@ const versions = computed(() => {
   return rows
 })
 
+const versionItems = computed(() => versions.value.map(row => ({
+  label: `${row.label} · ${row.version.version}`,
+  value: row.version.version
+})))
+
+const bookingItems = computed(() => [
+  { label: t('crmJourneys.noBooking'), value: null },
+  ...bookings.value.map(booking => ({
+    label: String(booking.display_reference ?? booking.id),
+    value: booking.id
+  }))
+])
+
 const canDraft = computed(() => {
   return canManage.value && props.template !== null && props.template.draft === null
 })
@@ -79,7 +92,7 @@ function fillForm(): void {
   ctaLabel.value = source?.body.cta?.label ?? ''
   ctaLink.value = source?.body.cta?.link_key ?? ''
   approval.value = ''
-  selectedVersion.value = props.template?.published?.version ?? props.template?.draft?.version ?? null
+  selectedVersion.value = props.template?.published?.version ?? props.template?.draft?.version ?? undefined
   preview.value = null
   error.value = ''
 }
@@ -150,7 +163,7 @@ function previewBody(): TemplatePreviewInput | null {
     body.booking_id = bookingId.value
   }
 
-  if (selectedVersion.value !== null) {
+  if (selectedVersion.value !== undefined) {
     body.version = selectedVersion.value
   }
 
@@ -364,18 +377,12 @@ onUnmounted(() => {
 
         <div class="field">
           <label for="journey-version">{{ t('crmJourneys.version', { version: selectedVersion ?? '' }) }}</label>
-          <select
+          <USelect
             id="journey-version"
-            v-model.number="selectedVersion"
-          >
-            <option
-              v-for="row in versions"
-              :key="row.version.version"
-              :value="row.version.version"
-            >
-              {{ row.label }} · {{ row.version.version }}
-            </option>
-          </select>
+            v-model="selectedVersion"
+            class="w-full"
+            :items="versionItems"
+          />
         </div>
         <div class="field">
           <label for="journey-contact-search">{{ t('crmJourneys.searchContacts') }}</label>
@@ -409,21 +416,12 @@ onUnmounted(() => {
           class="field"
         >
           <label for="journey-booking">{{ t('crmJourneys.booking') }}</label>
-          <select
+          <USelect
             id="journey-booking"
             v-model="bookingId"
-          >
-            <option :value="null">
-              {{ t('crmJourneys.noBooking') }}
-            </option>
-            <option
-              v-for="booking in bookings"
-              :key="booking.id"
-              :value="booking.id"
-            >
-              {{ booking.display_reference ?? booking.id }}
-            </option>
-          </select>
+            class="w-full"
+            :items="bookingItems"
+          />
         </div>
         <div class="crm-deal-actions">
           <UButton

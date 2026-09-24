@@ -40,6 +40,17 @@ const page = ref(1)
 const eventNames = ref<Array<string>>([])
 const today = computed(() => format(new Date(), 'iso'))
 
+const nameItems = computed(() => [
+  { label: t('crmActivity.filterEvent'), value: '' },
+  ...eventNames.value.map(name => ({ label: name, value: name }))
+])
+
+const identifiedItems = computed(() => [
+  { label: t('crmActivity.filterIdentified'), value: '' },
+  { label: t('crmActivity.identifiedYes'), value: '1' },
+  { label: t('crmActivity.identifiedNo'), value: '0' }
+])
+
 watch([from, to, nameFilter, identifiedFilter], () => {
   page.value = 1
 })
@@ -154,32 +165,17 @@ async function openContact(row: ActivityEvent): Promise<void> {
     <div class="panel">
       <h3>{{ t('crmActivity.streamTitle') }}</h3>
       <div class="crm-filters">
-        <select
+        <USelect
           v-if="showEventFilter"
           v-model="nameFilter"
-        >
-          <option value="">
-            {{ t('crmActivity.filterEvent') }}
-          </option>
-          <option
-            v-for="name in eventNames"
-            :key="name"
-            :value="name"
-          >
-            {{ name }}
-          </option>
-        </select>
-        <select v-model="identifiedFilter">
-          <option value="">
-            {{ t('crmActivity.filterIdentified') }}
-          </option>
-          <option value="1">
-            {{ t('crmActivity.identifiedYes') }}
-          </option>
-          <option value="0">
-            {{ t('crmActivity.identifiedNo') }}
-          </option>
-        </select>
+          size="sm"
+          :items="nameItems"
+        />
+        <USelect
+          v-model="identifiedFilter"
+          size="sm"
+          :items="identifiedItems"
+        />
       </div>
       <div class="bk-table-wrap">
         <table class="list">

@@ -22,6 +22,11 @@ const referenceId = useId()
 const method = ref('')
 const reference = ref('')
 
+const methodItems = computed(() => props.methods.map(item => ({
+  label: item.label,
+  value: item.value
+})))
+
 watch(open, (isOpen) => {
   if (!isOpen) {
     return
@@ -67,18 +72,12 @@ function submit(): void {
         </p>
         <div class="field">
           <label :for="methodId">{{ t('refunds.executeMethod') }}</label>
-          <select
+          <USelect
             :id="methodId"
             v-model="method"
-          >
-            <option
-              v-for="item in methods"
-              :key="item.value"
-              :value="item.value"
-            >
-              {{ item.label }}
-            </option>
-          </select>
+            class="w-full"
+            :items="methodItems"
+          />
         </div>
         <div class="field">
           <label>{{ t('refunds.executeAmount') }}</label>

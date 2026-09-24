@@ -76,6 +76,44 @@ const nonFestiveCodes = computed(() => {
   return props.itineraries.filter(item => !item.festive).map(item => item.code)
 })
 
+const typeItems = computed(() => OFFER_TYPES.map(item => ({
+  label: t(`offers.types.${item}`),
+  value: item
+})))
+
+const channelItems = computed(() => OFFER_CHANNELS.map(item => ({
+  label: t(`offers.channels.${item}`),
+  value: item
+})))
+
+function onTypeUpdate(value: string | number | null | undefined): void {
+  if (typeof value === 'string') {
+    form.value.type = value as (typeof OFFER_TYPES)[number]
+  }
+}
+
+function onChannelUpdate(value: string | number | null | undefined): void {
+  if (typeof value === 'string') {
+    form.value.channel = value as (typeof OFFER_CHANNELS)[number]
+  }
+}
+
+function onBookingFromUpdate(value: string | null): void {
+  form.value.booking_from = value ?? ''
+}
+
+function onBookingToUpdate(value: string | null): void {
+  form.value.booking_to = value ?? ''
+}
+
+function onTravelFromUpdate(value: string | null): void {
+  form.value.travel_from = value ?? ''
+}
+
+function onTravelToUpdate(value: string | null): void {
+  form.value.travel_to = value ?? ''
+}
+
 function snapshotOf(next: OfferForm): string {
   return JSON.stringify(next)
 }
@@ -383,18 +421,13 @@ function fieldError(name: string): string {
             <div class="cols2">
               <div class="field">
                 <label for="of-type">{{ t('offers.type') }}</label>
-                <select
+                <USelect
                   id="of-type"
-                  v-model="form.type"
-                >
-                  <option
-                    v-for="item in OFFER_TYPES"
-                    :key="item"
-                    :value="item"
-                  >
-                    {{ t(`offers.types.${item}`) }}
-                  </option>
-                </select>
+                  :model-value="form.type"
+                  class="w-full"
+                  :items="typeItems"
+                  @update:model-value="onTypeUpdate"
+                />
                 <p
                   v-if="fieldError('type')"
                   class="pline-err"
@@ -446,18 +479,13 @@ function fieldError(name: string): string {
             <div class="cols2">
               <div class="field">
                 <label for="of-chan">{{ t('offers.channel') }}</label>
-                <select
+                <USelect
                   id="of-chan"
-                  v-model="form.channel"
-                >
-                  <option
-                    v-for="item in OFFER_CHANNELS"
-                    :key="item"
-                    :value="item"
-                  >
-                    {{ t(`offers.channels.${item}`) }}
-                  </option>
-                </select>
+                  :model-value="form.channel"
+                  class="w-full"
+                  :items="channelItems"
+                  @update:model-value="onChannelUpdate"
+                />
                 <p
                   v-if="fieldError('channel')"
                   class="pline-err"
@@ -530,11 +558,11 @@ function fieldError(name: string): string {
             <div class="cols2">
               <div class="field">
                 <label for="of-bf">{{ t('offers.bookingFrom') }}</label>
-                <input
+                <AnkDateInput
                   id="of-bf"
-                  v-model="form.booking_from"
-                  type="date"
-                >
+                  :model-value="form.booking_from === '' ? null : form.booking_from"
+                  @update:model-value="onBookingFromUpdate"
+                />
                 <p
                   v-if="fieldError('booking_from')"
                   class="pline-err"
@@ -544,11 +572,11 @@ function fieldError(name: string): string {
               </div>
               <div class="field">
                 <label for="of-bt">{{ t('offers.bookingTo') }}</label>
-                <input
+                <AnkDateInput
                   id="of-bt"
-                  v-model="form.booking_to"
-                  type="date"
-                >
+                  :model-value="form.booking_to === '' ? null : form.booking_to"
+                  @update:model-value="onBookingToUpdate"
+                />
                 <p
                   v-if="fieldError('booking_to')"
                   class="pline-err"
@@ -560,11 +588,11 @@ function fieldError(name: string): string {
             <div class="cols2">
               <div class="field">
                 <label for="of-tf">{{ t('offers.travelFrom') }}</label>
-                <input
+                <AnkDateInput
                   id="of-tf"
-                  v-model="form.travel_from"
-                  type="date"
-                >
+                  :model-value="form.travel_from === '' ? null : form.travel_from"
+                  @update:model-value="onTravelFromUpdate"
+                />
                 <p
                   v-if="fieldError('travel_from')"
                   class="pline-err"
@@ -574,11 +602,11 @@ function fieldError(name: string): string {
               </div>
               <div class="field">
                 <label for="of-tt">{{ t('offers.travelTo') }}</label>
-                <input
+                <AnkDateInput
                   id="of-tt"
-                  v-model="form.travel_to"
-                  type="date"
-                >
+                  :model-value="form.travel_to === '' ? null : form.travel_to"
+                  @update:model-value="onTravelToUpdate"
+                />
                 <p
                   v-if="fieldError('travel_to')"
                   class="pline-err"

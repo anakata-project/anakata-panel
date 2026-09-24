@@ -49,6 +49,11 @@ const dirty = computed(() => {
 
 const gradients = computed<Array<ItineraryGradient>>(() => props.defaults?.gradients ?? [])
 
+const gradientItems = computed(() => gradients.value.map(gradient => ({
+  label: gradient.key,
+  value: gradient.key
+})))
+
 const isNew = computed(() => draft.value?.id === null)
 
 const title = computed(() => {
@@ -150,8 +155,8 @@ function onExcludedInput(event: Event): void {
   })
 }
 
-function setGradient(key: string): void {
-  if (draft.value === null) {
+function setGradient(key: string | number | null | undefined): void {
+  if (draft.value === null || typeof key !== 'string') {
     return
   }
 
@@ -532,19 +537,13 @@ useUnsavedGuard(dirty, () => t('config.leaveUnsaved'))
             </div>
             <div class="field">
               <label for="itin-fallback">{{ t('itineraries.fallback') }}</label>
-              <select
+              <USelect
                 id="itin-fallback"
-                :value="draft.fallback_gradient_key"
-                @change="setGradient(($event.target as HTMLSelectElement).value)"
-              >
-                <option
-                  v-for="gradient in gradients"
-                  :key="gradient.key"
-                  :value="gradient.key"
-                >
-                  {{ gradient.key }}
-                </option>
-              </select>
+                :model-value="draft.fallback_gradient_key"
+                :items="gradientItems"
+                class="w-full"
+                @update:model-value="setGradient"
+              />
             </div>
           </div>
           <div class="field">

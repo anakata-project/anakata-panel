@@ -112,31 +112,39 @@ function openExisting(row: DepartureListItem): void {
   editorOpen.value = true
 }
 
-async function onStatusChange(row: DepartureListItem, event: Event): Promise<void> {
-  const target = event.target
-
-  if (!(target instanceof HTMLSelectElement)) {
+async function onStatusChange(row: DepartureListItem, value: string | number | null | undefined): Promise<void> {
+  if (typeof value !== 'string') {
     return
   }
 
   const previous = row.status
-  const next = target.value as DepartureStatus
+  const next = value as DepartureStatus
+
+  if (next === previous) {
+    return
+  }
+
+  row.status = next
 
   try {
     await request(`/api/rms/departures/${row.id}`, {
       method: 'PATCH',
       body: { status: next }
     })
-    target.value = revertStatus(previous, next, true)
     toast.add({ title: t('departures.statusSaved') })
     await refresh()
   } catch (error) {
-    target.value = revertStatus(previous, next, false)
+    row.status = revertStatus(previous, next, false)
     toast.add({
       title: firstApiMessage(error) ?? (error instanceof Error ? error.message : t('departures.statusSaved'))
     })
   }
 }
+
+const statusItems = computed(() => DEPARTURE_STATUSES.map(status => ({
+  label: t(statusLabelKey(status)),
+  value: status
+})))
 
 function ratesLine(row: DepartureListItem): string {
   if (row.rates.suite_from === null) {
@@ -331,21 +339,14 @@ function itineraryWarning(status: string): string | null {
                 >{{ row.availability.engine_label.text }}</span>
               </td>
               <td>
-                <select
-                  class="tsel"
-                  :value="row.status"
+                <USelect
+                  size="sm"
+                  :model-value="row.status"
+                  :items="statusItems"
                   :disabled="!canManage"
                   @click.stop
-                  @change="onStatusChange(row, $event)"
-                >
-                  <option
-                    v-for="status in DEPARTURE_STATUSES"
-                    :key="status"
-                    :value="status"
-                  >
-                    {{ t(statusLabelKey(status)) }}
-                  </option>
-                </select>
+                  @update:model-value="onStatusChange(row, $event)"
+                />
               </td>
             </tr>
           </tbody>

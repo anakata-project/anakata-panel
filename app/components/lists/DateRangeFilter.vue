@@ -38,7 +38,24 @@ const countText = computed(() => {
   })
 })
 
-function applyPreset(value: string): void {
+const presetItems = computed(() => [
+  { label: t('lists.presetAll'), value: 'all' },
+  { label: t('lists.presetLast30'), value: 'last30' },
+  { label: t('lists.presetLast90'), value: 'last90' },
+  { label: t('lists.presetNext90'), value: 'next90' },
+  { label: t('lists.presetNext12'), value: 'next12' },
+  ...years.value.map(year => ({
+    label: t('lists.presetYear', { year: String(year.year) }),
+    value: year.key
+  })),
+  { label: t('lists.presetCustom'), value: 'custom' }
+])
+
+function applyPreset(value: string | number | null | undefined): void {
+  if (typeof value !== 'string') {
+    return
+  }
+
   const next = value as DateRangePreset
   preset.value = next
 
@@ -51,25 +68,18 @@ function applyPreset(value: string): void {
   to.value = range.to
 }
 
-function onManual(which: 'from' | 'to', event: Event): void {
-  const target = event.target
+function onManual(which: 'from' | 'to', value: string | null): void {
+  const nextFrom = which === 'from' ? value : from.value
+  const nextTo = which === 'to' ? value : to.value
 
-  if (!(target instanceof HTMLInputElement)) {
+  if (nextFrom === from.value && nextTo === to.value) {
     return
   }
 
-  const value = target.value === '' ? null : target.value
-
-  if (which === 'from') {
-    from.value = value
-  } else {
-    to.value = value
-  }
-
-  const normalized = normalizeRange(from.value, to.value)
+  const normalized = normalizeRange(nextFrom, nextTo)
   from.value = normalized.from
   to.value = normalized.to
-  preset.value = isRangeActive(from.value, to.value) ? 'custom' : 'all'
+  preset.value = isRangeActive(normalized.from, normalized.to) ? 'custom' : 'all'
 }
 
 function clear(): void {
@@ -88,54 +98,27 @@ function clear(): void {
       <span class="mono">{{ t('lists.dateRange') }}</span>
       <span class="drb">{{ fieldLabel }}</span>
     </div>
-    <select
-      class="drp"
+    <USelect
+      size="sm"
+      :model-value="preset"
+      :items="presetItems"
       :aria-label="t('lists.dateRange')"
-      :value="preset"
-      @change="applyPreset(($event.target as HTMLSelectElement).value)"
-    >
-      <option value="all">
-        {{ t('lists.presetAll') }}
-      </option>
-      <option value="last30">
-        {{ t('lists.presetLast30') }}
-      </option>
-      <option value="last90">
-        {{ t('lists.presetLast90') }}
-      </option>
-      <option value="next90">
-        {{ t('lists.presetNext90') }}
-      </option>
-      <option value="next12">
-        {{ t('lists.presetNext12') }}
-      </option>
-      <option
-        v-for="year in years"
-        :key="year.key"
-        :value="year.key"
-      >
-        {{ t('lists.presetYear', { year: String(year.year) }) }}
-      </option>
-      <option value="custom">
-        {{ t('lists.presetCustom') }}
-      </option>
-    </select>
+      @update:model-value="applyPreset"
+    />
     <div class="drio">
-      <input
-        class="drf"
-        type="date"
+      <AnkDateInput
+        size="sm"
+        :model-value="from"
         :aria-label="t('lists.from')"
-        :value="from ?? ''"
-        @change="onManual('from', $event)"
-      >
+        @update:model-value="onManual('from', $event)"
+      />
       <span class="drarr">→</span>
-      <input
-        class="drt"
-        type="date"
+      <AnkDateInput
+        size="sm"
+        :model-value="to"
         :aria-label="t('lists.to')"
-        :value="to ?? ''"
-        @change="onManual('to', $event)"
-      >
+        @update:model-value="onManual('to', $event)"
+      />
     </div>
     <UButton
       class="drx"

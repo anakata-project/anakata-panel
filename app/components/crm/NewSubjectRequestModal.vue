@@ -30,6 +30,24 @@ const channel = ref<SubjectRequestChannel>('EMAIL')
 const saving = ref(false)
 const error = ref('')
 
+const contactItems = computed(() => [
+  { label: t('crmPipeline.pickContact'), value: '' },
+  ...matches.value.map(contact => ({
+    label: contact.name,
+    value: String(contact.id)
+  }))
+])
+
+const typeItems = computed(() => TYPES.map(item => ({
+  label: t(`crmPrivacy.types.${item}`),
+  value: item
+})))
+
+const channelItems = computed(() => CHANNELS.map(item => ({
+  label: t(`crmPrivacy.channels.${item}`),
+  value: item
+})))
+
 watch(open, (isOpen) => {
   if (!isOpen) {
     return
@@ -118,33 +136,20 @@ async function submit(): Promise<void> {
               {{ t('crmContacts.search') }}
             </UButton>
           </div>
-          <select v-model="contactId">
-            <option value="">
-              {{ t('crmPipeline.pickContact') }}
-            </option>
-            <option
-              v-for="contact in matches"
-              :key="contact.id"
-              :value="String(contact.id)"
-            >
-              {{ contact.name }}
-            </option>
-          </select>
+          <USelect
+            v-model="contactId"
+            class="w-full"
+            :items="contactItems"
+          />
         </div>
         <div class="field">
           <label for="sr-type">{{ t('crmPrivacy.type') }}</label>
-          <select
+          <USelect
             id="sr-type"
             v-model="type"
-          >
-            <option
-              v-for="item in TYPES"
-              :key="item"
-              :value="item"
-            >
-              {{ t(`crmPrivacy.types.${item}`) }}
-            </option>
-          </select>
+            class="w-full"
+            :items="typeItems"
+          />
         </div>
         <div class="field">
           <label for="sr-received">{{ t('crmPrivacy.received') }}</label>
@@ -156,18 +161,12 @@ async function submit(): Promise<void> {
         </div>
         <div class="field">
           <label for="sr-channel">{{ t('crmPrivacy.channel') }}</label>
-          <select
+          <USelect
             id="sr-channel"
             v-model="channel"
-          >
-            <option
-              v-for="item in CHANNELS"
-              :key="item"
-              :value="item"
-            >
-              {{ t(`crmPrivacy.channels.${item}`) }}
-            </option>
-          </select>
+            class="w-full"
+            :items="channelItems"
+          />
         </div>
         <div class="modal-actions">
           <UButton
