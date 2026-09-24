@@ -1,6 +1,7 @@
 .app {
   display: flex;
-  min-height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 aside {
@@ -8,9 +9,27 @@ aside {
   flex: none;
   display: flex;
   flex-direction: column;
+  min-height: 0;
   background: var(--forest);
   border-right: 1px solid var(--hair);
   padding: 24px 0;
+}
+
+.nav-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--iv38) transparent;
+}
+
+.nav-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.nav-scroll::-webkit-scrollbar-thumb {
+  background: var(--iv38);
 }
 
 .brand {
@@ -95,7 +114,10 @@ aside {
 main {
   flex: 1;
   min-width: 0;
+  min-height: 0;
   overflow-x: clip;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 28px 34px 80px;
 }
 

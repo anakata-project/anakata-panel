@@ -67,28 +67,30 @@ onMounted(() => {
         <small>{{ t(section.brandSubtitleKey) }}</small>
       </div>
 
-      <template
-        v-for="group in nav"
-        :key="group.id"
-      >
-        <div class="navsec">
-          {{ t(group.labelKey) }}
-        </div>
-        <div class="nav">
-          <NuxtLink
-            v-for="item in group.items"
-            :key="item.id"
-            :to="item.to"
-            :class="{ on: item.to === $route.path }"
-          >
-            {{ item.glyph }} {{ t(item.labelKey) }}
-            <span
-              v-if="item.badge && showRequestBadge"
-              class="nav-badge pill p-req"
-            >{{ requestCount }}</span>
-          </NuxtLink>
-        </div>
-      </template>
+      <nav class="nav-scroll">
+        <template
+          v-for="group in nav"
+          :key="group.id"
+        >
+          <div class="navsec">
+            {{ t(group.labelKey) }}
+          </div>
+          <div class="nav">
+            <NuxtLink
+              v-for="item in group.items"
+              :key="item.id"
+              :to="item.to"
+              :class="{ on: item.to === $route.path }"
+            >
+              {{ item.glyph }} {{ t(item.labelKey) }}
+              <span
+                v-if="item.badge && showRequestBadge"
+                class="nav-badge pill p-req"
+              >{{ requestCount }}</span>
+            </NuxtLink>
+          </div>
+        </template>
+      </nav>
 
       <img
         class="sideprow"
