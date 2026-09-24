@@ -5,6 +5,7 @@ const { t } = useI18n()
 <template>
   <div class="auth-layout">
     <div class="auth-theme">
+      <ShellLocaleSwitch />
       <AnkThemeToggle />
     </div>
 

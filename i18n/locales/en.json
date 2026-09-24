@@ -64,7 +64,8 @@
     "brandCrm": "CRM · REVENUE ENGINE",
     "signOut": "Sign out",
     "whoAria": "Account menu",
-    "alerts": "Alerts"
+    "alerts": "Alerts",
+    "localeAria": "Language"
   },
   "auth": {
     "signIn": "Sign in",

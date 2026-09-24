@@ -143,6 +143,7 @@ onMounted(() => {
           <ShellSectionSwitch v-if="showSectionSwitch" />
           <span class="mono">{{ t('shell.loggedInAs') }}</span>
           <ShellWhoMenu />
+          <ShellLocaleSwitch />
           <AnkThemeToggle />
           <UButton
             v-if="showNewReservation"
