@@ -26,19 +26,17 @@ aside {
   display: block;
 }
 
-.brand-mark--dark {
+/* Beat `.brand img` (one class + element). A lone class loses, so the
+   light theme kept both wordmarks and the hidden one added space. */
+.brand img.brand-mark--dark {
   display: none;
 }
 
-.brand-mark--light {
+.dark .brand img.brand-mark--dark {
   display: block;
 }
 
-.dark .brand-mark--dark {
-  display: block;
-}
-
-.dark .brand-mark--light {
+.dark .brand img.brand-mark--light {
   display: none;
 }
 
