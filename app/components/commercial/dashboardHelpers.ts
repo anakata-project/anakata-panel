@@ -3,6 +3,32 @@
  * Occupancy stays the API ratio string. Nothing here divides berths or revenue.
  */
 
+export type SelectItem = {
+  label: string
+  value: string
+}
+
+// Reka UI SelectItem throws if value is "". Use this for "all" filter rows.
+export const SELECT_ALL = 'all'
+
+export function withSelectAll(allLabel: string, options: Array<SelectItem>): Array<SelectItem> {
+  return [{ label: allLabel, value: SELECT_ALL }, ...options]
+}
+
+export function selectedId(value: string): number | null {
+  if (value === SELECT_ALL) {
+    return null
+  }
+
+  const id = Number(value)
+
+  if (!Number.isInteger(id) || id < 1) {
+    return null
+  }
+
+  return id
+}
+
 function scaledPercent(ratio: string): string | null {
   const parts = ratio.split('.')
 

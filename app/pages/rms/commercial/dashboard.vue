@@ -13,7 +13,10 @@ import { calendarYear, resolveDateRange } from '../../../components/lists/dateRa
 import {
   occupancyBarWidth,
   occupancyIsLow,
-  ratioPercentLabel
+  ratioPercentLabel,
+  SELECT_ALL,
+  selectedId,
+  withSelectAll
 } from '../../../components/commercial/dashboardHelpers'
 import { firstApiMessage } from '../../../utils/apiForm'
 
@@ -36,10 +39,10 @@ const today = computed(() => format(new Date(), 'iso'))
 const yearWindow = resolveDateRange(`y${calendarYear(today.value)}`, today.value)
 const from = ref<string | null>(yearWindow.from)
 const to = ref<string | null>(yearWindow.to)
-const yachtId = ref<number | null>(null)
-const itineraryId = ref<number | null>(null)
-const channel = ref<ChannelOfOriginGroup | ''>('')
-const agencyId = ref<number | null>(null)
+const yachtId = ref(SELECT_ALL)
+const itineraryId = ref(SELECT_ALL)
+const channel = ref(SELECT_ALL)
+const agencyId = ref(SELECT_ALL)
 
 const metrics = ref<CommercialMetrics | null>(null)
 const loadError = ref('')
@@ -58,37 +61,37 @@ const lowOccupancyPct = computed(() => rulesPayload.value?.document.alerts.low_o
 const departureCount = computed(() => metrics.value?.metrics.occupancy.departures.length ?? 0)
 const hasWindow = computed(() => from.value !== null && to.value !== null)
 
-const yachtItems = computed(() => [
-  { label: t('dashboard.allYachts'), value: null as number | null },
-  ...yachts.value.map(yacht => ({
+const yachtItems = computed(() => withSelectAll(
+  t('dashboard.allYachts'),
+  yachts.value.map(yacht => ({
     label: yacht.code,
-    value: yacht.id
+    value: String(yacht.id)
   }))
-])
+))
 
-const itineraryItems = computed(() => [
-  { label: t('dashboard.allItineraries'), value: null as number | null },
-  ...itineraries.value.map(itinerary => ({
+const itineraryItems = computed(() => withSelectAll(
+  t('dashboard.allItineraries'),
+  itineraries.value.map(itinerary => ({
     label: itinerary.name,
-    value: itinerary.id
+    value: String(itinerary.id)
   }))
-])
+))
 
-const channelItems = computed(() => [
-  { label: t('dashboard.allChannels'), value: '' as ChannelOfOriginGroup | '' },
-  ...CHANNELS.map(group => ({
+const channelItems = computed(() => withSelectAll(
+  t('dashboard.allChannels'),
+  CHANNELS.map(group => ({
     label: group,
     value: group
   }))
-])
+))
 
-const agencyItems = computed(() => [
-  { label: t('dashboard.allAgencies'), value: null as number | null },
-  ...agencies.value.map(agency => ({
+const agencyItems = computed(() => withSelectAll(
+  t('dashboard.allAgencies'),
+  agencies.value.map(agency => ({
     label: agency.name,
-    value: agency.id
+    value: String(agency.id)
   }))
-])
+))
 
 let filterTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -156,20 +159,24 @@ async function loadMetrics(): Promise<void> {
     to: to.value
   })
 
-  if (yachtId.value !== null) {
-    params.set('yacht', String(yachtId.value))
+  const yacht = selectedId(yachtId.value)
+  const itinerary = selectedId(itineraryId.value)
+  const agency = selectedId(agencyId.value)
+
+  if (yacht !== null) {
+    params.set('yacht', String(yacht))
   }
 
-  if (itineraryId.value !== null) {
-    params.set('itinerary', String(itineraryId.value))
+  if (itinerary !== null) {
+    params.set('itinerary', String(itinerary))
   }
 
-  if (channel.value !== '') {
+  if (channel.value !== SELECT_ALL) {
     params.set('channel', channel.value)
   }
 
-  if (agencyId.value !== null) {
-    params.set('agency', String(agencyId.value))
+  if (agency !== null) {
+    params.set('agency', String(agency))
   }
 
   try {

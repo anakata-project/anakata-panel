@@ -13,6 +13,7 @@ import type {
 } from '../../../types/api'
 import { downloadDocumentFile } from '../../../components/documents/documentFetch'
 import { calendarYear, resolveDateRange } from '../../../components/lists/dateRange'
+import { SELECT_ALL, selectedId, withSelectAll } from '../../../components/commercial/dashboardHelpers'
 import { isScheduledRun, retentionDays } from '../../../components/commercial/reportHelpers'
 import { firstApiMessage } from '../../../utils/apiForm'
 
@@ -41,10 +42,10 @@ const actionError = ref('')
 const openKey = ref<string | null>(null)
 const runFrom = ref<string | null>(yearWindow.from)
 const runTo = ref<string | null>(yearWindow.to)
-const yachtId = ref<number | null>(null)
-const itineraryId = ref<number | null>(null)
-const channel = ref<ChannelOfOriginGroup | ''>('')
-const agencyId = ref<number | null>(null)
+const yachtId = ref(SELECT_ALL)
+const itineraryId = ref(SELECT_ALL)
+const channel = ref(SELECT_ALL)
+const agencyId = ref(SELECT_ALL)
 const posting = ref(false)
 
 const { data: yachtsPayload } = useFetch<{ data: Array<Yacht> }>('/api/rms/yachts')
@@ -59,37 +60,37 @@ const itineraries = computed(() => itinerariesPayload.value?.data ?? [])
 const agencies = computed(() => agenciesPayload.value?.data ?? [])
 const fileDays = computed(() => retentionDays(rulesPayload.value?.document))
 
-const yachtItems = computed(() => [
-  { label: t('dashboard.allYachts'), value: null as number | null },
-  ...yachts.value.map(yacht => ({
+const yachtItems = computed(() => withSelectAll(
+  t('dashboard.allYachts'),
+  yachts.value.map(yacht => ({
     label: yacht.code,
-    value: yacht.id
+    value: String(yacht.id)
   }))
-])
+))
 
-const itineraryItems = computed(() => [
-  { label: t('dashboard.allItineraries'), value: null as number | null },
-  ...itineraries.value.map(itinerary => ({
+const itineraryItems = computed(() => withSelectAll(
+  t('dashboard.allItineraries'),
+  itineraries.value.map(itinerary => ({
     label: itinerary.name,
-    value: itinerary.id
+    value: String(itinerary.id)
   }))
-])
+))
 
-const channelItems = computed(() => [
-  { label: t('dashboard.allChannels'), value: '' as ChannelOfOriginGroup | '' },
-  ...CHANNELS.map(group => ({
+const channelItems = computed(() => withSelectAll(
+  t('dashboard.allChannels'),
+  CHANNELS.map(group => ({
     label: group,
     value: group
   }))
-])
+))
 
-const agencyItems = computed(() => [
-  { label: t('dashboard.allAgencies'), value: null as number | null },
-  ...agencies.value.map(agency => ({
+const agencyItems = computed(() => withSelectAll(
+  t('dashboard.allAgencies'),
+  agencies.value.map(agency => ({
     label: agency.name,
-    value: agency.id
+    value: String(agency.id)
   }))
-])
+))
 
 let pollTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -205,20 +206,28 @@ async function submitRun(definition: ReportDefinition): Promise<void> {
     to: runTo.value
   }
 
-  if (yachtId.value !== null) {
-    body.yacht = yachtId.value
+  const yacht = selectedId(yachtId.value)
+  const itinerary = selectedId(itineraryId.value)
+  const agency = selectedId(agencyId.value)
+
+  if (yacht !== null) {
+    body.yacht = yacht
   }
 
-  if (itineraryId.value !== null) {
-    body.itinerary = itineraryId.value
+  if (itinerary !== null) {
+    body.itinerary = itinerary
   }
 
-  if (channel.value !== '') {
-    body.channel = channel.value
+  if (channel.value !== SELECT_ALL) {
+    const group = CHANNELS.find(item => item === channel.value)
+
+    if (group !== undefined) {
+      body.channel = group
+    }
   }
 
-  if (agencyId.value !== null) {
-    body.agency = agencyId.value
+  if (agency !== null) {
+    body.agency = agency
   }
 
   posting.value = true

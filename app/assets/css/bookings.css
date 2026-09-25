@@ -208,7 +208,8 @@ html.light .kv {
 }
 
 .dash-def {
-  margin: 0 0 16px;
+  margin: 0;
+  padding: 16px 20px;
   max-width: 720px;
   color: var(--iv62);
   font-size: 11px;
@@ -331,6 +332,11 @@ button.lnk {
 
 .req-notice {
   max-width: 860px;
+}
+
+.refunds-notice {
+  margin: 14px 0;
+  padding: 16px 20px;
 }
 
 .req-ref {

@@ -183,23 +183,25 @@ async function onPanelUpdated(): Promise<void> {
       :today="today"
     />
 
-    <p class="notice">
+    <p class="notice refunds-notice">
       {{ t('refunds.notice', { days: String(rules.refund_business_days) }) }}
     </p>
 
     <div class="panel">
       <h3>{{ t('refunds.title') }}</h3>
-      <div class="fchips">
-        <button
-          v-for="chip in CHIPS"
-          :key="chip"
-          type="button"
-          class="fchip"
-          :class="{ on: status === chip }"
-          @click="status = chip"
-        >
-          {{ chipLabel(chip) }}
-        </button>
+      <div class="ebtool dep-toolbar">
+        <div class="fchips">
+          <button
+            v-for="chip in CHIPS"
+            :key="chip"
+            type="button"
+            class="fchip"
+            :class="{ on: status === chip }"
+            @click="status = chip"
+          >
+            {{ chipLabel(chip) }}
+          </button>
+        </div>
       </div>
       <div class="bk-table-wrap">
         <table class="list">

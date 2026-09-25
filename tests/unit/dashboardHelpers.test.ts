@@ -3,7 +3,10 @@ import {
   occupancyBarWidth,
   occupancyIsLow,
   ratioPercentLabel,
-  thresholdRatio
+  SELECT_ALL,
+  selectedId,
+  thresholdRatio,
+  withSelectAll
 } from '../../app/components/commercial/dashboardHelpers'
 
 describe('dashboard occupancy display', () => {
@@ -19,6 +22,17 @@ describe('dashboard occupancy display', () => {
     expect(occupancyBarWidth('0.6111')).toBe('61.11%')
     expect(occupancyBarWidth('0.0000')).toBe('0.00%')
     expect(occupancyBarWidth(null)).toBe('0%')
+  })
+
+  it('prefixes All with a non-empty value (Reka SelectItem forbids "")', () => {
+    const items = withSelectAll('All yachts', [{ label: 'ANAMARA', value: '1' }])
+
+    expect(SELECT_ALL).not.toBe('')
+    expect(items.map(item => item.value)).toEqual([SELECT_ALL, '1'])
+    expect(items.every(item => item.value !== '')).toBe(true)
+    expect(selectedId(SELECT_ALL)).toBeNull()
+    expect(selectedId('12')).toBe(12)
+    expect(selectedId('0')).toBeNull()
   })
 
   it('marks coral only below the published percent', () => {
