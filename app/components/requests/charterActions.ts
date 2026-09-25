@@ -1,5 +1,27 @@
 import type { CharterEnquiryStatus } from '../../types/api'
 
+/** Reka UI SelectItem throws if value is "". */
+export const CHARTER_STATUS_ALL = 'all'
+
+export const CHARTER_STATUSES: Array<CharterEnquiryStatus> = [
+  'NEW',
+  'CONTACTED',
+  'QUOTED',
+  'ACCEPTED',
+  'DECLINED',
+  'CLOSED'
+]
+
+export function charterStatusSelectItems(
+  allLabel: string,
+  labelFor: (status: CharterEnquiryStatus) => string
+): Array<{ label: string, value: string }> {
+  return [
+    { label: allLabel, value: CHARTER_STATUS_ALL },
+    ...CHARTER_STATUSES.map(status => ({ label: labelFor(status), value: status }))
+  ]
+}
+
 /**
  * Mirrors UpdateCharterEnquiryStatus. Issue is allowed while a proposal can still be created.
  */

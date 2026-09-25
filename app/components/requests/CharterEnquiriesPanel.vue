@@ -3,10 +3,8 @@ import type { Booking, CharterEnquiry, CharterEnquiryStatus, IssuedDocument } fr
 import BookingPanel from '../bookings/BookingPanel.vue'
 import DocumentPreviewModal from '../documents/DocumentPreviewModal.vue'
 import ReasonModal from '../bookings/ReasonModal.vue'
-import { charterActions } from './charterActions'
+import { CHARTER_STATUS_ALL, charterActions, charterStatusSelectItems } from './charterActions'
 import { firstApiMessage } from '../../utils/apiForm'
-
-const STATUSES: Array<CharterEnquiryStatus> = ['NEW', 'CONTACTED', 'QUOTED', 'ACCEPTED', 'DECLINED', 'CLOSED']
 
 const { can } = useAuth()
 const { t } = useI18n()
@@ -15,9 +13,9 @@ const { format } = useDates()
 const toast = useToast()
 
 const canUpdate = computed(() => can('bookings.create'))
-const statusFilter = ref<CharterEnquiryStatus | ''>('')
+const statusFilter = ref<CharterEnquiryStatus | typeof CHARTER_STATUS_ALL>(CHARTER_STATUS_ALL)
 const listUrl = computed(() => {
-  return statusFilter.value === ''
+  return statusFilter.value === CHARTER_STATUS_ALL
     ? '/api/rms/charter-enquiries'
     : `/api/rms/charter-enquiries?status=${statusFilter.value}`
 })
@@ -82,13 +80,10 @@ function openRow(row: CharterEnquiry): void {
   drawerOpen.value = true
 }
 
-const statusItems = computed(() => [
-  { label: t('charterEnquiries.allStatuses'), value: '' },
-  ...STATUSES.map(status => ({
-    label: t(`charterEnquiries.status.${status}`),
-    value: status
-  }))
-])
+const statusItems = computed(() => charterStatusSelectItems(
+  t('charterEnquiries.allStatuses'),
+  status => t(`charterEnquiries.status.${status}`)
+))
 
 async function patchStatus(status: 'CONTACTED' | 'DECLINED' | 'CLOSED', reason?: string): Promise<void> {
   if (selected.value === null) {

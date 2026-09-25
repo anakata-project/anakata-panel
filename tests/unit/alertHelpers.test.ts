@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { alertBadgeClass, alertSeverityClass, seesAnyAlert } from '../../app/components/alerts/alertHelpers'
+import { ALERT_FILTER_ALL, alertBadgeClass, alertFilterItems, alertSeverityClass, seesAnyAlert } from '../../app/components/alerts/alertHelpers'
 
 describe('alertHelpers', () => {
+  it('keeps the all-filter value non-empty so SelectItem can render', () => {
+    const items = alertFilterItems('All', [{ label: 'WARN', value: 'WARN' }])
+
+    expect(ALERT_FILTER_ALL).not.toBe('')
+    expect(items.map(item => item.value)).toEqual([ALERT_FILTER_ALL, 'WARN'])
+    expect(items.every(item => item.value !== '')).toBe(true)
+  })
+
   it('maps severity onto the prototype pills', () => {
     expect(alertSeverityClass('CRITICAL')).toBe('p-canc')
     expect(alertSeverityClass('WARN')).toBe('p-hold')

@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { charterActions } from '../../app/components/requests/charterActions'
+import {
+  CHARTER_STATUS_ALL,
+  charterActions,
+  charterStatusSelectItems
+} from '../../app/components/requests/charterActions'
 
 describe('charter enquiry actions', () => {
   it('offers contacted and close from NEW, and issue before a decision', () => {
@@ -22,5 +26,22 @@ describe('charter enquiry actions', () => {
       decline: false,
       close: false
     })
+  })
+
+  it('prefixes All statuses with a non-empty value (Reka SelectItem forbids "")', () => {
+    const items = charterStatusSelectItems('All statuses', status => status)
+
+    expect(CHARTER_STATUS_ALL).not.toBe('')
+    expect(items[0]).toEqual({ label: 'All statuses', value: CHARTER_STATUS_ALL })
+    expect(items.map(item => item.value)).toEqual([
+      CHARTER_STATUS_ALL,
+      'NEW',
+      'CONTACTED',
+      'QUOTED',
+      'ACCEPTED',
+      'DECLINED',
+      'CLOSED'
+    ])
+    expect(items.every(item => item.value !== '')).toBe(true)
   })
 })

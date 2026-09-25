@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Alert, AlertKindRow, AlertSeverity } from '../../types/api'
-import { alertSeverityClass } from './alertHelpers'
+import { ALERT_FILTER_ALL, alertFilterItems, alertSeverityClass } from './alertHelpers'
 import { firstApiMessage } from '../../utils/apiForm'
 
 type AlertListPayload = {
@@ -42,8 +42,8 @@ const { refresh: refreshBell } = useAlertCounts()
 const toast = useToast()
 
 const state = ref<(typeof STATES)[number]['id']>('open')
-const severity = ref('')
-const kind = ref('')
+const severity = ref(ALERT_FILTER_ALL)
+const kind = ref(ALERT_FILTER_ALL)
 const page = ref(1)
 const rows = ref<Array<Alert>>([])
 const meta = ref<AlertListPayload['meta'] | null>(null)
@@ -53,21 +53,21 @@ const acknowledgingId = ref<number | null>(null)
 
 const sectionKinds = computed(() => kinds.value.filter(row => row.section === props.section))
 
-const severityItems = computed(() => [
-  { label: t('alerts.severityAll'), value: '' },
-  ...SEVERITIES.map(option => ({
+const severityItems = computed(() => alertFilterItems(
+  t('alerts.severityAll'),
+  SEVERITIES.map(option => ({
     label: option,
     value: option
   }))
-])
+))
 
-const kindItems = computed(() => [
-  { label: t('alerts.kindAll'), value: '' },
-  ...sectionKinds.value.map(option => ({
+const kindItems = computed(() => alertFilterItems(
+  t('alerts.kindAll'),
+  sectionKinds.value.map(option => ({
     label: option.label,
     value: option.kind
   }))
-])
+))
 
 watch([state, severity, kind], () => {
   if (page.value !== 1) {
@@ -96,7 +96,7 @@ function queryKind(): string | null {
 async function boot(): Promise<void> {
   await loadKinds()
 
-  if (kind.value === '') {
+  if (kind.value === ALERT_FILTER_ALL) {
     await load()
   }
 }
@@ -135,11 +135,11 @@ async function load(): Promise<void> {
     page: String(page.value)
   })
 
-  if (severity.value !== '') {
+  if (severity.value !== ALERT_FILTER_ALL) {
     params.set('severity', severity.value)
   }
 
-  if (kind.value !== '') {
+  if (kind.value !== ALERT_FILTER_ALL) {
     params.set('kind', kind.value)
   }
 

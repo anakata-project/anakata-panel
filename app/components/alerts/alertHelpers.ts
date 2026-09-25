@@ -1,5 +1,17 @@
 import type { AlertKindRow } from '../../types/api'
 
+type FilterItem = {
+  label: string
+  value: string
+}
+
+// Reka UI SelectItem throws if value is "". Use this for "all" filter rows.
+export const ALERT_FILTER_ALL = 'all'
+
+export function alertFilterItems(allLabel: string, options: Array<FilterItem>): Array<FilterItem> {
+  return [{ label: allLabel, value: ALERT_FILTER_ALL }, ...options]
+}
+
 export function alertSeverityClass(severity: string): string {
   if (severity === 'CRITICAL') {
     return 'p-canc'
