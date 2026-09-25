@@ -2443,5 +2443,278 @@
     "colStage": "Etapa",
     "colValue": "Valor",
     "colBooking": "Reserva"
+  },
+  "engineMap": {
+    "tableTitle": "De dónde obtiene sus datos cada elemento del motor de reservas",
+    "colStep": "Paso del motor",
+    "colElement": "Elemento en el motor",
+    "colSource": "Origen (RMS)",
+    "colStatus": "Estado",
+    "kpiMapped": "Elementos del motor mapeados",
+    "kpiMappedSub": "cada pantalla del flujo v3 + charter",
+    "kpiNew": "Alimentado por esta sección nueva",
+    "kpiNewSub": "Itinerarios · Salidas · Ofertas · Configuración del motor",
+    "kpiExisting": "Alimentado por pestañas existentes del RMS",
+    "kpiExistingSub": "tarifas, inventario, solicitudes, contactos",
+    "kpiMissing": "Aún no está en el RMS",
+    "kpiMissingHome": "cada elemento tiene un lugar en el RMS",
+    "kpiMissingGap": "aún sin un lugar en el RMS",
+    "decisionsTitle": "Decisiones de Anakata — 12 sep 2026",
+    "openTitle": "Aún abierto",
+    "pillNew": "NEW — THIS SECTION",
+    "pillExisting": "EXISTING RMS TAB",
+    "pillNotYet": "NOT YET IN RMS",
+    "rows": {
+      "yachtName": {
+        "step": "Site-wide",
+        "element": "Yacht name on departures & trip details",
+        "source": "Departures › Yacht"
+      },
+      "salesCalendar": {
+        "step": "Site-wide",
+        "element": "Sales calendar (first bookable month)",
+        "source": "Departures › earliest departure on sale"
+      },
+      "guestRules": {
+        "step": "Site-wide",
+        "element": "Guest rules — max per cabin / yacht, child ages, adult with children",
+        "source": "Engine Settings › Guests & capacity"
+      },
+      "searchWindow": {
+        "step": "Site-wide",
+        "element": "Default search window & booking horizon",
+        "source": "Engine Settings › Sales calendar & search"
+      },
+      "locale": {
+        "step": "Site-wide",
+        "element": "EN / ES locale · currency",
+        "source": "Engine Settings › Language & currency"
+      },
+      "card": {
+        "step": "2 · Itineraries",
+        "element": "Card photo, name, description, chips",
+        "source": "Itineraries › Itinerary card"
+      },
+      "suitesFrom": {
+        "step": "2 · Itineraries",
+        "element": "\"Suites from\" price",
+        "source": "Rates & Promotions › Base rates (by rate year)"
+      },
+      "departureCount": {
+        "step": "2 · Itineraries",
+        "element": "\"Departures (N)\" count",
+        "source": "Departures › on sale, inside the guest's window"
+      },
+      "overview": {
+        "step": "2 · Itineraries",
+        "element": "Trip overview line",
+        "source": "Itineraries › Trip overview"
+      },
+      "departureRow": {
+        "step": "2 · Itineraries",
+        "element": "Departure row — dates, yacht, note",
+        "source": "Departures"
+      },
+      "availability": {
+        "step": "2 · Itineraries",
+        "element": "Availability label — Available / Only N left / Full",
+        "source": "Departures › urgency threshold + live inventory (Calendar, Bookings, Holds, Internal Blocks)"
+      },
+      "waitlist": {
+        "step": "2 · Itineraries",
+        "element": "Waitlist button",
+        "source": "Departures › waitlist on/off → Holds & Waitlist"
+      },
+      "offerBadge": {
+        "step": "2 · Itineraries",
+        "element": "Offer badge on card / departure row",
+        "source": "Offers › On the booking engine (engine needs a badge slot)"
+      },
+      "tripTitle": {
+        "step": "3 · Trip details",
+        "element": "Title, hero, day/night badges, facts, description",
+        "source": "Itineraries › Basics + Trip details page"
+      },
+      "departureTable": {
+        "step": "3 · Trip details",
+        "element": "Departure dates table",
+        "source": "Departures (same itinerary)"
+      },
+      "tabs": {
+        "step": "3 · Trip details",
+        "element": "Tabs — Overview / Itinerary / Includes / FAQs",
+        "source": "Itineraries › Day by day, Includes/Excludes, FAQs"
+      },
+      "railFrom": {
+        "step": "3 · Trip details",
+        "element": "Rail \"From\" price",
+        "source": "Rates & Promotions › Base rates"
+      },
+      "sidebarNotes": {
+        "step": "3 · Trip details",
+        "element": "Sidebar notes — pay later, children, solo/triple",
+        "source": "Engine Settings › Booking notes & messages"
+      },
+      "deckPlan": {
+        "step": "4 · Cabins",
+        "element": "Deck plan & cabin numbers",
+        "source": "Yacht Layout"
+      },
+      "bookableCabins": {
+        "step": "4 · Cabins",
+        "element": "Which cabins are bookable",
+        "source": "Live inventory — Calendar / Bookings / Holds / Blocks"
+      },
+      "priceLines": {
+        "step": "4 · Cabins",
+        "element": "Price lines — base, child −15%, single +75%, triple −10%, festive",
+        "source": "Rates & Promotions › Discount & supplement rules (locked)"
+      },
+      "offerLine": {
+        "step": "4 · Cabins",
+        "element": "Offer line in the price panel",
+        "source": "Offers › Price panel / invoice line"
+      },
+      "deposit": {
+        "step": "4 · Cabins",
+        "element": "Deposit % · balance due date",
+        "source": "Rates & Promotions › Deposit & balance"
+      },
+      "feeEstimates": {
+        "step": "4 · Cabins",
+        "element": "TCT & PNG fee estimates (information lines)",
+        "source": "Engine Settings › Galápagos fees"
+      },
+      "contact": {
+        "step": "5 · Details",
+        "element": "Contact, preferred channel, advisor flag, notes",
+        "source": "→ Booking Requests + Contacts In"
+      },
+      "payToday": {
+        "step": "5 · Details",
+        "element": "\"Pay today USD 0\" box & contact-form note",
+        "source": "Engine Settings › Booking notes & messages"
+      },
+      "hold": {
+        "step": "5 · Details",
+        "element": "Hold after \"Book now — pay later\"",
+        "source": "Holds & Waitlist rules"
+      },
+      "requestId": {
+        "step": "6 · Confirmation",
+        "element": "Request ID ANK-R-…",
+        "source": "Booking Requests"
+      },
+      "nextSteps": {
+        "step": "6 · Confirmation",
+        "element": "\"What happens next\" steps",
+        "source": "Engine Settings › Confirmation page"
+      },
+      "charterRate": {
+        "step": "Charter page",
+        "element": "Charter rate, festive supplement, deposit / balance",
+        "source": "Rates & Promotions › Base rates, Deposit & balance"
+      },
+      "charterCopy": {
+        "step": "Charter page",
+        "element": "Headline, intro, capacity, SLA, group contexts, thank-you",
+        "source": "Engine Settings › Private charter page"
+      },
+      "charterEnquiry": {
+        "step": "Charter page",
+        "element": "Charter enquiry",
+        "source": "→ CRM / Booking Requests"
+      }
+    },
+    "decisions": {
+      "parkFee": {
+        "title": "Galápagos park fee",
+        "body": "the guest chooses: pay it to Anakata (invoiced) or directly at SCY airport. Set per booking in the Extras tab; the TCT card works the same way."
+      },
+      "deposit": {
+        "title": "Deposit",
+        "before": "cruise (cabin) charges only. Extras and collected fees are due ",
+        "emphasis": "up to 72 h before departure",
+        "after": "; services taken on board are settled during or after the cruise."
+      },
+      "annualIncrease": {
+        "title": "Annual increase",
+        "body": "5% per year (FIN-001 stands)."
+      },
+      "pngFee": {
+        "title": "PNG fee",
+        "body": "by age and nationality per FIN-004; nationals and residents USD 30 at any age."
+      },
+      "invoicing": {
+        "title": "Invoicing entity",
+        "body": "PONTOS LLC, 430 Grand Bay Drive, Apt 1108, Key Biscayne, FL 33149, USA · EIN 42-4742064. Bank details still pending."
+      },
+      "yachts": {
+        "title": "Yachts",
+        "body": "ANAMARA and ANATIVA: identical twins, same hull, layout, cabin numbering and rates, so the two names are interchangeable in inventory terms."
+      },
+      "itineraryNames": {
+        "title": "Itinerary names",
+        "body": "the engine set is the single set: Western Realm · Northern Passage · Festive Expeditions."
+      },
+      "cabinNumbering": {
+        "title": "Cabin numbering",
+        "body": "Suite 01–08 + Owner's Suite everywhere; the engine's 201–208 / 301 deck plan must change."
+      },
+      "season": {
+        "title": "Season",
+        "body": "OPS-006 stands: sales open 1 Nov 2026, first cruise 7 Nov 2027."
+      },
+      "dpng": {
+        "title": "DPNG list",
+        "before": "column set approved as built. ",
+        "emphasis": "Capacity",
+        "after": " — 3 guests per cabin."
+      },
+      "payments": {
+        "title": "Payments & email",
+        "body": "Stripe for payments, Microsoft Exchange for transactional email; e-signature provider still to be decided."
+      },
+      "backToBack": {
+        "title": "Back-to-back",
+        "before": "cabin bookings only. ",
+        "emphasis": "Language",
+        "after": " — everything in English, guest-facing and internal."
+      },
+      "rmsValues": {
+        "title": "RMS values confirmed",
+        "body": "wire window 72 h · web hold 20 + 10 min · refund SLA 15 business days · default commission 10% · extras due 72 h before departure."
+      }
+    },
+    "open": {
+      "cancellation": {
+        "title": "Cancellation policy text",
+        "body": "(LEG-001) — being written by Anakata; the system logic is live, the customer-facing text is not published."
+      },
+      "privacy": {
+        "title": "LOPDP / GDPR architecture",
+        "body": "(LEG-002) — being written; passport and health data handling depends on it."
+      },
+      "bank": {
+        "title": "PONTOS LLC bank details",
+        "body": "(LEG-004) — wire instructions still render [TBD]."
+      },
+      "fleet": {
+        "title": "Fleet schedule & 2027 itinerary calendar",
+        "body": "(PRO-001) — to be added later; departures beyond the seeded weeks are provisional."
+      },
+      "signature": {
+        "title": "E-signature provider",
+        "body": "(TEC-003) — needed for charter contracts."
+      },
+      "onBoard": {
+        "title": "On-board charging",
+        "body": "spa, bar and boutique can be added during the cruise; how they are captured on board and settled (folio, card on file, post-cruise invoice) is not specified yet."
+      },
+      "photography": {
+        "title": "Photography",
+        "body": "every itinerary card still uses a placeholder gradient."
+      }
+    }
   }
 }

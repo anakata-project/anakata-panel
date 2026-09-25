@@ -920,3 +920,38 @@ html:not(.dark) .cab.s-hold .st {
 input.of-code {
   text-transform: uppercase;
 }
+
+.conflicts {
+  max-width: 900px;
+}
+
+.conflicts li {
+  margin: 4px 0 4px 16px;
+}
+
+.emap-scroll {
+  overflow-x: auto;
+}
+
+.emap-step {
+  letter-spacing: .1em;
+  color: var(--iv62);
+}
+
+.emap-copy {
+  padding: 14px 20px;
+  font-size: 12.5px;
+  color: var(--iv62);
+}
+
+.emap-copy b {
+  color: var(--ivory);
+}
+
+.emap-kpi-ok {
+  color: var(--ok);
+}
+
+.emap-kpi-gap {
+  color: var(--coral-400);
+}
