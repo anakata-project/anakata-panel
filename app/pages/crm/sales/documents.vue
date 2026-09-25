@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { DeliveryKpis, DeliveryRow } from '../../../types/api'
 import { deliveryStatusClass } from '../../../components/crm/campaignHelpers'
+import { SELECT_ALL, withSelectAll } from '../../../components/crm/salesHelpers'
 import { firstApiMessage } from '../../../utils/apiForm'
 
 const KINDS = [
@@ -43,24 +44,24 @@ const rows = ref<Array<DeliveryRow>>([])
 const kpis = ref<DeliveryKpis>(emptyKpis)
 const engagement = ref('')
 const loadError = ref('')
-const status = ref('')
-const kind = ref('')
+const status = ref(SELECT_ALL)
+const kind = ref(SELECT_ALL)
 const from = ref<string | null>(null)
 const to = ref<string | null>(null)
 const booking = ref('')
 
-const statusItems = computed(() => [
-  { label: t('crmDelivery.statusAll'), value: '' },
-  ...STATUSES.map(item => ({ label: item, value: item }))
-])
+const statusItems = computed(() => withSelectAll(
+  t('crmDelivery.statusAll'),
+  STATUSES.map(item => ({ label: item, value: item }))
+))
 
-const kindItems = computed(() => [
-  { label: t('crmDelivery.kindAll'), value: '' },
-  ...KINDS.map(item => ({
+const kindItems = computed(() => withSelectAll(
+  t('crmDelivery.kindAll'),
+  KINDS.map(item => ({
     label: t(`crmDelivery.kinds.${item}`),
     value: item
   }))
-])
+))
 
 onMounted(() => {
   void load()
@@ -73,11 +74,11 @@ watch([status, kind, from, to, booking], () => {
 async function load(): Promise<void> {
   const params = new URLSearchParams()
 
-  if (status.value !== '') {
+  if (status.value !== SELECT_ALL) {
     params.set('status', status.value)
   }
 
-  if (kind.value !== '') {
+  if (kind.value !== SELECT_ALL) {
     params.set('kind', kind.value)
   }
 

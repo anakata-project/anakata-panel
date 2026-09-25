@@ -20,6 +20,7 @@ import {
 } from '../../../components/crm/contactHelpers'
 
 const SEARCH_DEBOUNCE_MS = 300
+const FILTER_ALL = 'all'
 
 type ContactsPayload = Paginated<CrmContact> & {
   meta: Paginated<CrmContact>['meta'] & {
@@ -35,11 +36,11 @@ const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 
-const typeFilter = ref('')
-const lifecycleFilter = ref('')
-const mainFilter = ref('')
-const originFilter = ref('')
-const consentFilter = ref('')
+const typeFilter = ref(FILTER_ALL)
+const lifecycleFilter = ref(FILTER_ALL)
+const mainFilter = ref(FILTER_ALL)
+const originFilter = ref(FILTER_ALL)
+const consentFilter = ref(FILTER_ALL)
 const searchInput = ref('')
 const search = ref('')
 const page = ref(1)
@@ -78,23 +79,23 @@ const listUrl = computed(() => {
     per_page: '50'
   })
 
-  if (typeFilter.value !== '') {
+  if (typeFilter.value !== FILTER_ALL) {
     params.set('type', typeFilter.value)
   }
 
-  if (lifecycleFilter.value !== '') {
+  if (lifecycleFilter.value !== FILTER_ALL) {
     params.set('lifecycle', lifecycleFilter.value)
   }
 
-  if (mainFilter.value !== '') {
+  if (mainFilter.value !== FILTER_ALL) {
     params.set('main_channel', mainFilter.value)
   }
 
-  if (originFilter.value !== '') {
+  if (originFilter.value !== FILTER_ALL) {
     params.set('channel_of_origin', originFilter.value)
   }
 
-  if (consentFilter.value !== '') {
+  if (consentFilter.value !== FILTER_ALL) {
     params.set('consent', consentFilter.value)
   }
 
@@ -115,22 +116,22 @@ const lifecycleOptions = computed(() => filters.value?.lifecycle ?? [])
 const originGroups = computed(() => formOptions.value?.origin ?? [])
 
 const typeItems = computed(() => [
-  { label: t('crmContacts.filterType'), value: '' },
+  { label: t('crmContacts.filterType'), value: FILTER_ALL },
   ...typeOptions.value.map(option => ({ label: option.label, value: option.value }))
 ])
 
 const lifecycleItems = computed(() => [
-  { label: t('crmContacts.filterLifecycle'), value: '' },
+  { label: t('crmContacts.filterLifecycle'), value: FILTER_ALL },
   ...lifecycleOptions.value.map(option => ({ label: option.label, value: option.value }))
 ])
 
 const mainItems = computed(() => [
-  { label: t('crmContacts.filterMain'), value: '' },
+  { label: t('crmContacts.filterMain'), value: FILTER_ALL },
   ...(formOptions.value?.main ?? []).map(option => ({ label: option.label, value: option.value }))
 ])
 
 const originItems = computed(() => [
-  [{ label: t('crmContacts.filterOrigin'), value: '' }],
+  [{ label: t('crmContacts.filterOrigin'), value: FILTER_ALL }],
   ...originGroups.value.map(group => [
     { type: 'label' as const, label: group.group },
     ...group.options.map(option => ({ label: option.label, value: option.value }))
@@ -138,7 +139,7 @@ const originItems = computed(() => [
 ])
 
 const consentItems = computed(() => [
-  { label: t('crmContacts.filterConsent'), value: '' },
+  { label: t('crmContacts.filterConsent'), value: FILTER_ALL },
   { label: t('crmContacts.consentMarketing'), value: 'marketing' },
   { label: t('crmContacts.consentTransactional'), value: 'transactional_only' }
 ])

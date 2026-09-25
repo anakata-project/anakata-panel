@@ -3,7 +3,7 @@ import type { CrmTask, TaskKind, TaskKpis } from '../../../types/api'
 import ReasonModal from '../../../components/bookings/ReasonModal.vue'
 import DealDrawer from '../../../components/crm/DealDrawer.vue'
 import NewTaskModal from '../../../components/crm/NewTaskModal.vue'
-import { relativeDue, taskPriorityClass } from '../../../components/crm/salesHelpers'
+import { relativeDue, SELECT_ALL, taskPriorityClass, withSelectAll } from '../../../components/crm/salesHelpers'
 import { firstApiMessage } from '../../../utils/apiForm'
 
 type TaskPayload = {
@@ -33,15 +33,15 @@ const emptyKpis: TaskKpis = {
   quote_sla_hours: 0
 }
 
-const { t } = useI18n()
+const { t, te } = useI18n()
 const { request } = useApi()
 const { can } = useAuth()
 const toast = useToast()
 
 const scope = ref<'mine' | 'unassigned' | 'all'>('mine')
 const closed = ref(false)
-const kind = ref('')
-const due = ref('')
+const kind = ref(SELECT_ALL)
+const due = ref(SELECT_ALL)
 const rows = ref<Array<CrmTask>>([])
 const kpis = ref<TaskKpis | null>(null)
 const loadError = ref('')
@@ -58,20 +58,19 @@ const shown = computed(() => kpis.value ?? emptyKpis)
 const canSeeAll = computed(() => can('records.act_on_any'))
 const canCreate = computed(() => can('contacts.manage'))
 
-const kindItems = computed(() => [
-  { label: t('crmTasks.kindAll'), value: '' },
-  ...KINDS.map(item => ({
+const kindItems = computed(() => withSelectAll(
+  t('crmTasks.kindAll'),
+  KINDS.map(item => ({
     label: t(`crmTasks.kinds.${item}`),
     value: item
   }))
-])
+))
 
-const dueItems = computed(() => [
-  { label: t('crmTasks.dueAll'), value: '' },
+const dueItems = computed(() => withSelectAll(t('crmTasks.dueAll'), [
   { label: t('crmTasks.dueOverdue'), value: 'overdue' },
   { label: t('crmTasks.dueToday'), value: 'today' },
   { label: t('crmTasks.dueWeek'), value: 'week' }
-])
+]))
 
 watch([scope, closed, kind, due], () => {
   void load()
@@ -86,11 +85,11 @@ async function load(): Promise<void> {
   params.set('scope', scope.value)
   params.set('status', closed.value ? 'closed' : 'open')
 
-  if (kind.value !== '') {
+  if (kind.value !== SELECT_ALL) {
     params.set('kind', kind.value)
   }
 
-  if (due.value !== '') {
+  if (due.value !== SELECT_ALL) {
     params.set('due', due.value)
   }
 
@@ -135,6 +134,12 @@ async function submitComplete(outcome: string): Promise<void> {
   } finally {
     completeSubmitting.value = false
   }
+}
+
+function permissionLabel(value: string): string {
+  const key = `crmTasks.permissions.${value}`
+
+  return te(key) ? t(key) : value
 }
 
 function openDeal(id: number): void {
@@ -190,7 +195,7 @@ function openDeal(id: number): void {
     </p>
 
     <div class="panel">
-      <div class="bk-toolbar">
+      <div class="bk-toolbar crm-task-head">
         <h3>{{ t('crmTasks.title') }}</h3>
         <UButton
           v-if="canCreate"
@@ -279,7 +284,7 @@ function openDeal(id: number): void {
           <span
             v-if="task.needs_permission"
             class="pill bad"
-          >{{ task.needs_permission }}</span>
+          >{{ permissionLabel(task.needs_permission) }}</span>
         </div>
         <div class="ctx">
           {{ task.owner?.name ?? t('crmPipeline.unassigned') }}

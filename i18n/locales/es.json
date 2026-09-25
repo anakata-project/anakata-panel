@@ -1952,6 +1952,8 @@
     "titleField": "Título",
     "due": "Vencimiento",
     "dealOptional": "Negocio (opcional)",
+    "dealNeedsContact": "Elija primero un contacto",
+    "dealNone": "Sin negocio",
     "ownerSelf": "Yo",
     "created": "Tarea creada",
     "failed": "La tarea no se guardó.",
@@ -1961,6 +1963,10 @@
     "completed": "Tarea completada",
     "openRms": "Abrir en el RMS",
     "completeHint": "Al completar una tarea se escribe en la línea de tiempo del contacto, nunca en la reserva.",
+    "contactSearch": "Buscar contactos",
+    "contactSearchHint": "Escriba al menos 2 caracteres para empezar a buscar.",
+    "contactNoMatch": "Ningún contacto coincide.",
+    "contactSearching": "Buscando…",
     "kinds": {
       "REQUEST_RESPONSE": "Respuesta a la solicitud",
       "CHARTER_QUOTE": "Cotización de charter",
@@ -1971,6 +1977,27 @@
       "DEAL_QUOTE": "Cotización del negocio",
       "MANUAL": "Manual",
       "SUBJECT_REQUEST": "Solicitud del titular"
+    },
+    "permissions": {
+      "bookings": {
+        "create": "Crear reserva",
+        "overdue_decision": "Decisiones vencidas OPS-007"
+      },
+      "commissions": {
+        "override_cap": "Aprobar comisión por encima del tope"
+      },
+      "guest_experience": {
+        "manage": "Registrar preferencias del huésped"
+      },
+      "payments": {
+        "mark_wire_received": "Marcar transferencia recibida"
+      },
+      "privacy": {
+        "manage": "Gestionar solicitudes del titular"
+      },
+      "refunds": {
+        "approve": "Aprobar reembolsos"
+      }
     }
   },
   "crmActivity": {

@@ -97,6 +97,16 @@
 
 .crm-notice {
   max-width: 940px;
+  margin: 14px 0;
+}
+
+.crm-task-head {
+  padding: 0 20px 0 0;
+  border-bottom: 1px solid var(--hair);
+}
+
+.crm-task-head h3 {
+  border-bottom: 0;
 }
 
 .crm-filters {

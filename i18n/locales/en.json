@@ -1952,6 +1952,8 @@
     "titleField": "Title",
     "due": "Due",
     "dealOptional": "Deal (optional)",
+    "dealNeedsContact": "Choose a contact first",
+    "dealNone": "No deal",
     "ownerSelf": "Me",
     "created": "Task created",
     "failed": "The task was not saved.",
@@ -1961,6 +1963,10 @@
     "completed": "Task completed",
     "openRms": "Open in the RMS",
     "completeHint": "Completing a task writes to the contact timeline, never the booking.",
+    "contactSearch": "Search contacts",
+    "contactSearchHint": "Type at least 2 characters to start searching.",
+    "contactNoMatch": "No contacts match.",
+    "contactSearching": "Searching…",
     "kinds": {
       "REQUEST_RESPONSE": "Request response",
       "CHARTER_QUOTE": "Charter quote",
@@ -1971,6 +1977,27 @@
       "DEAL_QUOTE": "Deal quote",
       "MANUAL": "Manual",
       "SUBJECT_REQUEST": "Subject request"
+    },
+    "permissions": {
+      "bookings": {
+        "create": "Create reservation",
+        "overdue_decision": "OPS-007 overdue decisions"
+      },
+      "commissions": {
+        "override_cap": "Approve commission above cap"
+      },
+      "guest_experience": {
+        "manage": "Record guest preferences"
+      },
+      "payments": {
+        "mark_wire_received": "Mark wire received"
+      },
+      "privacy": {
+        "manage": "Manage subject requests"
+      },
+      "refunds": {
+        "approve": "Approve refunds"
+      }
     }
   },
   "crmActivity": {
