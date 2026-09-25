@@ -466,7 +466,21 @@
       "paymentSettled": "Wire received · {reference} · {bank}",
       "refundNotDue": "Nothing was paid, so nothing is owed.",
       "refundRequested": "Refund requested · penalty {penalty} · refund due {refund}",
+      "consentRecorded": "Consent recorded · {document} · {version} · {source}",
       "unknown": "{event} · {summary}"
+    },
+    "documents": {
+      "terms": "Terms & Conditions",
+      "cancellation": "Cancellation policy",
+      "privacy": "Privacy policy",
+      "insurance": "Travel insurance declaration",
+      "marketing": "Marketing",
+      "charterProposal": "Charter proposal"
+    },
+    "sources": {
+      "engine": "Booking engine",
+      "paymentLink": "Payment link",
+      "staff": "Staff"
     }
   },
   "lists": {

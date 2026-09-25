@@ -54,6 +54,31 @@ function statusWords(value: string): string {
   return value.replaceAll('_', ' ')
 }
 
+const CONSENT_DOCUMENTS: Record<string, string> = {
+  TERMS: 'history.documents.terms',
+  CANCELLATION: 'history.documents.cancellation',
+  PRIVACY: 'history.documents.privacy',
+  INSURANCE: 'history.documents.insurance',
+  MARKETING: 'history.documents.marketing',
+  CHARTER_PROPOSAL: 'history.documents.charterProposal'
+}
+
+const CONSENT_SOURCES: Record<string, string> = {
+  ENGINE: 'history.sources.engine',
+  PAYMENT_LINK: 'history.sources.paymentLink',
+  STAFF: 'history.sources.staff'
+}
+
+function labeled(map: Record<string, string>, value: string | undefined, t: HistoryTranslate): string {
+  if (value === undefined) {
+    return '—'
+  }
+
+  const key = map[value]
+
+  return key === undefined ? value : t(key)
+}
+
 function departureDate(record: Record<string, unknown>): string {
   const raw = stringField(record, 'departure') ?? compactValue(record.departure)
   const date = raw.split(' · ')[0] ?? raw
@@ -270,11 +295,23 @@ export function describeHistory(
         penalty: moneyUsd(after.penalty_amount),
         refund: moneyUsd(after.refund_due)
       })
+    case 'consent.recorded': {
+      const document = stringField(after, 'document')
+
+      if (document !== undefined) {
+        return t('history.events.consentRecorded', {
+          document: labeled(CONSENT_DOCUMENTS, document, t),
+          version: stringField(after, 'version') ?? '—',
+          source: labeled(CONSENT_SOURCES, stringField(after, 'source'), t)
+        })
+      }
+
+      return stringField(after, 'what') ?? entry.event
+    }
     case 'guest.added':
     case 'guest.updated':
     case 'guest.removed':
     case 'guest.guardian_consented':
-    case 'consent.recorded':
     case 'extra.added':
     case 'extra.removed':
     case 'booking.fees_changed':

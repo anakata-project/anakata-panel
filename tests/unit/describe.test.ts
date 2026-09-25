@@ -56,6 +56,16 @@ const strings: Record<string, string> = {
   'history.events.paymentSettled': 'Wire received · {reference} · {bank}',
   'history.events.refundNotDue': 'Nothing was paid, so nothing is owed.',
   'history.events.refundRequested': 'Refund requested · penalty {penalty} · refund due {refund}',
+  'history.events.consentRecorded': 'Consent recorded · {document} · {version} · {source}',
+  'history.documents.terms': 'Terms & Conditions',
+  'history.documents.cancellation': 'Cancellation policy',
+  'history.documents.privacy': 'Privacy policy',
+  'history.documents.insurance': 'Travel insurance declaration',
+  'history.documents.marketing': 'Marketing',
+  'history.documents.charterProposal': 'Charter proposal',
+  'history.sources.engine': 'Booking engine',
+  'history.sources.paymentLink': 'Payment link',
+  'history.sources.staff': 'Staff',
   'history.events.unknown': '{event} · {summary}'
 }
 
@@ -245,6 +255,11 @@ describe('describeHistory', () => {
       before: null,
       after: { what: 'Guardian consent recorded' }
     }, t)).toBe('Guardian consent recorded')
+    expect(describeHistory({
+      event: 'consent.recorded',
+      before: null,
+      after: { document: 'PRIVACY', version: 'v2026.1', source: 'ENGINE' }
+    }, t)).toBe('Consent recorded · Privacy policy · v2026.1 · Booking engine')
     expect(describeHistory({
       event: 'consent.recorded',
       before: null,

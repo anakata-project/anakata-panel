@@ -466,7 +466,21 @@
       "paymentSettled": "Transferencia recibida · {reference} · {bank}",
       "refundNotDue": "No se pagó nada, así que no se adeuda nada.",
       "refundRequested": "Reembolso solicitado · penalización {penalty} · reembolso adeudado {refund}",
+      "consentRecorded": "Consentimiento registrado · {document} · {version} · {source}",
       "unknown": "{event} · {summary}"
+    },
+    "documents": {
+      "terms": "Términos y condiciones",
+      "cancellation": "Política de cancelación",
+      "privacy": "Política de privacidad",
+      "insurance": "Declaración de seguro de viaje",
+      "marketing": "Marketing",
+      "charterProposal": "Propuesta de charter"
+    },
+    "sources": {
+      "engine": "Motor de reservas",
+      "paymentLink": "Enlace de pago",
+      "staff": "Personal"
     }
   },
   "lists": {

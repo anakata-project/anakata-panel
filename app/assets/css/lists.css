@@ -191,6 +191,21 @@ tr.dr-empty td {
   margin-bottom: 2px;
 }
 
+.tl-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: .35em;
+  row-gap: 2px;
+}
+
+.tl-arrow {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  color: var(--iv62);
+}
+
 .tlw {
   font-size: 11.5px;
   color: var(--sand);
