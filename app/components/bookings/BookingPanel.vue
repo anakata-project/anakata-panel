@@ -21,6 +21,7 @@ import {
   galapagosTomorrowIso,
   reasonHint,
   reasonModalTitle,
+  shouldResetBookingPanel,
   statusLabel,
   statusPillClass,
   type BookingTab,
@@ -207,16 +208,22 @@ useUnsavedGuard(dirty, () => t('bookings.leaveUnsaved'))
 
 watch(
   () => [open.value, props.booking?.id] as const,
-  async ([isOpen, id]) => {
+  async ([isOpen, id], previous) => {
     if (!isOpen || id === undefined) {
       return
     }
 
-    tab.value = props.initialTab ?? 'overview'
-    warn.value = ''
-    reasonOpen.value = false
-    moveOpen.value = false
-    history.value = []
+    const [wasOpen, previousId] = previous ?? [false, undefined]
+    const switchedBooking = shouldResetBookingPanel(wasOpen, previousId, id)
+
+    if (switchedBooking) {
+      tab.value = props.initialTab ?? 'overview'
+      warn.value = ''
+      reasonOpen.value = false
+      moveOpen.value = false
+      history.value = []
+    }
+
     await refreshBooking(id)
 
     if (canReassign.value && owners.value.length === 0) {

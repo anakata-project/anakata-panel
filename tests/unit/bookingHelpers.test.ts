@@ -14,6 +14,7 @@ import {
   reasonHint,
   reasonModalTitle,
   segmentPillClass,
+  shouldResetBookingPanel,
   statusLabel,
   statusPillClass,
   tabAvailability,
@@ -103,6 +104,13 @@ describe('bookingHelpers', () => {
       .toBe('7 Nov 2027 · ANAMARA · Western Realm')
     expect(departureOptionLabel('2027-12-19', 'ANAMARA', 'Festive Expeditions', true, short))
       .toBe('19 Dec 2027 · ANAMARA · Festive Expeditions · FESTIVE (+supplement, discounts blocked)')
+  })
+
+  it('keeps the booking panel tab when the same booking is refreshed', () => {
+    expect(shouldResetBookingPanel(true, 52, 52)).toBe(false)
+    expect(shouldResetBookingPanel(false, 52, 52)).toBe(true)
+    expect(shouldResetBookingPanel(true, 12, 52)).toBe(true)
+    expect(shouldResetBookingPanel(true, undefined, 52)).toBe(true)
   })
 
   it('detects a modification fee line', () => {

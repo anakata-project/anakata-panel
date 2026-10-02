@@ -36,6 +36,14 @@ export type BookingTab = {
   arrivesSprint: number | null
 }
 
+export function shouldResetBookingPanel(
+  wasOpen: boolean,
+  previousId: number | undefined,
+  id: number
+): boolean {
+  return !wasOpen || previousId !== id
+}
+
 export const BOOKING_TABS: Array<BookingTab> = [
   { id: 'overview', labelKey: 'bookings.tabOverview', disabled: false, arrivesSprint: null },
   { id: 'guests', labelKey: 'bookings.tabGuests', disabled: false, arrivesSprint: null },
