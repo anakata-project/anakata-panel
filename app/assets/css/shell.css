@@ -5,14 +5,15 @@
 }
 
 aside {
-  width: 220px;
+  width: var(--sidebar-w);
   flex: none;
   display: flex;
   flex-direction: column;
   min-height: 0;
-  background: var(--forest);
-  border-right: 1px solid var(--hair);
-  padding: 24px 0;
+  background: var(--side-bg);
+  color: var(--side-text);
+  border-right: 1px solid var(--side-line);
+  padding: var(--space-5) 0 var(--space-6);
 }
 
 .nav-scroll {
@@ -21,7 +22,7 @@ aside {
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  scrollbar-color: var(--iv38) transparent;
+  scrollbar-color: var(--side-faint) transparent;
 }
 
 .nav-scroll::-webkit-scrollbar {
@@ -29,15 +30,15 @@ aside {
 }
 
 .nav-scroll::-webkit-scrollbar-thumb {
-  background: var(--iv38);
+  background: var(--side-faint);
 }
 
 .brand {
-  font-family: 'Oswald', sans-serif;
+  font-family: var(--font-bo-display);
   letter-spacing: .3em;
-  font-size: 15px;
-  padding: 0 22px 22px;
-  border-bottom: 1px solid var(--hair);
+  font-size: var(--fs-md);
+  padding: 0 var(--space-6) var(--space-5);
+  border-bottom: 1px solid var(--side-line);
 }
 
 .brand img {
@@ -45,8 +46,9 @@ aside {
   display: block;
 }
 
-/* Beat `.brand img` (one class + element). A lone class loses, so the
-   light theme kept both wordmarks and the hidden one added space. */
+/* Beat `.brand img` (one class + element). The sidebar is dark in both
+   themes, so inside it the light-on-dark wordmark always shows. The auth
+   screen sits on the page background and keeps the per-theme pair. */
 .brand img.brand-mark--dark {
   display: none;
 }
@@ -59,46 +61,79 @@ aside {
   display: none;
 }
 
+aside .brand img.brand-mark--dark {
+  display: block;
+}
+
+aside .brand img.brand-mark--light {
+  display: none;
+}
+
 .brand small {
   display: block;
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 8.5px;
-  letter-spacing: .28em;
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--side-faint);
+  margin-top: 8px;
+}
+
+.auth-column .brand small {
   color: var(--iv38);
-  margin-top: 6px;
 }
 
 .navsec {
-  padding: 18px 22px 6px;
-  color: var(--iv38);
+  padding: var(--space-5) var(--space-6) var(--space-2);
+  color: var(--side-faint);
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 8.5px;
-  letter-spacing: .26em;
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
 }
 
 .nav a {
-  display: block;
-  padding: 10px 22px;
-  color: var(--iv62);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--nav-item-h);
+  padding: 0 var(--space-6);
+  color: var(--side-muted);
   text-decoration: none;
-  font-size: 13px;
-  border-left: 2px solid transparent;
+  font-size: var(--fs-base);
   cursor: pointer;
-}
-
-.nav a.on {
-  color: var(--ivory);
-  border-left-color: var(--coral);
-  background: rgba(232, 86, 70, .07);
+  transition: background var(--duration) var(--ease), color var(--duration) var(--ease);
 }
 
 .nav a:hover {
-  color: var(--ivory);
+  color: var(--side-active-text);
+  background: rgba(242, 241, 225, .05);
+}
+
+.nav a.on {
+  color: var(--side-active-text);
+  background: var(--side-active-bg);
+  box-shadow: inset 3px 0 0 var(--side-active-bar);
+}
+
+.nav-icon {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  color: var(--side-faint);
+}
+
+.nav a.on .nav-icon {
+  color: var(--side-active-icon);
+}
+
+.nav-label {
+  flex: 1;
+  min-width: 0;
 }
 
 .nav-badge {
-  margin-left: 6px;
+  margin-left: auto;
 }
 
 .sideprow {
@@ -123,9 +158,29 @@ main {
 
 .tophead {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-5);
+  background: var(--header-bg);
+  border: var(--border);
+}
+
+.tophead-tile {
+  width: var(--control-h);
+  height: var(--control-h);
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--coral) 35%, transparent);
+}
+
+.tophead-tile-icon {
+  width: 20px;
+  height: 20px;
 }
 
 .tophead-titles {
@@ -133,15 +188,16 @@ main {
   flex-direction: column;
   gap: 2px;
   min-width: 0;
+  margin-right: auto;
 }
 
 .tophead-crumb {
   margin: 0;
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 9px;
-  letter-spacing: .18em;
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--iv38);
+  color: var(--text-faint);
 }
 
 .tophead-crumb-sep {
@@ -149,17 +205,15 @@ main {
 }
 
 .tophead-crumb-page {
-  color: var(--coral);
+  color: var(--accent);
 }
 
 .tophead--rms {
-  margin-bottom: 26px;
-  gap: 20px;
+  margin-bottom: var(--space-5);
 }
 
 .tophead--crm {
-  margin-bottom: 24px;
-  gap: 16px;
+  margin-bottom: var(--space-5);
 }
 
 .tophead h1 {
@@ -172,7 +226,7 @@ main {
 
 .who {
   display: flex;
-  gap: 10px;
+  gap: var(--space-2);
   align-items: center;
   flex-wrap: wrap;
 }
@@ -181,15 +235,22 @@ main {
   color: var(--iv38);
 }
 
+/* Header controls share the 44px touch target. */
+.who button,
+.who .alert-bell {
+  min-height: var(--control-h);
+}
+
 .alert-bell {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: var(--control-h);
+  height: var(--control-h);
   padding: 0;
-  border: 1px solid var(--hair);
+  border: var(--border-strong);
+  background: var(--surface);
   color: var(--ivory);
   text-decoration: none;
 }
@@ -206,8 +267,8 @@ main {
   justify-content: center;
   background: var(--coral);
   border-color: var(--coral);
-  color: var(--forest-950);
-  font-size: 8px;
+  color: var(--on-coral);
+  font-size: 9px;
   letter-spacing: 0;
   line-height: 1;
 }
@@ -218,8 +279,8 @@ main {
 }
 
 .alert-bell-icon {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   display: block;
 }
 
@@ -261,22 +322,22 @@ main {
 }
 
 .section-switch .fchip {
-  min-height: 36px;
+  min-height: var(--control-h);
   display: inline-flex;
   align-items: center;
-  color: var(--ivory);
+  padding: 0 var(--space-4);
+  font-size: var(--fs-xs);
+  letter-spacing: var(--tracking-button);
+  color: var(--text-muted);
+  border-color: var(--line-2);
+  background: var(--surface);
 }
 
 .section-switch .fchip.on {
-  background: color-mix(in srgb, var(--coral) 32%, var(--forest-950));
-  border-color: color-mix(in srgb, var(--coral) 55%, var(--forest-950));
-  color: var(--ivory);
-}
-
-html.light .section-switch .fchip.on {
   background: var(--coral);
   border-color: var(--coral);
-  color: #141B17;
+  color: var(--on-coral);
+  position: relative;
 }
 
 .sysbadge {
@@ -305,27 +366,28 @@ html.light .section-switch .fchip.on {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  background: transparent;
-  border: 1px solid var(--hair);
+  background: var(--surface);
+  border: var(--border-strong);
   color: var(--ivory);
-  padding: 4px 12px 4px 6px;
-  min-height: 36px;
-  font-family: 'Archivo', sans-serif;
-  font-size: 12px;
+  padding: 4px 14px 4px 8px;
+  min-height: var(--control-h);
+  font-family: var(--font-bo-sans);
+  font-size: var(--fs-sm);
   letter-spacing: 0;
   text-transform: none;
   cursor: pointer;
 }
 
 .who-initials {
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--hair);
+  border: var(--border-strong);
+  background: var(--surface-2);
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 9px;
+  font-size: var(--fs-2xs);
   letter-spacing: .04em;
   text-transform: uppercase;
   color: var(--ivory);
@@ -341,15 +403,16 @@ html.light .section-switch .fchip.on {
 
 .who-name {
   color: var(--ivory);
-  font-size: 12px;
+  font-size: var(--fs-sm);
+  font-weight: var(--weight-medium);
   letter-spacing: 0;
   text-transform: none;
 }
 
 .who-role {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 8px;
-  letter-spacing: .16em;
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--iv38);
 }
@@ -361,8 +424,8 @@ html.light .section-switch .fchip.on {
 }
 
 .theme-icon {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   display: block;
 }
 

@@ -1,0 +1,427 @@
+/* ==========================================================================
+   RMS · Calendar — KPI strip, status legend, departures × cabins grid.
+   Status colours come from the back-office tokens (--status-*), so dark and
+   light follow the theme. Green and amber live only in these cells.
+   ========================================================================== */
+
+.cal-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.cal-kpi--accent .ank-kpi__value {
+  color: var(--accent);
+}
+
+/* ---------- Legend / status filter ---------- */
+
+.cal-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+}
+
+.cal-chip {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: var(--chip-h);
+  padding: 0 var(--space-2) 0 var(--space-3);
+  background: var(--surface);
+  border: var(--border-strong);
+  border-radius: 0;
+  color: var(--text-muted);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: var(--fs-xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color var(--duration) var(--ease), color var(--duration) var(--ease), background var(--duration) var(--ease);
+}
+
+.cal-chip:hover {
+  border-color: var(--text-muted);
+  color: var(--text);
+}
+
+.cal-chip.on {
+  background: var(--surface-2);
+  border-color: var(--text);
+  color: var(--text);
+}
+
+.cal-chip b {
+  min-width: 22px;
+  padding: 2px 6px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-weight: var(--weight-medium);
+  text-align: center;
+  letter-spacing: 0;
+}
+
+.cal-chip.on b {
+  background: var(--bg);
+}
+
+.sw {
+  width: 12px;
+  height: 12px;
+  display: inline-block;
+  flex: none;
+  box-sizing: border-box;
+  border: 1px solid transparent;
+}
+
+.sw-av {
+  background: var(--status-available-bg);
+  border-color: var(--status-available-border);
+}
+
+.sw-hold {
+  background: var(--status-hold-bg);
+  border-color: var(--status-hold-border);
+}
+
+.sw-conf {
+  background: var(--status-confirmed-bg);
+  border-color: var(--status-confirmed-border);
+}
+
+.sw-full {
+  background: var(--status-paid-bg);
+  border-color: var(--status-paid-border);
+}
+
+.sw-dep {
+  background: var(--status-pending-bg);
+  border: 1px dashed var(--status-pending-border);
+}
+
+.sw-req {
+  background: var(--status-requested-bg);
+  border: 1px dashed var(--status-requested-border);
+}
+
+.sw-charter {
+  background: var(--status-charter-bg);
+  border-color: var(--status-charter-border);
+}
+
+.sw-block {
+  background: var(--status-block-bg);
+  border-color: var(--status-block-border);
+}
+
+.sw-lock {
+  background: var(--status-private-bg);
+  border: 1px dotted var(--status-private-border);
+}
+
+/* ---------- Grid ---------- */
+
+.tl {
+  border: var(--border);
+  overflow-x: auto;
+  background: var(--surface);
+}
+
+table.grid {
+  display: table;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 980px;
+  width: 100%;
+}
+
+table.grid th {
+  min-width: var(--grid-day-col-min);
+  padding: var(--space-3) var(--space-2);
+  background: var(--surface-2);
+  border-bottom: var(--border);
+  border-right: var(--border);
+  font-weight: var(--weight-regular);
+  text-align: center;
+  vertical-align: middle;
+}
+
+table.grid th:last-child,
+table.grid td:last-child {
+  border-right: 0;
+}
+
+.cal-dow,
+.cal-fest {
+  display: block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.cal-day {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-bo-display);
+  font-size: var(--fs-md);
+  font-weight: var(--weight-medium);
+  letter-spacing: .02em;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.cal-fest {
+  margin-top: 2px;
+  color: var(--accent);
+}
+
+table.grid th.xmas .cal-day {
+  color: var(--accent);
+}
+
+table.grid th.rowh,
+table.grid td.rowh {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  min-width: var(--grid-label-col);
+  padding: 0 var(--space-4);
+  text-align: left;
+  background: var(--surface);
+}
+
+table.grid th.rowh {
+  z-index: 2;
+  background: var(--surface-2);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+table.grid td {
+  padding: 3px;
+  height: calc(var(--cell-h) + 6px);
+  border-right: var(--border);
+  border-bottom: var(--border);
+}
+
+table.grid td.rowh {
+  font-size: var(--fs-base);
+  color: var(--text);
+}
+
+table.grid td.rowh.owner .cab {
+  font-weight: var(--weight-semibold);
+}
+
+.cab-open {
+  float: right;
+  margin-top: 3px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: var(--fs-2xs);
+  letter-spacing: .06em;
+  color: var(--text-faint);
+}
+
+/* Yacht band: name, % sold, occupancy per departure. */
+.yachthdr td {
+  height: auto;
+  padding: var(--space-3) var(--space-2) var(--space-2);
+  background: var(--surface-2);
+  text-align: center;
+}
+
+.yachthdr td.rowh {
+  background: var(--surface-2);
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+}
+
+.yh-name {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-bo-display);
+  font-size: var(--fs-md);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-title);
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.yh-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--accent);
+}
+
+.yh-sold {
+  float: right;
+  margin-top: 4px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.occ {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.occ-n {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: var(--fs-xs);
+  letter-spacing: .04em;
+  color: var(--text-muted);
+}
+
+.occ-track {
+  display: block;
+  width: 64%;
+  height: 3px;
+  background: var(--occupancy-track);
+}
+
+.occ-fill {
+  display: block;
+  height: 100%;
+  background: var(--occupancy-fill);
+}
+
+.occ-fill.full {
+  background: var(--occupancy-full);
+}
+
+/* ---------- Cells ---------- */
+
+td .cell {
+  width: 100%;
+  height: var(--cell-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  border-radius: 0;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: var(--fs-2xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: .08em;
+  text-decoration: none;
+  transition: opacity var(--duration) var(--ease), border-color var(--duration) var(--ease), background var(--duration) var(--ease);
+}
+
+a.cell,
+button.cell {
+  cursor: pointer;
+}
+
+button.cell {
+  padding: 0;
+  font: inherit;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: var(--fs-2xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: .08em;
+}
+
+td .cell.c-av,
+td .cell.c-none {
+  background: var(--status-available-bg);
+  color: var(--text-faint);
+  cursor: default;
+}
+
+td .cell.c-av {
+  border-color: var(--line);
+}
+
+button.cell.c-av {
+  cursor: pointer;
+}
+
+button.cell.c-av:hover {
+  background: var(--surface-2);
+  border-color: var(--line-2);
+  color: var(--text);
+}
+
+td .cell.c-none {
+  opacity: .5;
+}
+
+td .cell.c-hold {
+  background: var(--status-hold-bg);
+  color: var(--status-hold-fg);
+  border-color: var(--status-hold-border);
+}
+
+td .cell.c-conf {
+  background: var(--status-confirmed-bg);
+  color: var(--status-confirmed-fg);
+  border-color: var(--status-confirmed-border);
+}
+
+td .cell.c-full {
+  background: var(--status-paid-bg);
+  color: var(--status-paid-fg);
+  border-color: var(--status-paid-border);
+}
+
+td .cell.c-dep {
+  background: var(--status-pending-bg);
+  color: var(--status-pending-fg);
+  border: 1px dashed var(--status-pending-border);
+}
+
+td .cell.c-req {
+  background: var(--status-requested-bg);
+  color: var(--status-requested-fg);
+  border: 1px dashed var(--status-requested-border);
+}
+
+td .cell.c-charter {
+  background: var(--status-charter-bg);
+  color: var(--status-charter-fg);
+  border-color: var(--status-charter-border);
+}
+
+td .cell.c-block {
+  background: var(--status-block-bg);
+  color: var(--status-block-fg);
+  border-color: var(--status-block-border);
+}
+
+button.cell:not(.c-av):hover,
+a.cell:hover {
+  outline: 1px solid var(--text);
+  outline-offset: -2px;
+}
+
+td .cell.dim {
+  opacity: .22;
+}
+
+td .cell.lock::after {
+  content: '🔒';
+  margin-left: 4px;
+  font-size: var(--fs-2xs);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cal-chip,
+  td .cell {
+    transition: none;
+  }
+}

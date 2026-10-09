@@ -132,7 +132,7 @@ tr.dr-empty td {
 }
 
 .history-drawer h2 {
-  font-family: 'Oswald', sans-serif;
+  font-family: var(--font-bo-display);
   font-weight: 300;
   letter-spacing: .18em;
   text-transform: uppercase;
@@ -413,34 +413,34 @@ td.matrix-cell--dirty {
 .drange {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  margin-bottom: 22px;
-  padding: 14px 16px;
-  background: var(--forest-700);
-  border: 1px solid color-mix(in srgb, var(--ivory) 22%, transparent);
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface);
+  border: var(--border);
 }
 
 .drange-top,
 .drange-bot {
   display: flex;
   align-items: flex-end;
-  gap: 16px;
+  gap: var(--space-4);
   flex-wrap: wrap;
 }
 
 .dr-lead {
   display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
 }
 
 .dr-kicker {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 9px;
-  letter-spacing: .16em;
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--iv38);
+  color: var(--text-faint);
   white-space: nowrap;
 }
 
@@ -448,39 +448,53 @@ td.matrix-cell--dirty {
 .dr-nav {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
+}
+
+/* Presets read as one segmented control. */
+.dr-presets {
+  gap: 0;
+}
+
+.dr-presets .dr-chip + .dr-chip {
+  margin-left: -1px;
 }
 
 .dr-chip {
   appearance: none;
-  background: var(--forest-950);
-  border: 1px solid var(--hair);
+  height: var(--chip-h);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  border: var(--border-strong);
   border-radius: 0;
-  color: var(--ivory);
+  color: var(--text-muted);
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 10px;
-  letter-spacing: .12em;
+  font-size: var(--fs-xs);
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  padding: 8px 12px;
-  line-height: 1.2;
+  padding: 0 var(--space-4);
+  line-height: 1;
   cursor: pointer;
+  transition: border-color var(--duration) var(--ease), color var(--duration) var(--ease);
 }
 
 .dr-chip:hover:not(:disabled):not(.on):not(.is-today) {
-  border-color: var(--iv38);
+  border-color: var(--text-muted);
+  color: var(--text);
 }
 
 .dr-chip.on {
+  position: relative;
   background: var(--coral);
   border-color: var(--coral);
-  color: #F2F1E1;
+  color: var(--on-coral);
 }
 
 .dr-chip.is-today {
-  background: var(--ok);
-  border-color: var(--ok);
-  color: var(--forest-950);
   min-width: 76px;
+  color: var(--text);
 }
 
 .dr-chip:disabled {
@@ -489,7 +503,7 @@ td.matrix-cell--dirty {
 }
 
 .dr-step {
-  width: 36px;
+  width: var(--chip-h);
   padding-left: 0;
   padding-right: 0;
 }
@@ -497,48 +511,49 @@ td.matrix-cell--dirty {
 .dr-dates {
   display: flex;
   align-items: flex-end;
-  gap: 8px;
-  margin-left: 28px;
+  gap: var(--space-2);
+  margin-left: var(--space-4);
 }
 
 .dr-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-2);
 }
 
 .dr-date {
   display: inline-flex;
   align-items: center;
-  gap: 16px;
-  min-width: 168px;
-  padding: 8px 10px;
-  background: var(--forest-950);
-  border: 1px solid var(--hair);
+  gap: var(--space-4);
+  min-width: 176px;
+  height: var(--input-h);
+  padding: 0 var(--space-3);
+  background: var(--surface-2);
+  border: var(--border-strong);
   border-radius: 0;
-  color: var(--ivory);
+  color: var(--text);
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 12px;
+  font-size: var(--fs-sm);
   letter-spacing: .02em;
   text-transform: none;
   cursor: pointer;
 }
 
-.dark .dr-date.is-set {
-  color: var(--coral-400);
+.dr-date:hover {
+  border-color: var(--text-muted);
 }
 
 .dr-cal {
   margin-left: auto;
   width: 14px;
   height: 14px;
-  color: var(--coral);
+  color: var(--text-muted);
   flex: none;
 }
 
 .dr-arrow {
-  padding-bottom: 9px;
-  color: var(--iv38);
+  padding-bottom: 12px;
+  color: var(--text-faint);
 }
 
 .dr-yacht {
@@ -546,12 +561,12 @@ td.matrix-cell--dirty {
 }
 
 .drange .drc {
-  margin-left: 12px;
-  letter-spacing: .14em;
+  margin-left: var(--space-3);
+  letter-spacing: var(--tracking-label);
 }
 
 .drange.is-filtered .drc {
-  color: var(--coral-400);
+  color: var(--accent);
 }
 
 .dr-nav {

@@ -3,6 +3,7 @@ import type { CellPresentation } from './calendarHelpers'
 
 const props = defineProps<{
   view: CellPresentation
+  dim?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -19,7 +20,7 @@ const clickable = computed(() => {
     v-if="view.action.type === 'block' && view.href !== null"
     :to="view.href"
     class="cell"
-    :class="view.cellClass"
+    :class="[view.cellClass, { dim }]"
     :title="view.title"
   >
     {{ view.label }}
@@ -28,7 +29,7 @@ const clickable = computed(() => {
     v-else-if="clickable"
     type="button"
     class="cell"
-    :class="view.cellClass"
+    :class="[view.cellClass, { dim }]"
     :title="view.title"
     @click="emit('activate')"
   >
@@ -37,7 +38,7 @@ const clickable = computed(() => {
   <div
     v-else
     class="cell"
-    :class="view.cellClass"
+    :class="[view.cellClass, { dim }]"
     :title="view.title"
   >
     {{ view.label }}

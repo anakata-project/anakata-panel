@@ -1,16 +1,21 @@
 import { describe, expect, it } from 'vitest'
 import {
+  buildCalendarView,
   bookingOwnerId,
   bookingTooltip,
   canActOnBooking,
   cellAt,
+  columnDayMonth,
+  columnWeekday,
   deckCabinName,
   deckCabinOrder,
   departureDateOptions,
   departureSelectItems,
   freeCellPrompt,
   groupColumnsByDate,
+  legendKeysOf,
   mapCabinCell,
+  percentOf,
   retainSelectedDate,
   yachtSections
 } from '../../app/components/calendar/calendarHelpers'
@@ -593,5 +598,75 @@ describe('deck order', () => {
     expect(deckCabinOrder(rows).map(item => item.cabin.code)).toEqual(['OWNER', 'S1', 'S8'])
     expect(deckCabinName('Owner\'s Suite')).toBe('OWNER\'S SUITE')
     expect(yachtSections(rows)).toHaveLength(1)
+  })
+})
+
+describe('calendar roll-up', () => {
+  const yacht = { id: 1, code: 'ANAMARA', name: 'ANAMARA' }
+  const cabin = (id: number) => ({ id, code: `S${String(id)}`, label: `Suite 0${String(id)}`, category: 'SUITE', sort: id })
+  const columns = [
+    { date: '2026-10-18', festive: false, departuresByYachtId: {} },
+    { date: '2026-10-25', festive: false, departuresByYachtId: {} }
+  ]
+  const view = (cellClass: string, locked = false) => ({
+    cellClass,
+    deckClass: '',
+    label: '',
+    deckStatus: '',
+    title: '',
+    href: null,
+    locked,
+    action: { type: 'none' as const }
+  })
+
+  it('maps cell classes to legend keys and adds "locked"', () => {
+    expect(legendKeysOf(view('c-conf'))).toEqual(['confirmed'])
+    expect(legendKeysOf(view('c-full lock', true))).toEqual(['full', 'locked'])
+    expect(legendKeysOf(view('c-none'))).toEqual([])
+  })
+
+  it('rounds percentages and guards a zero total', () => {
+    expect(percentOf(2, 3)).toBe(67)
+    expect(percentOf(0, 0)).toBe(0)
+  })
+
+  it('counts legend, KPI figures and per-departure occupancy for the visible range', () => {
+    const rows = [
+      row({ yacht, cabin: cabin(1) }),
+      row({ yacht, cabin: cabin(2) }),
+      row({ yacht, cabin: cabin(3) })
+    ]
+    const classes: Record<string, Array<string>> = {
+      S1: ['c-full', 'c-av'],
+      S2: ['c-hold', 'c-charter'],
+      S3: ['c-none', 'c-block']
+    }
+
+    const result = buildCalendarView(
+      yachtSections(rows),
+      columns,
+      (item, column) => view(classes[item.cabin.code]?.[columns.indexOf(column)] ?? 'c-none')
+    )
+
+    expect(result.summary).toMatchObject({
+      suiteDepartures: 5,
+      sold: 2,
+      available: 1,
+      hold: 1,
+      soldPercent: 40
+    })
+    expect(result.summary.legend).toMatchObject({ full: 1, charter: 1, block: 1, requested: 0 })
+    expect(result.sections[0]?.occupancy).toEqual([
+      { sold: 1, total: 2 },
+      { sold: 1, total: 3 }
+    ])
+    expect(result.sections[0]?.soldPercent).toBe(40)
+    expect(result.sections[0]?.rows.map(item => item.open)).toEqual([1, 0, 0])
+  })
+
+  it('formats column headers from the ISO date without a timezone shift', () => {
+    expect(columnWeekday('2026-10-18')).toBe('Sun')
+    expect(columnDayMonth('2026-10-18')).toBe('18 Oct')
+    expect(columnDayMonth('2027-01-02')).toBe('2 Jan')
   })
 })

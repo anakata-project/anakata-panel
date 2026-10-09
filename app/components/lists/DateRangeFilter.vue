@@ -253,7 +253,7 @@ function dateLabel(value: string | null): string {
         <USelect
           size="sm"
           class="dr-yacht"
-          :ui="{ base: 'normal-case! tracking-[.02em] text-[12px] bg-(--forest-950)' }"
+          :ui="{ base: 'normal-case! tracking-[.02em] text-[12px] bg-(--surface-2)' }"
           :model-value="yachtValue"
           :items="yachtItems"
           :aria-label="t('lists.yacht')"

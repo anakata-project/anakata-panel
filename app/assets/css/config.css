@@ -309,7 +309,7 @@ tr.rdiff td:first-child {
   border: 1px solid var(--hair);
   color: var(--ivory);
   padding: 11px 12px;
-  font-family: 'Archivo', sans-serif;
+  font-family: var(--font-bo-sans);
   font-size: 13px;
   border-radius: 0;
   outline: none;
@@ -367,7 +367,7 @@ tr.rdiff td:first-child {
   cursor: pointer;
   text-transform: none;
   letter-spacing: 0;
-  font-family: 'Archivo', sans-serif;
+  font-family: var(--font-bo-sans);
   color: var(--ivory);
 }
 

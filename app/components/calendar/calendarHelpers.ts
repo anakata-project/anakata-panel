@@ -480,3 +480,209 @@ export function deckCabinOrder(rows: Array<CalendarRow>): Array<CalendarRow> {
 export function deckCabinName(label: string): string {
   return label.toUpperCase()
 }
+
+export type LegendKey
+  = | 'available'
+    | 'hold'
+    | 'confirmed'
+    | 'full'
+    | 'pending'
+    | 'requested'
+    | 'charter'
+    | 'block'
+    | 'locked'
+
+export const LEGEND_KEYS: ReadonlyArray<LegendKey> = [
+  'available',
+  'hold',
+  'confirmed',
+  'full',
+  'pending',
+  'requested',
+  'charter',
+  'block',
+  'locked'
+]
+
+const LEGEND_BY_CLASS: Record<string, LegendKey> = {
+  'c-av': 'available',
+  'c-hold': 'hold',
+  'c-conf': 'confirmed',
+  'c-full': 'full',
+  'c-dep': 'pending',
+  'c-req': 'requested',
+  'c-charter': 'charter',
+  'c-block': 'block'
+}
+
+const SOLD_KEYS: ReadonlyArray<LegendKey> = ['confirmed', 'full', 'pending', 'charter']
+
+export type Occupancy = {
+  sold: number
+  total: number
+}
+
+export type CalendarRowView = {
+  row: CalendarRow
+  cells: Array<CellPresentation>
+  open: number
+}
+
+export type CalendarSectionView = {
+  yacht: CalendarRow['yacht']
+  rows: Array<CalendarRowView>
+  occupancy: Array<Occupancy>
+  soldPercent: number
+}
+
+export type CalendarSummary = {
+  suiteDepartures: number
+  sold: number
+  available: number
+  hold: number
+  soldPercent: number
+  legend: Record<LegendKey, number>
+}
+
+export type CalendarView = {
+  sections: Array<CalendarSectionView>
+  summary: CalendarSummary
+}
+
+/** The legend categories a cell belongs to. Locked cells also count as "not yours". */
+export function legendKeysOf(view: CellPresentation): Array<LegendKey> {
+  const keys: Array<LegendKey> = []
+  const base = LEGEND_BY_CLASS[view.cellClass.split(' ')[0] ?? '']
+
+  if (base !== undefined) {
+    keys.push(base)
+  }
+
+  if (view.locked) {
+    keys.push('locked')
+  }
+
+  return keys
+}
+
+export function percentOf(part: number, total: number): number {
+  return total === 0 ? 0 : Math.round(part * 100 / total)
+}
+
+function emptyLegend(): Record<LegendKey, number> {
+  return {
+    available: 0,
+    hold: 0,
+    confirmed: 0,
+    full: 0,
+    pending: 0,
+    requested: 0,
+    charter: 0,
+    block: 0,
+    locked: 0
+  }
+}
+
+/**
+ * Presentation-only roll-up of what the API already sent for the visible
+ * range: legend counts, KPI tiles and the per-departure occupancy bars.
+ * Nothing here decides availability or price.
+ */
+export function buildCalendarView(
+  sections: Array<YachtSection>,
+  columns: Array<DateColumn>,
+  present: (row: CalendarRow, column: DateColumn) => CellPresentation
+): CalendarView {
+  const legend = emptyLegend()
+  let suiteDepartures = 0
+  let sold = 0
+
+  const views = sections.map((section): CalendarSectionView => {
+    const occupancy = columns.map((): Occupancy => ({ sold: 0, total: 0 }))
+
+    const rows = section.rows.map((row): CalendarRowView => {
+      let open = 0
+
+      const cells = columns.map((column, index) => {
+        const view = present(row, column)
+        const keys = legendKeysOf(view)
+        const slot = occupancy[index]
+
+        for (const key of keys) {
+          legend[key] += 1
+        }
+
+        if (view.cellClass !== 'c-none') {
+          suiteDepartures += 1
+
+          if (slot !== undefined) {
+            slot.total += 1
+          }
+        }
+
+        if (keys.includes('available')) {
+          open += 1
+        }
+
+        if (keys.some(key => SOLD_KEYS.includes(key))) {
+          sold += 1
+
+          if (slot !== undefined) {
+            slot.sold += 1
+          }
+        }
+
+        return view
+      })
+
+      return { row, cells, open }
+    })
+
+    const soldTotal = occupancy.reduce((sum, item) => sum + item.sold, 0)
+    const total = occupancy.reduce((sum, item) => sum + item.total, 0)
+
+    return {
+      yacht: section.yacht,
+      rows,
+      occupancy,
+      soldPercent: percentOf(soldTotal, total)
+    }
+  })
+
+  return {
+    sections: views,
+    summary: {
+      suiteDepartures,
+      sold,
+      available: legend.available,
+      hold: legend.hold,
+      soldPercent: percentOf(sold, suiteDepartures),
+      legend
+    }
+  }
+}
+
+const SHORT_WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const
+const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const
+
+/** `2026-10-18` → `Sun`. Date-only, so no timezone shift. */
+export function columnWeekday(iso: string): string {
+  const [year, month, day] = iso.split('-').map(Number)
+
+  if (year === undefined || month === undefined || day === undefined) {
+    return ''
+  }
+
+  return SHORT_WEEKDAYS[new Date(Date.UTC(year, month - 1, day)).getUTCDay()] ?? ''
+}
+
+/** `2026-10-18` → `18 Oct`. */
+export function columnDayMonth(iso: string): string {
+  const [, month, day] = iso.split('-').map(Number)
+
+  if (month === undefined || day === undefined) {
+    return iso
+  }
+
+  return `${String(day)} ${SHORT_MONTHS[month - 1] ?? ''}`
+}

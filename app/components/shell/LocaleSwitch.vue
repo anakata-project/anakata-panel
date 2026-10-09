@@ -63,11 +63,12 @@ defineExpose({
 }
 
 .panel-locale-btn {
-  padding: 9px 14px;
+  padding: 0 var(--space-4);
 }
 
 .panel-locale-btn[aria-pressed='true'] {
   color: var(--ivory);
-  border-color: var(--ivory);
+  background: var(--surface-2);
+  border-color: var(--line-2);
 }
 </style>

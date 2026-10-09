@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { visibleNav } from '../navigation/guards'
+import { navIcon } from '../navigation/icons'
 
 const { t } = useI18n()
 const colorMode = useColorMode()
@@ -40,6 +41,8 @@ const pageTitle = computed(() => {
 })
 
 const showCrumb = computed(() => currentGroup.value !== undefined && currentItem.value !== undefined)
+
+const pageIcon = computed(() => navIcon(currentItem.value?.to ?? ''))
 
 const isDark = computed(() => colorMode.value === 'dark')
 
@@ -95,7 +98,11 @@ onMounted(() => {
               :to="item.to"
               :class="{ on: item.to === $route.path }"
             >
-              {{ item.glyph }} {{ t(item.labelKey) }}
+              <UIcon
+                :name="navIcon(item.to)"
+                class="nav-icon"
+              />
+              <span class="nav-label">{{ t(item.labelKey) }}</span>
               <span
                 v-if="item.badge && showRequestBadge"
                 class="nav-badge pill p-req"
@@ -120,6 +127,15 @@ onMounted(() => {
         class="tophead"
         :class="sectionId === 'rms' ? 'tophead--rms' : 'tophead--crm'"
       >
+        <span
+          class="tophead-tile"
+          aria-hidden="true"
+        >
+          <UIcon
+            :name="pageIcon"
+            class="tophead-tile-icon"
+          />
+        </span>
         <div class="tophead-titles">
           <p
             v-if="showCrumb && currentGroup && currentItem"
