@@ -46,10 +46,6 @@ async function onDeleted(): Promise<void> {
 
 <template>
   <div>
-    <p class="notice itin-notice">
-      {{ t('itineraries.noticeBefore') }}<b>{{ t('itineraries.noticeCards') }}</b>{{ t('itineraries.noticeMid') }}<b>{{ t('itineraries.noticeTrip') }}</b>{{ t('itineraries.noticeAfter') }}
-    </p>
-
     <div class="ebtool">
       <span
         class="mono"

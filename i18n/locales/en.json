@@ -62,7 +62,9 @@
     "signOut": "Sign out",
     "whoAria": "Account menu",
     "alerts": "Alerts",
-    "localeAria": "Language"
+    "localeAria": "Language",
+    "themeToLight": "Light",
+    "themeToDark": "Dark"
   },
   "auth": {
     "signIn": "Sign in",
@@ -197,9 +199,6 @@
     "approval": "Approval / reason"
   },
   "rates": {
-    "noticeBefore": "This is the single source the booking engine reads: availability, rates, discount rules and promotions. Base rates, deposit terms and discount rules are CEO-confirmed (FIN-001/OPS-004…) — ",
-    "noticeEdit": "edited by Admin / Director only",
-    "noticeAfter": ", each change published with an approval reference and logged. Promotions are a v1.2 extension pending CEO sign-off.",
     "viewOnly": "VIEW ONLY — ADMIN / DIRECTOR EDITS RATES",
     "adminDirector": "ADMIN / DIRECTOR",
     "baseTitle": "Base rates",
@@ -488,22 +487,27 @@
     "presetAll": "All dates",
     "presetLast30": "Last 30 days",
     "presetLast90": "Last 90 days",
+    "presetNext30": "Next 30 days",
     "presetNext90": "Next 90 days",
     "presetNext12": "Next 12 months",
+    "presetWinter": "Winter season",
     "presetYear": "Year {year}",
-    "presetCustom": "Custom range",
+    "presetCustom": "Custom",
     "from": "From date",
     "to": "To date",
+    "fromShort": "From",
+    "toShort": "To",
+    "yacht": "Yacht",
+    "allYachts": "All yachts ({count})",
+    "today": "Today",
+    "previousRange": "Previous range",
+    "nextRange": "Next range",
+    "rangeBy": "Range by · {field}",
     "clear": "Clear",
     "rangeAll": "{total} {noun} · all dates",
     "rangeShowing": "Showing {total} {noun}"
   },
   "itineraries": {
-    "noticeBefore": "The booking engine reads itinerary content from here: the ",
-    "noticeCards": "itinerary cards",
-    "noticeMid": " (Step 2) and the full ",
-    "noticeTrip": "Trip Details page",
-    "noticeAfter": " — facts, day by day, includes/excludes, FAQs (Step 3). Drafts and hidden itineraries never show.",
     "count": "{published} published · {total} total",
     "new": "＋ New itinerary",
     "noPhoto": "NO PHOTO — PLACEHOLDER GRADIENT",
@@ -795,7 +799,6 @@
     "legendCharter": "Charter (full yacht)",
     "legendBlock": "Internal block",
     "legendLock": "🔒 Not yours (own-records rule)",
-    "notice": "Availability changes propagate to the public site in < 30 seconds (SLA). No overbooking: cells with any active claim are unsellable, enforced at database level.",
     "yachtHeader": "⛵ {name}"
   },
   "yachtLayout": {
@@ -1379,8 +1382,6 @@
   "requests": {
     "fieldLabel": "Departure date",
     "noun": "requests",
-    "notice": "Web bookings arrive here as {status} with their cabins held ({near} business hours near-term / {long} business days long-lead). SLA: contact the client {sla} via their preferred channel. Confirming sends the {pct}% deposit payment link — declarations and full guest data are captured there. No request is ever auto-cancelled without team review; expiries release the hold and notify the owner.",
-    "noticeSla": "within {hours} hours",
     "panelTitle": "Incoming requests",
     "colRequest": "Request",
     "colContact": "Contact",
@@ -1671,7 +1672,6 @@
   "contactsIn": {
     "noun": "contacts",
     "fieldLabel": "Booking departure date",
-    "notice": "Every booking and request creates or links a CRM contact automatically. This view shows who is arriving through the engine and where their booking stands — full profiles, segmentation and automations live in the CRM module.",
     "listTitle": "Contacts from bookings & requests",
     "natTitle": "Guests by nationality — top 10 (§9.1)",
     "colContact": "Contact",
@@ -1694,7 +1694,6 @@
   "documents": {
     "noun": "documents",
     "fieldLabel": "Departure date",
-    "notice": "Every document the system generates (§4.5): confirmations & invoices, booking summaries, payment receipts, balance reminders, pre-trip itineraries, transfer vouchers and final invoices — plus the DPNG passenger lists ({fit} FIT / {charter} charter) and the captain's manifest ({captain}). Client documents are in English and follow invoice mockup v6.",
     "title": "Client documents",
     "manifestsTitle": "Departure manifests",
     "colDeparture": "Departure",
@@ -2233,7 +2232,6 @@
     }
   },
   "guestExperience": {
-    "notice": "For the hotel manager and operations team: pre-trip preference answers and post-trip survey results. Medical and accessibility details are visible to the operations team only.",
     "departure": "Departure",
     "departureOption": "{date} · {yacht} · {count} guests",
     "emptyDepartures": "No departures with passengers yet.",

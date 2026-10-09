@@ -118,10 +118,6 @@ watch(
 
 <template>
   <div v-if="draft">
-    <p class="notice rates-notice">
-      {{ t('rates.noticeBefore') }}<b>{{ t('rates.noticeEdit') }}</b>{{ t('rates.noticeAfter') }}
-    </p>
-
     <ConfigPublishBar
       :editor="editor"
       :can-publish="canPublish"

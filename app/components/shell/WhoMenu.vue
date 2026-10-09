@@ -2,12 +2,28 @@
 const { t } = useI18n()
 const { user, logout } = useAuth()
 
-const label = computed(() => {
+function initials(name: string): string {
+  const parts = name.split(/\s+/).filter(part => part.length > 0)
+  const letters = parts
+    .map(part => part.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/g, ''))
+    .filter(part => part.length > 0)
+
+  const first = letters[0]?.charAt(0) ?? ''
+  const last = letters.length > 1 ? letters[letters.length - 1]?.charAt(0) ?? '' : ''
+
+  return `${first}${last}`.toUpperCase()
+}
+
+const account = computed(() => {
   if (!user.value) {
-    return ''
+    return null
   }
 
-  return `${user.value.name} — ${user.value.role.name}`.toUpperCase()
+  return {
+    name: user.value.name,
+    role: user.value.role.name,
+    initials: initials(user.value.name)
+  }
 })
 
 const items = computed(() => [
@@ -31,7 +47,7 @@ const items = computed(() => [
 
 <template>
   <UDropdownMenu
-    v-if="user"
+    v-if="account"
     :items="items"
   >
     <button
@@ -39,7 +55,11 @@ const items = computed(() => [
       class="who-select"
       :aria-label="t('shell.whoAria')"
     >
-      {{ label }}
+      <span class="who-initials">{{ account.initials }}</span>
+      <span class="who-meta">
+        <span class="who-name">{{ account.name }}</span>
+        <span class="who-role">{{ account.role }}</span>
+      </span>
     </button>
   </UDropdownMenu>
 </template>

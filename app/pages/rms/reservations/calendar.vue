@@ -21,8 +21,29 @@ const todayIso = format(new Date(), 'iso')
 const today = computed(() => format(new Date(), 'iso'))
 const from = ref<string | null>(todayIso)
 const to = ref<string | null>(addMonths(todayIso, 6))
+const yachtId = ref<number | null>(null)
 
 const { refresh, columns, sections, total } = useCalendarGrid(from, to)
+
+const yachtChoices = computed(() => {
+  const seen = new Map<number, { id: number, name: string }>()
+
+  for (const section of sections.value) {
+    if (!seen.has(section.yacht.id)) {
+      seen.set(section.yacht.id, { id: section.yacht.id, name: section.yacht.name })
+    }
+  }
+
+  return [...seen.values()]
+})
+
+const visibleSections = computed(() => {
+  if (yachtId.value === null) {
+    return sections.value
+  }
+
+  return sections.value.filter(section => section.yacht.id === yachtId.value)
+})
 
 const canCreate = computed(() => can('bookings.create'))
 const hasActOnAny = computed(() => can('records.act_on_any'))
@@ -72,6 +93,8 @@ function onActivate(
         <DateRangeFilter
           v-model:from="from"
           v-model:to="to"
+          v-model:yacht="yachtId"
+          :yachts="yachtChoices"
           :field-label="t('calendar.fieldLabel')"
           :noun="t('calendar.noun')"
           :total="total"
@@ -140,7 +163,7 @@ function onActivate(
                 </td>
               </tr>
               <template
-                v-for="section in sections"
+                v-for="section in visibleSections"
                 :key="section.yacht.id"
               >
                 <tr class="yachthdr">
@@ -169,10 +192,6 @@ function onActivate(
             </tbody>
           </table>
         </div>
-
-        <p class="notice cal-notice">
-          {{ t('calendar.notice') }}
-        </p>
       </div>
     </template>
   </CalendarOccupancyHost>

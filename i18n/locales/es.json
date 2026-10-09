@@ -62,7 +62,9 @@
     "signOut": "Cerrar sesión",
     "whoAria": "Menú de la cuenta",
     "alerts": "Alertas",
-    "localeAria": "Idioma"
+    "localeAria": "Idioma",
+    "themeToLight": "Claro",
+    "themeToDark": "Oscuro"
   },
   "auth": {
     "signIn": "Iniciar sesión",
@@ -197,9 +199,6 @@
     "approval": "Aprobación / motivo"
   },
   "rates": {
-    "noticeBefore": "Esta es la única fuente que lee el motor de reservas: disponibilidad, tarifas, reglas de descuento y promociones. Las tarifas base, las condiciones del depósito y las reglas de descuento están confirmadas por el CEO (FIN-001/OPS-004…) — ",
-    "noticeEdit": "editadas solo por Admin / Director",
-    "noticeAfter": ", y cada cambio se publica con una referencia de aprobación y queda registrado. Las promociones son una extensión de la v1.2 pendiente de la aprobación del CEO.",
     "viewOnly": "SOLO LECTURA — ADMIN / DIRECTOR EDITA LAS TARIFAS",
     "adminDirector": "ADMIN / DIRECTOR",
     "baseTitle": "Tarifas base",
@@ -488,22 +487,27 @@
     "presetAll": "Todas las fechas",
     "presetLast30": "Últimos 30 días",
     "presetLast90": "Últimos 90 días",
+    "presetNext30": "Próximos 30 días",
     "presetNext90": "Próximos 90 días",
     "presetNext12": "Próximos 12 meses",
+    "presetWinter": "Temporada de invierno",
     "presetYear": "Año {year}",
-    "presetCustom": "Rango personalizado",
+    "presetCustom": "Personalizado",
     "from": "Fecha desde",
     "to": "Fecha hasta",
+    "fromShort": "Desde",
+    "toShort": "Hasta",
+    "yacht": "Yate",
+    "allYachts": "Todos los yates ({count})",
+    "today": "Hoy",
+    "previousRange": "Rango anterior",
+    "nextRange": "Rango siguiente",
+    "rangeBy": "Rango por · {field}",
     "clear": "Limpiar",
     "rangeAll": "{total} {noun} · todas las fechas",
     "rangeShowing": "Mostrando {total} {noun}"
   },
   "itineraries": {
-    "noticeBefore": "El motor de reservas lee el contenido del itinerario desde aquí: las ",
-    "noticeCards": "tarjetas de itinerario",
-    "noticeMid": " (Paso 2) y la ",
-    "noticeTrip": "página de detalles del viaje",
-    "noticeAfter": " — datos, día por día, incluye/excluye, preguntas frecuentes (Paso 3). Los borradores y los itinerarios ocultos nunca se muestran.",
     "count": "{published} publicados · {total} en total",
     "new": "＋ Nuevo itinerario",
     "noPhoto": "SIN FOTO — DEGRADADO DE RELLENO",
@@ -795,7 +799,6 @@
     "legendCharter": "Charter (yate completo)",
     "legendBlock": "Bloqueo interno",
     "legendLock": "🔒 No es suyo (regla de registros propios)",
-    "notice": "Los cambios de disponibilidad se propagan al sitio público en < 30 segundos (SLA). Sin sobreventa: las celdas con cualquier reserva activa no se pueden vender; se exige a nivel de base de datos.",
     "yachtHeader": "⛵ {name}"
   },
   "yachtLayout": {
@@ -1379,8 +1382,6 @@
   "requests": {
     "fieldLabel": "Fecha de salida",
     "noun": "solicitudes",
-    "notice": "Las reservas web llegan aquí como {status}, con las cabinas retenidas ({near} horas hábiles en el corto plazo / {long} días hábiles en el largo plazo). SLA: contactar al cliente {sla} por su canal preferido. Al confirmar se envía el enlace de pago del depósito del {pct}%; las declaraciones y los datos completos de los huéspedes se capturan allí. Ninguna solicitud se cancela automáticamente sin revisión del equipo; al vencer, se libera la retención y se notifica al responsable.",
-    "noticeSla": "dentro de {hours} horas",
     "panelTitle": "Solicitudes entrantes",
     "colRequest": "Solicitud",
     "colContact": "Contacto",
@@ -1671,7 +1672,6 @@
   "contactsIn": {
     "noun": "contactos",
     "fieldLabel": "Fecha de salida de la reserva",
-    "notice": "Cada reserva y cada solicitud crea o vincula automáticamente un contacto del CRM. Esta vista muestra quién llega por el motor de reservas y en qué punto está su reserva — los perfiles completos, la segmentación y las automatizaciones están en el módulo de CRM.",
     "listTitle": "Contactos de reservas y solicitudes",
     "natTitle": "Huéspedes por nacionalidad — 10 principales (§9.1)",
     "colContact": "Contacto",
@@ -1694,7 +1694,6 @@
   "documents": {
     "noun": "documentos",
     "fieldLabel": "Fecha de salida",
-    "notice": "Cada documento que genera el sistema (§4.5): confirmaciones y facturas, resúmenes de reserva, recibos de pago, recordatorios de saldo, itinerarios previos al viaje, vouchers de traslado y facturas finales, además de las listas de pasajeros de la DPNG ({fit} FIT / {charter} charter) y el manifiesto del capitán ({captain}). Los documentos del cliente están en inglés y siguen la maqueta de factura v6.",
     "title": "Documentos del cliente",
     "manifestsTitle": "Manifiestos de salida",
     "colDeparture": "Salida",
@@ -2233,7 +2232,6 @@
     }
   },
   "guestExperience": {
-    "notice": "Para el gerente de hotel y el equipo de operaciones: respuestas de preferencias previas al viaje y resultados de la encuesta posterior. Los detalles médicos y de accesibilidad solo son visibles para el equipo de operaciones.",
     "departure": "Salida",
     "departureOption": "{date} · {yacht} · {count} huéspedes",
     "emptyDepartures": "Aún no hay salidas con pasajeros.",

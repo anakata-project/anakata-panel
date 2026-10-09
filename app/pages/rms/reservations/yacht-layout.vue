@@ -25,8 +25,29 @@ const today = computed(() => format(new Date(), 'iso'))
 const from = ref<string | null>(todayIso)
 const to = ref<string | null>(addMonths(todayIso, 6))
 const selectedDate = ref<string | null>(null)
+const yachtId = ref<number | null>(null)
 
 const { refresh, departures, columns, sections, total } = useCalendarGrid(from, to)
+
+const yachtChoices = computed(() => {
+  const seen = new Map<number, { id: number, name: string }>()
+
+  for (const section of sections.value) {
+    if (!seen.has(section.yacht.id)) {
+      seen.set(section.yacht.id, { id: section.yacht.id, name: section.yacht.name })
+    }
+  }
+
+  return [...seen.values()]
+})
+
+const visibleSections = computed(() => {
+  if (yachtId.value === null) {
+    return sections.value
+  }
+
+  return sections.value.filter(section => section.yacht.id === yachtId.value)
+})
 
 const canCreate = computed(() => can('bookings.create'))
 const hasActOnAny = computed(() => can('records.act_on_any'))
@@ -155,6 +176,8 @@ function onCabinClick(
         <DateRangeFilter
           v-model:from="from"
           v-model:to="to"
+          v-model:yacht="yachtId"
+          :yachts="yachtChoices"
           :field-label="t('yachtLayout.fieldLabel')"
           :noun="t('yachtLayout.noun')"
           :total="total"
@@ -176,7 +199,7 @@ function onCabinClick(
 
         <div class="layoutwrap">
           <div
-            v-for="section in sections"
+            v-for="section in visibleSections"
             :key="section.yacht.id"
             class="deck"
             :class="{ 'no-sail': !sailing(section.yacht.id) }"

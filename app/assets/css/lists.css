@@ -410,8 +410,152 @@ td.matrix-cell--dirty {
   color: var(--coral-400);
 }
 
-.contacts-notice {
-  max-width: 860px;
+.drange {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 22px;
+  padding: 14px 16px;
+  background: var(--forest-700);
+  border: 1px solid color-mix(in srgb, var(--ivory) 22%, transparent);
+}
+
+.drange-top,
+.drange-bot {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.dr-lead {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.dr-kicker {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--iv38);
+  white-space: nowrap;
+}
+
+.dr-presets,
+.dr-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dr-chip {
+  appearance: none;
+  background: var(--forest-950);
+  border: 1px solid var(--hair);
+  border-radius: 0;
+  color: var(--ivory);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 8px 12px;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.dr-chip:hover:not(:disabled):not(.on):not(.is-today) {
+  border-color: var(--iv38);
+}
+
+.dr-chip.on {
+  background: var(--coral);
+  border-color: var(--coral);
+  color: #F2F1E1;
+}
+
+.dr-chip.is-today {
+  background: var(--ok);
+  border-color: var(--ok);
+  color: var(--forest-950);
+  min-width: 76px;
+}
+
+.dr-chip:disabled {
+  opacity: .35;
+  cursor: default;
+}
+
+.dr-step {
+  width: 36px;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.dr-dates {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin-left: 28px;
+}
+
+.dr-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dr-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 168px;
+  padding: 8px 10px;
+  background: var(--forest-950);
+  border: 1px solid var(--hair);
+  border-radius: 0;
+  color: var(--ivory);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  letter-spacing: .02em;
+  text-transform: none;
+  cursor: pointer;
+}
+
+.dark .dr-date.is-set {
+  color: var(--coral-400);
+}
+
+.dr-cal {
+  margin-left: auto;
+  width: 14px;
+  height: 14px;
+  color: var(--coral);
+  flex: none;
+}
+
+.dr-arrow {
+  padding-bottom: 9px;
+  color: var(--iv38);
+}
+
+.dr-yacht {
+  min-width: 180px;
+}
+
+.drange .drc {
+  margin-left: 12px;
+  letter-spacing: .14em;
+}
+
+.drange.is-filtered .drc {
+  color: var(--coral-400);
+}
+
+.dr-nav {
+  margin-left: auto;
 }
 
 .ct-source {

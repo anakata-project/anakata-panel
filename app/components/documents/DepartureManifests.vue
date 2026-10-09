@@ -4,20 +4,14 @@ import ManifestVersionsModal from './ManifestVersionsModal.vue'
 import { downloadDocumentFile } from './documentFetch'
 import {
   manifestBarWidth,
-  manifestNoticeOffsets,
   manifestStatusClass,
-  offsetLabel,
-  type ManifestNoticeOffsets
+  offsetLabel
 } from './manifestHelpers'
 import { firstApiMessage } from '../../utils/apiForm'
 
 const props = defineProps<{
   from: string | null
   to: string | null
-}>()
-
-const emit = defineEmits<{
-  offsets: [value: ManifestNoticeOffsets]
 }>()
 
 const KINDS: Array<ManifestKind> = ['DPNG', 'CAPTAIN']
@@ -57,10 +51,6 @@ watch(listUrl, () => {
   void load()
 }, { immediate: true })
 
-watch(rows, (value) => {
-  emit('offsets', manifestNoticeOffsets(value))
-})
-
 async function load(): Promise<void> {
   try {
     const payload = await request(listUrl.value) as { data: Array<ManifestRow> }
@@ -69,7 +59,6 @@ async function load(): Promise<void> {
   } catch (error: unknown) {
     rows.value = []
     loadError.value = firstApiMessage(error) ?? t('documents.generateFailed')
-    emit('offsets', manifestNoticeOffsets([]))
   }
 }
 

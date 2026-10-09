@@ -2,7 +2,8 @@
 import { visibleNav } from '../navigation/guards'
 
 const { t } = useI18n()
-const { sectionId, section, currentItem } = useSystem()
+const colorMode = useColorMode()
+const { sectionId, section, currentItem, currentGroup } = useSystem()
 const { can, hasSection } = useAuth()
 const route = useRoute()
 const { openNew } = useNewReservation()
@@ -37,6 +38,18 @@ const showNewReservation = computed(() => sectionId.value === 'rms' && can('book
 const pageTitle = computed(() => {
   return currentItem.value ? t(currentItem.value.labelKey) : t(section.value.labelKey)
 })
+
+const showCrumb = computed(() => currentGroup.value !== undefined && currentItem.value !== undefined)
+
+const isDark = computed(() => colorMode.value === 'dark')
+
+const themeLabel = computed(() => {
+  return isDark.value ? t('shell.themeToLight') : t('shell.themeToDark')
+})
+
+function toggleTheme(): void {
+  colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
+}
 
 useHead(() => ({
   title: pageTitle.value
@@ -107,7 +120,17 @@ onMounted(() => {
         class="tophead"
         :class="sectionId === 'rms' ? 'tophead--rms' : 'tophead--crm'"
       >
-        <h1>{{ pageTitle }}</h1>
+        <div class="tophead-titles">
+          <p
+            v-if="showCrumb && currentGroup && currentItem"
+            class="tophead-crumb"
+          >
+            <span>{{ t(currentGroup.labelKey) }}</span>
+            <span class="tophead-crumb-sep">/</span>
+            <span class="tophead-crumb-page">{{ t(currentItem.labelKey) }}</span>
+          </p>
+          <h1>{{ pageTitle }}</h1>
+        </div>
         <div
           class="drbar-slot"
           aria-hidden="true"
@@ -143,10 +166,51 @@ onMounted(() => {
             >{{ alertTotal }}</span>
           </NuxtLink>
           <ShellSectionSwitch v-if="showSectionSwitch" />
-          <span class="mono">{{ t('shell.loggedInAs') }}</span>
           <ShellWhoMenu />
           <ShellLocaleSwitch />
-          <AnkThemeToggle />
+          <UButton
+            color="neutral"
+            variant="outline"
+            class="theme-toggle"
+            :aria-label="t('theme.toggleAria')"
+            @click="toggleTheme"
+          >
+            <svg
+              v-if="isDark"
+              class="theme-icon"
+              viewBox="0 0 16 16"
+              aria-hidden="true"
+            >
+              <circle
+                cx="8"
+                cy="8"
+                r="2.2"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.2"
+              />
+              <path
+                d="M8 1.4v1.7M8 12.9v1.7M1.4 8h1.7M12.9 8h1.7M3.3 3.3l1.2 1.2M11.5 11.5l1.2 1.2M12.7 3.3l-1.2 1.2M4.5 11.5l-1.2 1.2"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.2"
+              />
+            </svg>
+            <svg
+              v-else
+              class="theme-icon"
+              viewBox="0 0 16 16"
+              aria-hidden="true"
+            >
+              <path
+                d="M10.2 2.2a5.2 5.2 0 1 0 3.6 8.8 4.4 4.4 0 0 1-3.6-8.8z"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.2"
+              />
+            </svg>
+            {{ themeLabel }}
+          </UButton>
           <UButton
             v-if="showNewReservation"
             color="primary"

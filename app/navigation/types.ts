@@ -28,14 +28,11 @@ export type Section = {
 }
 
 export function findNavItem(nav: Array<NavGroup>, path: string): NavItem | undefined {
-  for (const group of nav) {
-    const match = group.items.find(item => item.to === path)
-    if (match) {
-      return match
-    }
-  }
+  return findNavGroup(nav, path)?.items.find(item => item.to === path)
+}
 
-  return undefined
+export function findNavGroup(nav: Array<NavGroup>, path: string): NavGroup | undefined {
+  return nav.find(group => group.items.some(item => item.to === path))
 }
 
 export function findNavItemBySlugs(

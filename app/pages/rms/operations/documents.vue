@@ -16,7 +16,6 @@ import {
   previewTargetFor,
   type DocumentPreviewTarget
 } from '../../../components/documents/documentHelpers'
-import { offsetLabel, type ManifestNoticeOffsets } from '../../../components/documents/manifestHelpers'
 import { firstApiMessage } from '../../../utils/apiForm'
 
 type ClientDocumentsPayload = Paginated<ClientDocumentRow> & {
@@ -46,11 +45,6 @@ const searchInput = ref('')
 const search = ref('')
 const page = ref(1)
 const today = computed(() => format(new Date(), 'iso'))
-const manifestOffsets = ref<ManifestNoticeOffsets>({
-  fit: null,
-  charter: null,
-  captain: null
-})
 
 const panelOpen = ref(false)
 const selected = ref<Booking | null>(null)
@@ -205,18 +199,9 @@ async function onPanelUpdated(): Promise<void> {
       :today="today"
     />
 
-    <p class="notice">
-      {{ t('documents.notice', {
-        fit: offsetLabel(manifestOffsets.fit),
-        charter: offsetLabel(manifestOffsets.charter),
-        captain: offsetLabel(manifestOffsets.captain)
-      }) }}
-    </p>
-
     <DepartureManifests
       :from="from"
       :to="to"
-      @offsets="manifestOffsets = $event"
     />
 
     <div class="panel">

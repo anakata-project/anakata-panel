@@ -94,10 +94,6 @@ async function onPanelUpdated(): Promise<void> {
       :today="today"
     />
 
-    <p class="notice contacts-notice">
-      {{ t('contactsIn.notice') }}
-    </p>
-
     <div class="panel">
       <h3>{{ t('contactsIn.listTitle') }}</h3>
       <div class="bk-table-wrap">

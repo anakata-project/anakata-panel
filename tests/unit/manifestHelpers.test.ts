@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
   manifestBarWidth,
-  manifestNoticeOffsets,
   manifestStatusClass,
   offsetLabel
 } from '../../app/components/documents/manifestHelpers'
@@ -13,19 +12,6 @@ describe('manifestHelpers', () => {
     expect(manifestStatusClass('1 PASSENGER PENDING')).toBe('p-pend')
     expect(manifestStatusClass('3 PASSENGERS PENDING')).toBe('p-pend')
     expect(manifestStatusClass('OTHER')).toBe('')
-  })
-
-  it('reads notice offsets from the rows and never fills a missing class', () => {
-    expect(manifestNoticeOffsets([
-      { charter: false, dpng_offset_days: 15, captain_offset_days: 7 },
-      { charter: true, dpng_offset_days: 30, captain_offset_days: 7 }
-    ])).toEqual({ fit: 15, charter: 30, captain: 7 })
-
-    expect(manifestNoticeOffsets([
-      { charter: false, dpng_offset_days: 15, captain_offset_days: 7 }
-    ])).toEqual({ fit: 15, charter: null, captain: 7 })
-
-    expect(manifestNoticeOffsets([])).toEqual({ fit: null, charter: null, captain: null })
   })
 
   it('labels an offset from the API day count', () => {

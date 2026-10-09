@@ -55,6 +55,11 @@ defineExpose({
 <style scoped>
 .panel-locale {
   display: flex;
+  gap: 0;
+}
+
+.panel-locale-btn + .panel-locale-btn {
+  margin-left: -1px;
 }
 
 .panel-locale-btn {

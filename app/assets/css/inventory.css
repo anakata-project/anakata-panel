@@ -1,7 +1,3 @@
-.itin-notice {
-  max-width: 900px;
-}
-
 .ebtool {
   display: flex;
   justify-content: space-between;
@@ -656,11 +652,6 @@ td .cell.lock::after {
 
 th.xmas {
   color: var(--coral-400);
-}
-
-.cal-notice {
-  max-width: 760px;
-  margin-top: 14px;
 }
 
 .dr-none {

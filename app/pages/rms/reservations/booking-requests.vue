@@ -179,29 +179,6 @@ onMounted(() => {
       :today="today"
     />
 
-    <i18n-t
-      v-if="rules"
-      keypath="requests.notice"
-      tag="p"
-      class="notice req-notice"
-    >
-      <template #status>
-        <b>REQUESTED</b>
-      </template>
-      <template #near>
-        {{ rules.near_term_business_hours }}
-      </template>
-      <template #long>
-        {{ rules.long_lead_business_days }}
-      </template>
-      <template #sla>
-        <b>{{ t('requests.noticeSla', { hours: String(rules.response_hours) }) }}</b>
-      </template>
-      <template #pct>
-        {{ rules.cabin_deposit_pct }}
-      </template>
-    </i18n-t>
-
     <div class="panel">
       <h3>{{ t('requests.panelTitle') }}</h3>
       <div class="bk-table-wrap">

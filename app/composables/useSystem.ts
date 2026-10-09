@@ -1,6 +1,6 @@
 import { LAST_PATH_KEYS, sections } from '../sections'
 import { visibleNav } from '../navigation/guards'
-import { findNavItem } from '../navigation/types'
+import { findNavGroup, findNavItem } from '../navigation/types'
 import type { SectionId } from '../navigation/types'
 
 function sectionFromPath(path: string): SectionId {
@@ -18,9 +18,9 @@ export function useSystem() {
 
   const sectionId = computed<SectionId>(() => sectionFromPath(route.path))
   const section = computed(() => sections[sectionId.value])
-  const currentItem = computed(() => {
-    return findNavItem(visibleNav(section.value, permission => can(permission)), route.path)
-  })
+  const currentNav = computed(() => visibleNav(section.value, permission => can(permission)))
+  const currentItem = computed(() => findNavItem(currentNav.value, route.path))
+  const currentGroup = computed(() => findNavGroup(currentNav.value, route.path))
 
   function remember(path: string): void {
     if (!import.meta.client || !isRememberablePath(path)) {
@@ -66,6 +66,7 @@ export function useSystem() {
     sectionId,
     section,
     currentItem,
+    currentGroup,
     switchTo,
     lastPath
   }

@@ -1,11 +1,3 @@
-import type { ManifestRow } from '../../types/api'
-
-export type ManifestNoticeOffsets = {
-  fit: number | null
-  charter: number | null
-  captain: number | null
-}
-
 export function manifestStatusClass(status: string): string {
   if (status === 'READY') {
     return 'p-conf'
@@ -20,20 +12,6 @@ export function manifestStatusClass(status: string): string {
   }
 
   return ''
-}
-
-export function manifestNoticeOffsets(
-  rows: Array<Pick<ManifestRow, 'charter' | 'dpng_offset_days' | 'captain_offset_days'>>
-): ManifestNoticeOffsets {
-  const fit = rows.find(row => !row.charter)
-  const charter = rows.find(row => row.charter)
-  const captain = rows[0]
-
-  return {
-    fit: fit?.dpng_offset_days ?? null,
-    charter: charter?.dpng_offset_days ?? null,
-    captain: captain?.captain_offset_days ?? null
-  }
 }
 
 export function offsetLabel(days: number | null): string {

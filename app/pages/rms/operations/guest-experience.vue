@@ -166,10 +166,6 @@ function questionnaireSub(view: DepartureGuestExperience): string {
 
 <template>
   <div>
-    <p class="notice">
-      {{ t('guestExperience.notice') }}
-    </p>
-
     <div
       v-if="departures.length > 0"
       class="field gx-departure"

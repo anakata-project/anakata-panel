@@ -1,4 +1,14 @@
-export type DateRangePreset = 'all' | 'last30' | 'last90' | 'next90' | 'next12' | 'custom' | `y${number}`
+export type DateRangePreset = 'all' | 'last30' | 'last90' | 'next30' | 'next90' | 'next12' | 'winter' | 'custom' | `y${number}`
+
+export type DateRangeYacht = {
+  id: number
+  name: string
+}
+
+const QUICK_PRESETS: Array<DateRangePreset> = ['next30', 'next90', 'winter']
+
+const SHORT_WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const
+const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const
 
 export type DateRangeBounds = {
   from: string | null
@@ -74,8 +84,16 @@ export function resolveDateRange(preset: DateRangePreset, today: string): DateRa
     return { from: addDays(today, -90), to: today }
   }
 
+  if (preset === 'next30') {
+    return { from: today, to: addDays(today, 30) }
+  }
+
   if (preset === 'next90') {
     return { from: today, to: addDays(today, 90) }
+  }
+
+  if (preset === 'winter') {
+    return winterSeason(today)
   }
 
   if (preset === 'next12') {
@@ -104,4 +122,64 @@ export function normalizeRange(from: string | null, to: string | null): DateRang
 
 export function isRangeActive(from: string | null, to: string | null): boolean {
   return from !== null || to !== null
+}
+
+/**
+ * Cool season (garúa), labelled "Winter season" on the range bar: 1 Jun–30 Nov.
+ * After 30 Nov the next window is the following year. Requirements do not name this span.
+ */
+export function winterSeason(today: string): DateRangeBounds {
+  const year = calendarYear(today)
+  const month = Number(today.slice(5, 7))
+  const seasonYear = month === 12 ? year + 1 : year
+
+  return { from: `${seasonYear}-06-01`, to: `${seasonYear}-11-30` }
+}
+
+export function daysBetween(from: string, to: string): number {
+  const span = parseUtc(to).getTime() - parseUtc(from).getTime()
+
+  return Math.round(span / 86_400_000)
+}
+
+export function shiftRange(from: string, to: string, direction: -1 | 1): DateRangeBounds {
+  const span = Math.max(daysBetween(from, to), 1)
+  const delta = span * direction
+
+  return normalizeRange(addDays(from, delta), addDays(to, delta))
+}
+
+export function anchorToday(from: string | null, to: string | null, today: string): DateRangeBounds {
+  if (from !== null && to !== null) {
+    const span = Math.max(daysBetween(from, to), 1)
+
+    return { from: today, to: addDays(today, span) }
+  }
+
+  return { from: today, to: addMonths(today, 6) }
+}
+
+export function matchingPreset(from: string | null, to: string | null, today: string): DateRangePreset {
+  if (!isRangeActive(from, to)) {
+    return 'all'
+  }
+
+  for (const key of QUICK_PRESETS) {
+    const range = resolveDateRange(key, today)
+
+    if (range.from === from && range.to === to) {
+      return key
+    }
+  }
+
+  return 'custom'
+}
+
+export function formatRangeDate(iso: string): string {
+  const date = parseUtc(iso)
+  const weekday = SHORT_WEEKDAYS[date.getUTCDay()]
+  const day = String(date.getUTCDate()).padStart(2, '0')
+  const month = SHORT_MONTHS[date.getUTCMonth()]
+
+  return `${weekday ?? 'Sun'} ${day} ${month ?? 'Jan'} ${date.getUTCFullYear()}`
 }
