@@ -175,6 +175,9 @@ importers:
       '@internationalized/date':
         specifier: ^3.12.4
         version: 3.12.4
+      '@marker.io/browser':
+        specifier: ^0.20.2
+        version: 0.20.2
       '@nuxt/ui':
         specifier: ^4.11.1
         version: 4.11.1(29cfc64a3a5e698c8158274619bc2c3a)
@@ -1200,6 +1203,9 @@ packages:
     resolution: {integrity: sha512-uwPAhccfFJlsfCxMYTwOdVfOz3xqyj8xYL3zJj8f0pb30tLohnnFPhLuqp4/qoEz8sNxe4SESZedcBojRefIzg==}
     engines: {node: '>=18'}
     hasBin: true
+
+  '@marker.io/browser@0.20.2':
+    resolution: {integrity: sha512-rayC9s9ERzKMyjMkfvqKBCSqSVKPQad9F4NvZraGK6yd+mJZfY3C3cPFe89s4Uu9TUvfNm1cR7YfSgdvc/dyvg==}
 
   '@miyaneee/rollup-plugin-json5@1.2.0':
     resolution: {integrity: sha512-JjTIaXZp9WzhUHpElrqPnl1AzBi/rvRs065F71+aTmlqvTMVkdbjZ8vfFl4nRlgJy+TPBw69ZK4pwFdmOAt4aA==}
@@ -7166,6 +7172,8 @@ snapshots:
     transitivePeerDependencies:
       - encoding
       - supports-color
+
+  '@marker.io/browser@0.20.2': {}
 
   '@miyaneee/rollup-plugin-json5@1.2.0(rollup@4.60.4)':
     dependencies:

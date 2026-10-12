@@ -55,7 +55,7 @@ One codebase, one `useApi()`. CRM screens never call booking, payment, refund, c
 
 ## Deploy (Netlify)
 
-`netlify.toml` owns the build command (`pnpm generate`) and publish directory (`.output/public`). Do not set those in the Netlify UI. Set `NUXT_PUBLIC_API_BASE` in the site env.
+`netlify.toml` owns the build command (`pnpm generate`) and publish directory (`.output/public`). Do not set those in the Netlify UI. Set `NUXT_PUBLIC_API_BASE` in the site env. Set `NUXT_PUBLIC_MARKER_PROJECT_ID` to show the Marker.io feedback button; leave it empty to keep the widget off.
 
 Staff login is Sanctum cookies. Use a custom domain under the same parent as the API (`SESSION_DOMAIN=.yourdomain.com`). A `*.netlify.app` origin will not keep the session with the default `SameSite=lax` cookie.
 
