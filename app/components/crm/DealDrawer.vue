@@ -302,7 +302,7 @@ async function submitLost(reason: string): Promise<void> {
           <label for="drawer-move">{{ t('crmPipeline.moveTo') }}</label>
           <USelect
             id="drawer-move"
-            :model-value="''"
+            :model-value="undefined"
             class="w-full"
             :placeholder="t('crmPipeline.moveTo')"
             :items="moveItems"

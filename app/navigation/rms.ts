@@ -6,15 +6,6 @@ export const rmsNav: Array<NavGroup> = [
     labelKey: 'nav.rms.reservations',
     items: [
       {
-        id: 'booking-requests',
-        labelKey: 'nav.rms.bookingRequests',
-        glyph: '◍',
-        to: '/rms/reservations/booking-requests',
-        sprint: 4,
-        badge: true,
-        permission: ['requests.confirm', 'requests.release']
-      },
-      {
         id: 'calendar',
         labelKey: 'nav.rms.calendar',
         glyph: '◫',
@@ -33,7 +24,17 @@ export const rmsNav: Array<NavGroup> = [
         labelKey: 'nav.rms.bookings',
         glyph: '≣',
         to: '/rms/reservations/bookings',
-        sprint: 4
+        sprint: 4,
+        badge: true,
+        permission: 'panel.rms'
+      },
+      {
+        id: 'deals',
+        labelKey: 'nav.rms.deals',
+        glyph: '⊞',
+        to: '/rms/deals',
+        sprint: 10,
+        permission: 'panel.crm'
       }
     ]
   },
@@ -79,14 +80,6 @@ export const rmsNav: Array<NavGroup> = [
         to: '/rms/commercial/b2b',
         sprint: 5,
         permission: ['agencies.manage', 'bookings.view_all']
-      },
-      {
-        id: 'contacts-in',
-        labelKey: 'nav.rms.contactsIn',
-        glyph: '◉',
-        to: '/rms/commercial/contacts-in',
-        sprint: 6,
-        permission: 'panel.rms'
       }
     ]
   },

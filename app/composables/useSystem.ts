@@ -10,6 +10,7 @@ function sectionFromPath(path: string): SectionId {
 function isRememberablePath(path: string): boolean {
   return (path.startsWith('/rms/') || path.startsWith('/crm/'))
     && path !== '/crm/pipeline'
+    && path !== '/crm/sales/pipeline'
 }
 
 export function useSystem() {

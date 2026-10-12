@@ -6,13 +6,6 @@ export const crmNav: Array<NavGroup> = [
     labelKey: 'nav.crm.sales',
     items: [
       {
-        id: 'pipeline',
-        labelKey: 'nav.crm.pipeline',
-        glyph: '⊞',
-        to: '/crm/sales/pipeline',
-        sprint: 10
-      },
-      {
         id: 'tasks',
         labelKey: 'nav.crm.tasks',
         glyph: '✓',

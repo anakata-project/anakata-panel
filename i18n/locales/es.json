@@ -6,6 +6,7 @@
       "calendar": "Calendario",
       "yachtLayout": "Distribución del yate",
       "bookings": "Reservas",
+      "deals": "Tratos",
       "commercial": "Comercial",
       "dashboard": "Panel comercial",
       "reports": "Informes",
@@ -882,6 +883,10 @@
   },
   "bookings": {
     "noun": "reservas",
+    "viewAll": "Todas",
+    "viewRequests": "Solicitudes",
+    "viewContacts": "Contactos",
+    "viewsAria": "Lista de reservas",
     "fieldLabel": "Fecha de salida",
     "newReservation": "＋ Nueva reserva",
     "newTitle": "Nueva reserva — ingreso manual",
@@ -1879,6 +1884,32 @@
     "contactId": "contact_id {id}",
     "tasksTitle": "Tareas",
     "tasksEmpty": "No hay tareas abiertas para este contacto."
+  },
+  "deals": {
+    "title": "Tratos",
+    "viewTable": "Tabla",
+    "viewBoard": "Tablero",
+    "viewsAria": "Vista de tratos",
+    "stageAll": "Etapa — Todas",
+    "empty": "Ningún trato coincide con estos filtros.",
+    "colTitle": "Trato",
+    "colContact": "Contacto",
+    "colType": "Tipo",
+    "colStage": "Etapa",
+    "colOwner": "Responsable",
+    "colValue": "Valor",
+    "colBooking": "Reserva",
+    "colSla": "SLA",
+    "stages": {
+      "NEW_LEAD": "Nuevo lead",
+      "QUALIFYING": "Calificación",
+      "QUOTED": "Cotizado",
+      "NEGOTIATION": "Negociación",
+      "DEPOSIT_PENDING": "Depósito pendiente",
+      "BOOKING_CONFIRMED": "Reserva confirmada",
+      "WON_COMPLETED": "Ganado — completado",
+      "LOST": "Perdido"
+    }
   },
   "crmPipeline": {
     "title": "Embudo",

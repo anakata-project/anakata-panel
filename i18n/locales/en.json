@@ -6,6 +6,7 @@
       "calendar": "Calendar",
       "yachtLayout": "Yacht Layout",
       "bookings": "Bookings",
+      "deals": "Deals",
       "commercial": "Commercial",
       "dashboard": "Commercial Dashboard",
       "reports": "Reports",
@@ -882,6 +883,10 @@
   },
   "bookings": {
     "noun": "bookings",
+    "viewAll": "All",
+    "viewRequests": "Requests",
+    "viewContacts": "Contacts in",
+    "viewsAria": "Booking list",
     "fieldLabel": "Departure date",
     "newReservation": "＋ New reservation",
     "newTitle": "New reservation — manual entry",
@@ -1879,6 +1884,32 @@
     "contactId": "contact_id {id}",
     "tasksTitle": "Tasks",
     "tasksEmpty": "No open tasks for this contact."
+  },
+  "deals": {
+    "title": "Deals",
+    "viewTable": "Table",
+    "viewBoard": "Board",
+    "viewsAria": "Deals view",
+    "stageAll": "Stage — All",
+    "empty": "No deals match these filters.",
+    "colTitle": "Deal",
+    "colContact": "Contact",
+    "colType": "Type",
+    "colStage": "Stage",
+    "colOwner": "Owner",
+    "colValue": "Value",
+    "colBooking": "Booking",
+    "colSla": "SLA",
+    "stages": {
+      "NEW_LEAD": "New lead",
+      "QUALIFYING": "Qualifying",
+      "QUOTED": "Quoted",
+      "NEGOTIATION": "Negotiation",
+      "DEPOSIT_PENDING": "Deposit pending",
+      "BOOKING_CONFIRMED": "Booking confirmed",
+      "WON_COMPLETED": "Won — completed",
+      "LOST": "Lost"
+    }
   },
   "crmPipeline": {
     "title": "Pipeline",

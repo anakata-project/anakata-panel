@@ -196,6 +196,7 @@ export type {
   CrmTask,
   DealDetail,
   DealInput,
+  DealListItem,
   DealStage,
   DealType,
   MoveDealInput,

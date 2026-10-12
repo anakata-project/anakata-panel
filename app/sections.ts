@@ -3,7 +3,7 @@ import { rmsNav } from './navigation/rms'
 import type { Section, SectionId } from './navigation/types'
 
 export const RMS_HOME = '/rms/reservations/calendar'
-export const CRM_HOME = '/crm/sales/pipeline'
+export const CRM_HOME = '/crm/sales/tasks'
 
 export const sections: Record<SectionId, Section> = {
   rms: {

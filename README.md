@@ -34,7 +34,7 @@ Or locally:
 pnpm dev
 ```
 
-Open `http://localhost:3001`. `/` redirects to the RMS calendar. `/crm` and `/crm/pipeline` redirect to the CRM pipeline.
+Open `http://localhost:3001`. `/` redirects to the RMS calendar. `/crm` redirects to CRM tasks. `/crm/pipeline` and `/crm/sales/pipeline` redirect to the RMS Deals board.
 
 ## Structure
 

@@ -173,7 +173,8 @@ describe('pageDecision', () => {
 
   it('allows a permitted or ungated page', () => {
     expect(pageDecision('/rms/admin/permissions', allow('roles.manage'))).toBeNull()
-    expect(pageDecision('/rms/reservations/bookings', allow())).toBeNull()
+    expect(pageDecision('/rms/reservations/bookings', allow('panel.rms'))).toBeNull()
+    expect(pageDecision('/rms/reservations/calendar', allow())).toBeNull()
   })
 })
 
@@ -186,14 +187,25 @@ describe('firstAllowedHome', () => {
 })
 
 describe('seeded admin nav', () => {
-  it('hides Booking Requests without confirm or release, and still shows Holds', () => {
+  it('shows Bookings with the request badge for panel.rms, and Deals only with panel.crm', () => {
     const finance = visibleNav(sections.rms, allow('panel.rms', 'bookings.view_all'))
+    const both = visibleNav(sections.rms, allow('panel.rms', 'panel.crm'))
     const reservations = finance.find(group => group.id === 'reservations')
     const operations = finance.find(group => group.id === 'operations')
+    const bookings = reservations?.items.find(item => item.id === 'bookings')
 
     expect(reservations?.items.map(item => item.id)).not.toContain('booking-requests')
+    expect(reservations?.items.map(item => item.id)).toContain('bookings')
+    expect(bookings?.badge).toBe(true)
+    expect(reservations?.items.map(item => item.id)).not.toContain('deals')
+    expect(both.find(group => group.id === 'reservations')?.items.map(item => item.id)).toContain('deals')
     expect(operations?.items.map(item => item.id)).toContain('holds')
-    expect(pageDecision('/rms/reservations/booking-requests', allow('panel.rms', 'bookings.view_all'))).toEqual({
+    expect(pageDecision('/rms/deals', allow('panel.rms', 'bookings.view_all'))).toEqual({
+      to: RMS_HOME,
+      toast: true
+    })
+    expect(pageDecision('/rms/deals', allow('panel.rms', 'panel.crm'))).toBeNull()
+    expect(pageDecision('/rms/reservations/bookings', allow('bookings.create'))).toEqual({
       to: RMS_HOME,
       toast: true
     })
@@ -267,18 +279,6 @@ describe('seeded admin nav', () => {
       toast: true
     })
     expect(pageDecision('/rms/commercial/dashboard', allow('bookings.create'))).toEqual({
-      to: RMS_HOME,
-      toast: true
-    })
-  })
-
-  it('shows Contacts In with panel.rms and hides it without', () => {
-    const shown = visibleNav(sections.rms, allow('panel.rms'))
-    const hidden = visibleNav(sections.rms, allow('bookings.create'))
-
-    expect(shown.find(group => group.id === 'commercial')?.items.map(item => item.id)).toContain('contacts-in')
-    expect(hidden.find(group => group.id === 'commercial')?.items.map(item => item.id)).not.toContain('contacts-in')
-    expect(pageDecision('/rms/commercial/contacts-in', allow('bookings.create'))).toEqual({
       to: RMS_HOME,
       toast: true
     })

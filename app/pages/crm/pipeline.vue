@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { CRM_HOME } from '../../sections'
-
-await navigateTo(CRM_HOME, { replace: true })
+await navigateTo({ path: '/rms/deals', query: { view: 'board' } }, { replace: true })
 </script>
 
 <template>
