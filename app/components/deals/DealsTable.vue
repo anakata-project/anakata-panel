@@ -78,7 +78,7 @@ function isStage(value: string): value is DealStage {
 </script>
 
 <template>
-  <div class="panel">
+  <div>
     <div class="bk-table-wrap">
       <table class="list">
         <thead>

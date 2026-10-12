@@ -20,16 +20,6 @@ type PipelinePayload = {
 
 const MOVES: Array<MoveDealInput['stage']> = ['NEW_LEAD', 'QUALIFYING', 'QUOTED', 'NEGOTIATION', 'LOST']
 
-const emptyKpis: PipelineKpis = {
-  collected: 0,
-  scheduled_in: 0,
-  awaiting_first_payment: 0,
-  open_pipeline_count: 0,
-  open_pipeline_value: 0,
-  weighted_forecast: 0,
-  overdue: 0
-}
-
 const props = defineProps<{
   owner: string
   dealType: string
@@ -39,6 +29,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   open: [id: number]
+  kpis: [kpis: PipelineKpis]
 }>()
 
 const { t } = useI18n()
@@ -47,7 +38,6 @@ const { format } = useMoney()
 const toast = useToast()
 
 const columns = ref<Array<PipelineColumn>>([])
-const kpis = ref<PipelineKpis | null>(null)
 const stageMap = ref<Array<StageMapRow>>([])
 const loadError = ref('')
 const draggingId = ref<number | null>(null)
@@ -55,8 +45,6 @@ const lostOpen = ref(false)
 const lostSubmitting = ref(false)
 const lostError = ref('')
 const pendingMove = ref<{ id: number, stage: MoveDealInput['stage'] } | null>(null)
-
-const shown = computed(() => kpis.value ?? emptyKpis)
 
 const moveItems = computed(() => MOVES.map(stage => ({
   label: t(`deals.stages.${stage}`),
@@ -95,7 +83,7 @@ async function load(): Promise<void> {
   try {
     const payload = await request(query === '' ? '/api/crm/pipeline' : `/api/crm/pipeline?${query}`) as PipelinePayload
     columns.value = payload.columns
-    kpis.value = payload.meta.kpis
+    emit('kpis', payload.meta.kpis)
     loadError.value = ''
   } catch (error: unknown) {
     loadError.value = firstApiMessage(error) ?? t('crmPipeline.moveFailed')
@@ -223,58 +211,14 @@ function bookingTo(reference: string): string {
 
 <template>
   <div>
-    <div class="krow">
-      <AnkKpi
-        :label="t('crmPipeline.kpiCollected')"
-        :sub="t('crmPipeline.kpiCollectedSub')"
-      >
-        {{ format(shown.collected) }}
-      </AnkKpi>
-      <AnkKpi
-        :label="t('crmPipeline.kpiScheduled')"
-        :sub="t('crmPipeline.kpiScheduledSub')"
-      >
-        {{ format(shown.scheduled_in) }}
-      </AnkKpi>
-      <AnkKpi
-        :label="t('crmPipeline.kpiAwaiting')"
-        :sub="t('crmPipeline.kpiAwaitingSub')"
-      >
-        {{ format(shown.awaiting_first_payment) }}
-      </AnkKpi>
-      <AnkKpi
-        :label="t('crmPipeline.kpiOpen')"
-        :sub="t('crmPipeline.kpiOpenSub', { count: String(shown.open_pipeline_count) })"
-      >
-        {{ format(shown.open_pipeline_value) }}
-      </AnkKpi>
-      <AnkKpi
-        :label="t('crmPipeline.kpiWeighted')"
-        :sub="t('crmPipeline.kpiWeightedSub')"
-      >
-        <span class="crm-kpi-alert">{{ format(shown.weighted_forecast) }}</span>
-      </AnkKpi>
-      <AnkKpi
-        :label="t('crmPipeline.kpiOverdue')"
-        :sub="t('crmPipeline.kpiOverdueSub')"
-      >
-        <span class="crm-kpi-alert">{{ format(shown.overdue) }}</span>
-      </AnkKpi>
-    </div>
-
     <p
       v-if="loadError"
-      class="warnbox"
+      class="warnbox deals-load-error"
     >
       {{ loadError }}
     </p>
 
-    <p class="notice crm-notice">
-      {{ t('crmPipeline.notice') }}
-    </p>
-
-    <div class="panel">
-      <div class="pipe">
+    <div class="pipe">
         <section
           v-for="column in columns"
           :key="column.stage"
@@ -341,10 +285,9 @@ function bookingTo(reference: string): string {
             </article>
           </div>
         </section>
-      </div>
     </div>
 
-    <div class="panel">
+    <div class="deals-stage-map">
       <div class="bk-toolbar">
         <h3>{{ t('crmPipeline.stageMap') }}</h3>
       </div>
