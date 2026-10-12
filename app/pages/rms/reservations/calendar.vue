@@ -321,7 +321,7 @@ function occupancyWidth(occupancy: { sold: number, total: number }): string {
                     class="rowh"
                     :class="{ owner: item.row.cabin.category === 'OWNER' }"
                   >
-                    <span class="cab">{{ item.row.cabin.label }}</span>
+                    <span class="cal-cabin">{{ item.row.cabin.label }}</span>
                     <span class="cab-open">{{ t('calendar.rowOpen', { count: String(item.open) }) }}</span>
                   </td>
                   <td

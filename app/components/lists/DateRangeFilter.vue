@@ -276,7 +276,10 @@ function dateLabel(value: string | null): string {
           :aria-label="t('lists.previousRange')"
           @click="shift(-1)"
         >
-          ‹
+          <UIcon
+            name="i-lucide-chevron-left"
+            class="dr-step-icon"
+          />
         </button>
         <button
           type="button"
@@ -292,7 +295,10 @@ function dateLabel(value: string | null): string {
           :aria-label="t('lists.nextRange')"
           @click="shift(1)"
         >
-          ›
+          <UIcon
+            name="i-lucide-chevron-right"
+            class="dr-step-icon"
+          />
         </button>
       </div>
     </div>

@@ -508,6 +508,11 @@ td.matrix-cell--dirty {
   padding-right: 0;
 }
 
+.dr-step-icon {
+  width: 18px;
+  height: 18px;
+}
+
 .dr-dates {
   display: flex;
   align-items: flex-end;

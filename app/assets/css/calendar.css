@@ -127,7 +127,18 @@
 .tl {
   border: var(--border);
   overflow-x: auto;
+  overflow-y: clip;
   background: var(--surface);
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-2) transparent;
+}
+
+.tl::-webkit-scrollbar {
+  height: 4px;
+}
+
+.tl::-webkit-scrollbar-thumb {
+  background: var(--line-2);
 }
 
 table.grid {
@@ -217,7 +228,7 @@ table.grid td.rowh {
   color: var(--text);
 }
 
-table.grid td.rowh.owner .cab {
+table.grid td.rowh.owner .cal-cabin {
   font-weight: var(--weight-semibold);
 }
 

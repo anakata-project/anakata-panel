@@ -154,6 +154,16 @@ main {
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 28px 34px 80px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-2) transparent;
+}
+
+main::-webkit-scrollbar {
+  width: 4px;
+}
+
+main::-webkit-scrollbar-thumb {
+  background: var(--line-2);
 }
 
 .tophead {

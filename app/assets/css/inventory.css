@@ -508,23 +508,23 @@ fieldset.edfs {
   margin: 0 auto;
 }
 
-.cab {
+.dg .cab {
   border: 1px solid var(--hair);
   padding: 14px 10px;
   text-align: center;
 }
 
-.cab.is-click {
+.dg .cab.is-click {
   cursor: pointer;
 }
 
-.cab .cn {
+.dg .cab .cn {
   font-family: var(--font-bo-display);
   letter-spacing: .16em;
   font-size: 12px;
 }
 
-.cab .st {
+.dg .cab .st {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 8px;
   letter-spacing: .14em;
@@ -533,33 +533,33 @@ fieldset.edfs {
   color: var(--iv38);
 }
 
-.cab.owner {
+.dg .cab.owner {
   grid-column: 1 / -1;
   border-color: var(--sand);
 }
 
-.cab.s-conf {
+.dg .cab.s-conf {
   background: var(--ok);
   color: var(--forest-950);
 }
 
-.cab.s-conf .st,
-.cab.s-dep .st,
-.cab.s-hold .st {
+.dg .cab.s-conf .st,
+.dg .cab.s-dep .st,
+.dg .cab.s-hold .st {
   color: rgba(20, 27, 23, .7);
 }
 
-.cab.s-dep {
+.dg .cab.s-dep {
   background: var(--sand);
   color: var(--forest-950);
 }
 
-.cab.s-hold {
+.dg .cab.s-hold {
   background: var(--warn);
   color: var(--forest-950);
 }
 
-.cab.s-block {
+.dg .cab.s-block {
   background: var(--olive);
 }
 
@@ -568,15 +568,15 @@ fieldset.edfs {
   margin-bottom: 22px;
 }
 
-html:not(.dark) .cab.s-conf,
-html:not(.dark) .cab.s-dep,
-html:not(.dark) .cab.s-hold {
+html:not(.dark) .dg .cab.s-conf,
+html:not(.dark) .dg .cab.s-dep,
+html:not(.dark) .dg .cab.s-hold {
   color: var(--ivory);
 }
 
-html:not(.dark) .cab.s-conf .st,
-html:not(.dark) .cab.s-dep .st,
-html:not(.dark) .cab.s-hold .st {
+html:not(.dark) .dg .cab.s-conf .st,
+html:not(.dark) .dg .cab.s-dep .st,
+html:not(.dark) .dg .cab.s-hold .st {
   color: rgba(242, 241, 225, .75);
 }
 
