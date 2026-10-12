@@ -235,13 +235,15 @@
 
 .deals-head-side {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: 12px;
   padding-right: 20px;
 }
 
 .deals-views {
   display: flex;
+  flex: 0 0 auto;
+  align-items: stretch;
 }
 
 .deals-views .fchip + .fchip {
@@ -250,10 +252,13 @@
 
 .deals-views .fchip {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  width: var(--control-h);
-  height: var(--control-h);
+  box-sizing: border-box;
+  width: 36px;
+  height: 100%;
+  align-self: stretch;
   padding: 0;
 }
 
