@@ -34,12 +34,16 @@ export default defineNuxtConfig({
     }
   },
 
-  css: ['~/assets/css/shell.css', '~/assets/css/lists.css', '~/assets/css/config.css', '~/assets/css/inventory.css', '~/assets/css/calendar.css', '~/assets/css/bookings.css', '~/assets/css/documents.css', '~/assets/css/crm.css'],
+  css: ['~/assets/css/shell.css', '~/assets/css/lists.css', '~/assets/css/config.css', '~/assets/css/inventory.css', '~/assets/css/calendar.css', '~/assets/css/bookings.css', '~/assets/css/documents.css', '~/assets/css/crm.css', '~/assets/css/copilot.css'],
 
   runtimeConfig: {
     public: {
       apiBase: 'http://localhost:8000',
-      markerProjectId: ''
+      markerProjectId: '',
+      reverbAppKey: 'anakata-local-key',
+      reverbHost: 'localhost',
+      reverbPort: 8001,
+      reverbScheme: 'http'
     }
   },
 

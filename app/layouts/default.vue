@@ -35,6 +35,8 @@ function onNewReservation(): void {
 const nav = computed(() => visibleNav(section.value, permission => can(permission)))
 const showSectionSwitch = computed(() => hasSection('rms') && hasSection('crm'))
 const showNewReservation = computed(() => sectionId.value === 'rms' && can('bookings.create'))
+const showCopilot = computed(() => can('copilot.use'))
+const { open: copilotOpen, toggle: toggleCopilot } = useCopilot()
 
 const pageTitle = computed(() => {
   return currentItem.value ? t(currentItem.value.labelKey) : t(section.value.labelKey)
@@ -58,9 +60,25 @@ useHead(() => ({
   title: pageTitle.value
 }))
 
+function onCopilotShortcut(event: KeyboardEvent): void {
+  if (!showCopilot.value) {
+    return
+  }
+
+  if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === 'k') {
+    event.preventDefault()
+    toggleCopilot()
+  }
+}
+
 onMounted(() => {
   startPolling()
   startAlertPolling()
+  window.addEventListener('keydown', onCopilotShortcut)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onCopilotShortcut)
 })
 </script>
 
@@ -185,6 +203,20 @@ onMounted(() => {
           <ShellWhoMenu />
           <ShellLocaleSwitch />
           <UButton
+            v-if="showCopilot"
+            color="neutral"
+            variant="outline"
+            class="theme-toggle"
+            :aria-label="t('copilot.open')"
+            :aria-pressed="copilotOpen"
+            @click="toggleCopilot"
+          >
+            <UIcon
+              name="i-lucide-bot"
+              class="theme-icon"
+            />
+          </UButton>
+          <UButton
             color="neutral"
             variant="outline"
             class="theme-toggle"
@@ -238,5 +270,6 @@ onMounted(() => {
       </div>
       <slot />
     </main>
+    <CopilotSheet v-if="showCopilot" />
   </div>
 </template>
