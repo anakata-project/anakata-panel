@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { Booking, DocumentPlanRow, IssuedDocument } from '../../types/api'
 import { firstApiMessage } from '../../utils/apiForm'
+import ReasonModal from '../bookings/ReasonModal.vue'
+import DocumentConfirmModal from './DocumentConfirmModal.vue'
+import { downloadDocumentFile } from './documentFetch'
 import {
   documentRowActions,
   documentStatusPillClass,
@@ -9,9 +12,7 @@ import {
   versionLabel,
   type DocumentPreviewTarget
 } from './documentHelpers'
-import DocumentConfirmModal from './DocumentConfirmModal.vue'
 import DocumentPreviewModal from './DocumentPreviewModal.vue'
-import ReasonModal from '../bookings/ReasonModal.vue'
 
 const props = defineProps<{
   booking: Booking
@@ -34,6 +35,7 @@ const loadError = ref('')
 
 const previewOpen = ref(false)
 const preview = ref<DocumentPreviewTarget | null>(null)
+const downloadingKey = ref<string | null>(null)
 
 const resendOpen = ref(false)
 const resendRow = ref<DocumentPlanRow | null>(null)
@@ -100,9 +102,36 @@ function earlierVersions(row: DocumentPlanRow): Array<IssuedDocument> {
   return issuedVersionsFor(row, issued.value).filter(document => document.id !== row.document_id)
 }
 
+function rowKey(row: DocumentPlanRow): string {
+  return `${row.kind}-${String(row.payment_id ?? row.reminder_days ?? 0)}`
+}
+
 function openPreview(row: DocumentPlanRow): void {
   preview.value = previewTargetFor(row)
   previewOpen.value = true
+}
+
+async function downloadRow(row: DocumentPlanRow): Promise<void> {
+  const target = previewTargetFor(row)
+
+  if (target.filePath === null) {
+    return
+  }
+
+  const key = rowKey(row)
+  downloadingKey.value = key
+
+  try {
+    await downloadDocumentFile(target.filePath, target.fileName)
+  } catch (caught: unknown) {
+    toast.add({
+      title: caught instanceof Error ? caught.message : t('bookings.docDownloadFailed')
+    })
+  } finally {
+    if (downloadingKey.value === key) {
+      downloadingKey.value = null
+    }
+  }
 }
 
 function openIssuedPreview(document: IssuedDocument): void {
@@ -249,7 +278,7 @@ const resendBody = computed(() => {
           <th>{{ t('bookings.docColTrigger') }}</th>
           <th>{{ t('bookings.docColDate') }}</th>
           <th>{{ t('bookings.docColStatus') }}</th>
-          <th />
+          <th class="doc-acts-cell" />
         </tr>
       </thead>
       <tbody>
@@ -320,31 +349,50 @@ const resendBody = computed(() => {
               :class="documentStatusPillClass(row.status)"
             >{{ row.status }}</span>
           </td>
-          <td>
-            <button
-              v-if="documentRowActions(row).preview"
-              type="button"
-              class="mini"
-              @click="openPreview(row)"
-            >
-              {{ t('bookings.docPreview') }}
-            </button>
-            <button
-              v-if="documentRowActions(row).resend"
-              type="button"
-              class="mini"
-              @click="startResend(row)"
-            >
-              {{ t('bookings.docResend') }}
-            </button>
-            <button
-              v-if="documentRowActions(row).issue"
-              type="button"
-              class="mini"
-              @click="startIssue(row)"
-            >
-              {{ row.version === null ? t('bookings.docIssue') : t('bookings.docReissue') }}
-            </button>
+          <td class="doc-acts-cell">
+            <div class="doc-acts">
+              <button
+                v-if="documentRowActions(row).preview"
+                type="button"
+                class="mini doc-icon"
+                :aria-label="t('bookings.docPreview')"
+                :title="t('bookings.docPreview')"
+                @click="openPreview(row)"
+              >
+                <UIcon name="i-lucide-eye" />
+              </button>
+              <button
+                v-if="documentRowActions(row).preview"
+                type="button"
+                class="mini doc-icon"
+                :aria-label="t('bookings.docDownload')"
+                :title="t('bookings.docDownload')"
+                :disabled="downloadingKey === rowKey(row)"
+                @click="downloadRow(row)"
+              >
+                <UIcon name="i-lucide-download" />
+              </button>
+              <button
+                v-if="documentRowActions(row).resend"
+                type="button"
+                class="mini doc-icon"
+                :aria-label="t('bookings.docResend')"
+                :title="t('bookings.docResend')"
+                @click="startResend(row)"
+              >
+                <UIcon name="i-lucide-send" />
+              </button>
+              <button
+                v-if="documentRowActions(row).issue"
+                type="button"
+                class="mini doc-icon"
+                :aria-label="row.version === null ? t('bookings.docIssue') : t('bookings.docReissue')"
+                :title="row.version === null ? t('bookings.docIssue') : t('bookings.docReissue')"
+                @click="startIssue(row)"
+              >
+                <UIcon :name="row.version === null ? 'i-lucide-file-plus' : 'i-lucide-refresh-cw'" />
+              </button>
+            </div>
           </td>
         </tr>
       </tbody>

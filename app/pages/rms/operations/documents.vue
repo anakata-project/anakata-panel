@@ -16,6 +16,7 @@ import {
   previewTargetFor,
   type DocumentPreviewTarget
 } from '../../../components/documents/documentHelpers'
+import { downloadDocumentFile } from '../../../components/documents/documentFetch'
 import { firstApiMessage } from '../../../utils/apiForm'
 
 type ClientDocumentsPayload = Paginated<ClientDocumentRow> & {
@@ -51,6 +52,7 @@ const selected = ref<Booking | null>(null)
 
 const previewOpen = ref(false)
 const preview = ref<DocumentPreviewTarget | null>(null)
+const downloadingKey = ref<string | null>(null)
 
 const resendOpen = ref(false)
 const resendRow = ref<ClientDocumentRow | null>(null)
@@ -136,6 +138,30 @@ function openPreview(row: ClientDocumentRow, event: Event): void {
   event.stopPropagation()
   preview.value = previewTargetFor(row)
   previewOpen.value = true
+}
+
+async function downloadRow(row: ClientDocumentRow, event: Event): Promise<void> {
+  event.stopPropagation()
+  const target = previewTargetFor(row)
+
+  if (target.filePath === null) {
+    return
+  }
+
+  const key = rowKey(row)
+  downloadingKey.value = key
+
+  try {
+    await downloadDocumentFile(target.filePath, target.fileName)
+  } catch (caught: unknown) {
+    toast.add({
+      title: caught instanceof Error ? caught.message : t('bookings.docDownloadFailed')
+    })
+  } finally {
+    if (downloadingKey.value === key) {
+      downloadingKey.value = null
+    }
+  }
 }
 
 function startResend(row: ClientDocumentRow, event: Event): void {
@@ -319,25 +345,42 @@ async function onPanelUpdated(): Promise<void> {
                 >{{ row.status }}</span>
               </td>
               <td
-                class="list-actions"
+                class="list-actions doc-acts-cell"
                 @click.stop
               >
-                <button
-                  v-if="documentRowActions(row).preview"
-                  type="button"
-                  class="mini"
-                  @click="openPreview(row, $event)"
-                >
-                  {{ t('bookings.docPreview') }}
-                </button>
-                <button
-                  v-if="documentRowActions(row).resend"
-                  type="button"
-                  class="mini"
-                  @click="startResend(row, $event)"
-                >
-                  {{ t('bookings.docResend') }}
-                </button>
+                <div class="doc-acts">
+                  <button
+                    v-if="documentRowActions(row).preview"
+                    type="button"
+                    class="mini doc-icon"
+                    :aria-label="t('bookings.docPreview')"
+                    :title="t('bookings.docPreview')"
+                    @click="openPreview(row, $event)"
+                  >
+                    <UIcon name="i-lucide-eye" />
+                  </button>
+                  <button
+                    v-if="documentRowActions(row).preview"
+                    type="button"
+                    class="mini doc-icon"
+                    :aria-label="t('bookings.docDownload')"
+                    :title="t('bookings.docDownload')"
+                    :disabled="downloadingKey === rowKey(row)"
+                    @click="downloadRow(row, $event)"
+                  >
+                    <UIcon name="i-lucide-download" />
+                  </button>
+                  <button
+                    v-if="documentRowActions(row).resend"
+                    type="button"
+                    class="mini doc-icon"
+                    :aria-label="t('bookings.docResend')"
+                    :title="t('bookings.docResend')"
+                    @click="startResend(row, $event)"
+                  >
+                    <UIcon name="i-lucide-send" />
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>

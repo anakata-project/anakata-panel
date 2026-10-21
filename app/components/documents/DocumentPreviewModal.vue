@@ -72,7 +72,7 @@ async function downloadPdf(): Promise<void> {
 <template>
   <UModal
     :open="open"
-    class="doc-modal"
+    :ui="{ content: 'doc-modal w-[920px] max-w-[96vw] max-h-[92vh] overflow-hidden p-0 rounded-none shadow-none bg-(--forest) ring ring-(--hair)' }"
     @update:open="open = $event"
   >
     <template #content>
@@ -81,27 +81,33 @@ async function downloadPdf(): Promise<void> {
           <h2>{{ title }}</h2>
           <div class="docbar-acts">
             <UButton
+              icon="i-lucide-printer"
               variant="outline"
+              size="sm"
+              :aria-label="t('bookings.docPrint')"
+              :title="t('bookings.docPrint')"
               :disabled="html === '' || loading"
               @click="printDocument"
-            >
-              {{ t('bookings.docPrint') }}
-            </UButton>
+            />
             <UButton
               v-if="filePath !== null"
+              icon="i-lucide-download"
               variant="outline"
+              size="sm"
+              :aria-label="t('bookings.docDownload')"
+              :title="t('bookings.docDownload')"
               :loading="downloading"
               :disabled="downloading"
               @click="downloadPdf"
-            >
-              {{ t('bookings.docDownload') }}
-            </UButton>
+            />
             <UButton
+              icon="i-lucide-x"
               variant="outline"
+              size="sm"
+              :aria-label="t('bookings.close')"
+              :title="t('bookings.close')"
               @click="open = false"
-            >
-              {{ t('bookings.close') }}
-            </UButton>
+            />
           </div>
         </div>
         <p
@@ -116,14 +122,18 @@ async function downloadPdf(): Promise<void> {
         >
           {{ error }}
         </div>
-        <iframe
+        <div
           v-else-if="html !== ''"
-          ref="iframe"
-          class="doc-frame"
-          sandbox="allow-same-origin allow-modals"
-          :srcdoc="html"
-          title="document"
-        />
+          class="doc-stage"
+        >
+          <iframe
+            ref="iframe"
+            class="doc-frame"
+            sandbox="allow-same-origin allow-modals"
+            :srcdoc="html"
+            title="document"
+          />
+        </div>
       </div>
     </template>
   </UModal>

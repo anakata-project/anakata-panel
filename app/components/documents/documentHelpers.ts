@@ -16,14 +16,16 @@ export type DocumentPreviewTarget = {
 export function previewTargetFor(
   row: Pick<DocumentPlanRow, 'booking_id' | 'kind' | 'name' | 'document_id' | 'payment_id' | 'version'>
 ): DocumentPreviewTarget {
-  if (row.document_id !== null) {
-    const version = row.version ?? 1
+  const fileName = row.version === null
+    ? `${row.kind}.pdf`
+    : `${row.kind}-v${String(row.version)}.pdf`
 
+  if (row.document_id !== null) {
     return {
       title: row.name,
       htmlPath: `/api/rms/documents/${String(row.document_id)}/html`,
       filePath: `/api/rms/documents/${String(row.document_id)}/file`,
-      fileName: `${row.kind}-v${String(version)}.pdf`
+      fileName
     }
   }
 
@@ -31,16 +33,16 @@ export function previewTargetFor(
     return {
       title: row.name,
       htmlPath: `/api/rms/bookings/${String(row.booking_id)}/receipts/${String(row.payment_id)}/html`,
-      filePath: null,
-      fileName: ''
+      filePath: `/api/rms/bookings/${String(row.booking_id)}/receipts/${String(row.payment_id)}/file`,
+      fileName
     }
   }
 
   return {
     title: row.name,
     htmlPath: `/api/rms/bookings/${String(row.booking_id)}/documents/${row.kind}/html`,
-    filePath: null,
-    fileName: ''
+    filePath: `/api/rms/bookings/${String(row.booking_id)}/documents/${row.kind}/file`,
+    fileName
   }
 }
 

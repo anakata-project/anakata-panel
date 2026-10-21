@@ -519,9 +519,51 @@ html.light .slat.bad {
 }
 
 .docbox {
-  width: 920px;
-  max-width: 96vw;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
   padding: 22px 26px;
+  display: flex;
+  flex-direction: column;
+  max-height: 92vh;
+}
+
+.doc-acts {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+}
+
+td.doc-acts-cell,
+th.doc-acts-cell {
+  width: 1%;
+  white-space: nowrap;
+  vertical-align: middle;
+  text-align: right;
+}
+
+button.mini.doc-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  margin: 0;
+  padding: 0;
+  font-size: 18px;
+}
+
+button.mini.doc-icon:disabled {
+  opacity: 0.45;
+}
+
+button.mini.doc-icon .iconify,
+.doc-icon svg {
+  width: 18px;
+  height: 18px;
 }
 
 .docbar {
@@ -530,22 +572,34 @@ html.light .slat.bad {
   align-items: center;
   gap: 12px;
   margin-bottom: 14px;
-  flex-wrap: wrap;
+  flex: none;
 }
 
 .docbar h2 {
   margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .docbar-acts {
   display: flex;
   gap: 8px;
-  flex-wrap: wrap;
+  flex: none;
+}
+
+.doc-stage {
+  overflow: auto;
+  max-height: 72vh;
+  border: 1px solid var(--hair);
+  background: var(--forest-950);
 }
 
 .doc-frame {
+  display: block;
   width: 100%;
-  min-height: 70vh;
-  border: 1px solid var(--hair);
-  background: #FAF9F0;
+  height: 72vh;
+  border: 0;
+  background: #E4E1D2;
 }

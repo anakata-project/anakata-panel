@@ -106,8 +106,8 @@ describe('documentHelpers', () => {
     })).toEqual({
       title: 'Payment confirmation — Deposit',
       htmlPath: '/api/rms/bookings/9/receipts/40/html',
-      filePath: null,
-      fileName: ''
+      filePath: '/api/rms/bookings/9/receipts/40/file',
+      fileName: 'RECEIPT.pdf'
     })
 
     expect(previewTargetFor({
@@ -120,8 +120,8 @@ describe('documentHelpers', () => {
     })).toEqual({
       title: 'Booking Summary (guest version)',
       htmlPath: '/api/rms/bookings/9/documents/SUMMARY/html',
-      filePath: null,
-      fileName: ''
+      filePath: '/api/rms/bookings/9/documents/SUMMARY/file',
+      fileName: 'SUMMARY.pdf'
     })
   })
 })

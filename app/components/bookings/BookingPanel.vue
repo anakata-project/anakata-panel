@@ -545,7 +545,7 @@ async function onPaymentsUpdated(booking?: Booking): Promise<void> {
 <template>
   <USlideover
     :open="open"
-    class="history-drawer"
+    class="history-drawer w-[1080px] max-w-[96vw]"
     @update:open="onUpdateOpen"
   >
     <template #header>
